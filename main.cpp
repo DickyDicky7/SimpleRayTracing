@@ -64,9 +64,9 @@ struct vec3
     }
 
     double length        () const { return std::sqrt(length_squared()); }
-    double length_squared() const { return std::pow (x , 2)
-                                         + std::pow (y , 2)
-                                         + std::pow (z , 2)           ; }
+    double length_squared() const { return x * x
+                                         + y * y
+                                         + z * z                      ; }
 };
 
 
@@ -145,65 +145,121 @@ return vec3 {
             };
 }
 
-
-
-struct RayHitSphereResult
+struct sphere
 {
-    double minT; bool hitted;
-//  double minT; bool hitted;
+    point3 center;
+    double radius;
 };
 
 
-static RayHitSphereResult RayHitSphere(const point3& sphereCenter
-                                      ,      double  sphereRadius
-                                      ,const ray   & ray
-                                      )
+struct rayHitResult
 {
-    const vec3& fromSphereCenterToRayOrigin = sphereCenter - ray.ori;
-//  const vec3& fromSphereCenterToRayOrigin = sphereCenter - ray.ori;
-    const double& a = dot(ray.dir, ray.dir);
-//  const double& a = dot(ray.dir, ray.dir);
-    const double& b = -2.0 * dot(ray.dir, fromSphereCenterToRayOrigin);
-//  const double& b = -2.0 * dot(ray.dir, fromSphereCenterToRayOrigin);
-    const double& c = dot(fromSphereCenterToRayOrigin, fromSphereCenterToRayOrigin) - std::pow(sphereRadius, 2.0);
-//  const double& c = dot(fromSphereCenterToRayOrigin, fromSphereCenterToRayOrigin) - std::pow(sphereRadius, 2.0);
-    const double& discriminant = std::pow(b, 2.0) - 4.0 * a * c;
-//  const double& discriminant = std::pow(b, 2.0) - 4.0 * a * c;
-    RayHitSphereResult
-    rayHitSphereResult {};
-    rayHitSphereResult.hitted = discriminant >= 0.0;
+    point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
+//  point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
+
+    void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
+//  void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
+    {
+            isFrontFace = dot(ray.dir, outwardNormal) < 0;
+        if (isFrontFace)
+        {
+            normal =  outwardNormal;
+        }
+        else
+        {
+            normal = -outwardNormal;
+        }
+    }
+};
+
+
+
+
+
+
+
+static rayHitResult RayHit(const sphere& sphere
+                          ,const ray   & ray
+                          ,      double  rayMinT
+                          ,      double  rayMaxT
+                          )
+{
+    const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
+//  const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
+    const double& a = ray.dir.length_squared();
+//  const double& a = ray.dir.length_squared();
+    const double& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+//  const double& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+    const double& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
+//  const double& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
+    const double& discriminant = h * h - a * c;
+//  const double& discriminant = h * h - a * c;
+    rayHitResult
+    rayHitResult {};
+//  rayHitResult.hitted = discriminant >= 0.0;
+//  rayHitResult.hitted = discriminant >= 0.0;
     if (discriminant < 0)
     {
-        rayHitSphereResult.minT = -1.0;
-//      rayHitSphereResult.minT = -1.0;
+        rayHitResult.hitted = false;
+//      rayHitResult.hitted = false;
     }
     else
     {
-        rayHitSphereResult.minT = (-b - std::sqrt(discriminant)) / (2.0 * a);
-//      rayHitSphereResult.minT = (-b - std::sqrt(discriminant)) / (2.0 * a);
+        double sqrtDiscriminant = std::sqrt(discriminant);
+//      double sqrtDiscriminant = std::sqrt(discriminant);
+
+        double t = (h - sqrtDiscriminant) / a;
+//      double t = (h - sqrtDiscriminant) / a;
+
+        if (t <= rayMinT
+        ||  t >= rayMaxT)
+        {
+            t = (h + sqrtDiscriminant) / a;
+//          t = (h + sqrtDiscriminant) / a;
+
+            if (t <= rayMinT
+            ||  t >= rayMaxT)
+            {
+                rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
+                return rayHitResult;
+//              return rayHitResult;
+            }
+        }
+
+        rayHitResult.hitted = true;
+//      rayHitResult.hitted = true;
+
+        rayHitResult.minT = t;
+//      rayHitResult.minT = t;
+
+        rayHitResult.at = ray.Marching(rayHitResult.minT);
+//      rayHitResult.at = ray.Marching(rayHitResult.minT);
+
+        const vec3& outwardNormal = (rayHitResult.at - sphere.center) / sphere.radius;
+//      const vec3& outwardNormal = (rayHitResult.at - sphere.center) / sphere.radius;
+
+        rayHitResult.SetFaceNormal(ray, outwardNormal);
+//      rayHitResult.SetFaceNormal(ray, outwardNormal);
     }
     
-    return rayHitSphereResult;
-//  return rayHitSphereResult;
+    return rayHitResult;
+//  return rayHitResult;
 }
 
 
 
 static color3 RayColor(const ray& ray)
 {
-    point3 sphereCenter { 0.0, 0.0, -1.0 };
-//  point3 sphereCenter { 0.0, 0.0, -1.0 };
-    double sphereRadius =            0.5  ;
-//  double sphereRadius =            0.5  ;
-    const RayHitSphereResult& rayHitSphereResult = RayHitSphere(sphereCenter , sphereRadius , ray);
-//  const RayHitSphereResult& rayHitSphereResult = RayHitSphere(sphereCenter , sphereRadius , ray);
-    if (rayHitSphereResult.hitted)
-//  if (rayHitSphereResult.hitted)
+    sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
+//  sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
+    const rayHitResult& rayHitResult = RayHit(sphere, ray, -10.0, +10.0);
+//  const rayHitResult& rayHitResult = RayHit(sphere, ray, -10.0, +10.0);
+    if (rayHitResult.hitted)
+//  if (rayHitResult.hitted)
     {
-        const vec3& normal = normalize(ray.Marching(rayHitSphereResult.minT) - sphereCenter);
-//      const vec3& normal = normalize(ray.Marching(rayHitSphereResult.minT) - sphereCenter);
-        return color3 { normal.x + 1.0, normal.y + 1.0, normal.z + 1.0, } * 0.5;
-//      return color3 { normal.x + 1.0, normal.y + 1.0, normal.z + 1.0, } * 0.5;
+        return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
     }
 
     const vec3& normalizedRayDirection = normalize(ray.dir);
