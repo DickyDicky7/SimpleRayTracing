@@ -249,6 +249,29 @@ static rayHitResult RayHit(const sphere& sphere
 
 
 
+static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, double rayMinT, double rayMaxT)
+{
+    rayHitResult finalRayHitResult{};
+//  rayHitResult finalRayHitResult{};
+    double closestTSoFar = rayMaxT;
+//  double closestTSoFar = rayMaxT;
+    for (const sphere& sphere : spheres)
+//  for (const sphere& sphere : spheres)
+    {
+        rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, rayMinT, closestTSoFar));
+//      rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, rayMinT, closestTSoFar));
+        if (temporaryRayHitResult.hitted)
+        {
+            finalRayHitResult = std::move(temporaryRayHitResult);
+//          finalRayHitResult = std::move(temporaryRayHitResult);
+            closestTSoFar = finalRayHitResult.minT;
+//          closestTSoFar = finalRayHitResult.minT;
+        }
+    }
+    return finalRayHitResult;
+//  return finalRayHitResult;
+}
+
 static color3 RayColor(const ray& ray)
 {
     sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
@@ -273,6 +296,27 @@ static color3 RayColor(const ray& ray)
 
 
 
+    constexpr double positiveInfinity = std::numeric_limits<double>::infinity();
+//  constexpr double positiveInfinity = std::numeric_limits<double>::infinity();
+static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres)
+{
+    const rayHitResult& rayHitResult = RayHit(spheres, ray, -1.0, positiveInfinity);
+//  const rayHitResult& rayHitResult = RayHit(spheres, ray, -1.0, positiveInfinity);
+    if (rayHitResult.hitted)
+//  if (rayHitResult.hitted)
+    {
+        return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+    }
+
+    const vec3& normalizedRayDirection = normalize(ray.dir);
+//  const vec3& normalizedRayDirection = normalize(ray.dir);
+    const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
+//  const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
+    return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
+//  return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
+}
+
 int main()
 {
 //  ThreadPool threadPool;
@@ -280,6 +324,10 @@ int main()
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
+
+    std::vector<sphere> spheres;
+    spheres.emplace_back(sphere{ {  000.000,  000.000, -001.000 }, 000.500 });
+    spheres.emplace_back(sphere{ {  000.000, -100.500, -001.000 }, 100.000 });
 
     double aspectRatio = 16.0 / 9.0;
     int imgW = 400     ;
@@ -346,9 +394,12 @@ int main()
 //      color3 pixelColor { r, g, b, };
 //      color3 pixelColor { r, g, b, };
 
-        color3 pixelColor = RayColor(ray);
+//      color3 pixelColor = RayColor(ray);
 //      color3 pixelColor = RayColor(ray);
         
+        color3 pixelColor = RayColor(ray, spheres);
+//      color3 pixelColor = RayColor(ray, spheres);
+
         int ir = int(255.999 * pixelColor.x);
         int ig = int(255.999 * pixelColor.y);
         int ib = int(255.999 * pixelColor.z);
