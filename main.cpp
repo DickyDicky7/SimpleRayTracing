@@ -7,6 +7,58 @@
 #include <iomanip>
 #include "ThreadPool.h"
 #include <chrono>
+#include <random>
+
+    constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
+//  constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
+    constexpr double negativeInfinity = -std::numeric_limits<double>::infinity();
+//  constexpr double negativeInfinity = -std::numeric_limits<double>::infinity();
+
+inline double Random()
+{
+    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+//  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    static std::mt19937 generator ;
+//  static std::mt19937 generator ;
+    return distribution(generator);
+//  return distribution(generator);
+}
+
+inline double Random(double min, double max)
+{
+    return min + (max - min) * Random();
+//  return min + (max - min) * Random();
+}
+
+
+struct interval
+{
+    double min = positiveInfinity;
+    double max = negativeInfinity;
+
+    static const interval empty;
+//  static const interval empty;
+    static const interval universe;
+//  static const interval universe;
+
+    bool Contains (double x) const { return min <= x && x <= max; }
+//  bool Contains (double x) const { return min <= x && x <= max; }
+    bool Surrounds(double x) const { return min <  x && x <  max; }
+//  bool Surrounds(double x) const { return min <  x && x <  max; }
+
+    double Clamp(double x) const
+    {
+        if (x < min) return min;
+        if (x > max) return max;
+        return x;
+    }
+};
+
+    const interval interval::empty    { positiveInfinity, negativeInfinity };
+//  const interval interval::empty    { positiveInfinity, negativeInfinity };
+    const interval interval::universe { negativeInfinity, positiveInfinity };
+//  const interval interval::universe { negativeInfinity, positiveInfinity };
+
 
 static std::string GetCurrentDateTime() {
        std::time_t t = std::time(nullptr); std::tm tm = *std::localtime(&t); char buffer[30]; std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S.ppm", &tm); return std::string(buffer);
@@ -180,8 +232,8 @@ struct rayHitResult
 
 static rayHitResult RayHit(const sphere& sphere
                           ,const ray   & ray
-                          ,      double  rayMinT
-                          ,      double  rayMaxT
+                          ,const interval&& rayT
+//                        ,const interval&& rayT
                           )
 {
     const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
@@ -211,14 +263,14 @@ static rayHitResult RayHit(const sphere& sphere
         double t = (h - sqrtDiscriminant) / a;
 //      double t = (h - sqrtDiscriminant) / a;
 
-        if (t <= rayMinT
-        ||  t >= rayMaxT)
+        if (!rayT.Surrounds(t))
+//      if (!rayT.Surrounds(t))
         {
             t = (h + sqrtDiscriminant) / a;
 //          t = (h + sqrtDiscriminant) / a;
 
-            if (t <= rayMinT
-            ||  t >= rayMaxT)
+            if (!rayT.Surrounds(t))
+//          if (!rayT.Surrounds(t))
             {
                 rayHitResult.hitted = false;
 //              rayHitResult.hitted = false;
@@ -249,17 +301,17 @@ static rayHitResult RayHit(const sphere& sphere
 
 
 
-static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, double rayMinT, double rayMaxT)
+static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval&& rayT)
 {
     rayHitResult finalRayHitResult{};
 //  rayHitResult finalRayHitResult{};
-    double closestTSoFar = rayMaxT;
-//  double closestTSoFar = rayMaxT;
+    double closestTSoFar = rayT.max;
+//  double closestTSoFar = rayT.max;
     for (const sphere& sphere : spheres)
 //  for (const sphere& sphere : spheres)
     {
-        rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, rayMinT, closestTSoFar));
-//      rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, rayMinT, closestTSoFar));
+        rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, interval { rayT.min, closestTSoFar }));
+//      rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, interval { rayT.min, closestTSoFar }));
         if (temporaryRayHitResult.hitted)
         {
             finalRayHitResult = std::move(temporaryRayHitResult);
@@ -276,8 +328,8 @@ static color3 RayColor(const ray& ray)
 {
     sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
 //  sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
-    const rayHitResult& rayHitResult = RayHit(sphere, ray, -10.0, +10.0);
-//  const rayHitResult& rayHitResult = RayHit(sphere, ray, -10.0, +10.0);
+    const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { -10.0, +10.0 });
+//  const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { -10.0, +10.0 });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
@@ -296,12 +348,11 @@ static color3 RayColor(const ray& ray)
 
 
 
-    constexpr double positiveInfinity = std::numeric_limits<double>::infinity();
-//  constexpr double positiveInfinity = std::numeric_limits<double>::infinity();
+
 static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres)
 {
-    const rayHitResult& rayHitResult = RayHit(spheres, ray, -1.0, positiveInfinity);
-//  const rayHitResult& rayHitResult = RayHit(spheres, ray, -1.0, positiveInfinity);
+    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
+//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
@@ -321,6 +372,9 @@ int main()
 {
 //  ThreadPool threadPool;
 //  ThreadPool threadPool;
+
+    int                              samplesPerPixel = 100;
+    double pixelSamplesScale = 1.0 / samplesPerPixel      ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
@@ -381,12 +435,13 @@ int main()
 #endif
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
     {
-        point3 pixelCenter = pixel00Coord + fromPixelToPixelDeltaU * pixelX + fromPixelToPixelDeltaV * pixelY;
+
 //      point3 pixelCenter = pixel00Coord + fromPixelToPixelDeltaU * pixelX + fromPixelToPixelDeltaV * pixelY;
-        vec3 rayDirection = pixelCenter - cameraCenter;
+//      point3 pixelCenter = pixel00Coord + fromPixelToPixelDeltaU * pixelX + fromPixelToPixelDeltaV * pixelY;
 //      vec3 rayDirection = pixelCenter - cameraCenter;
-        ray  ray  { pixelCenter, rayDirection };
-//      ray  ray  { pixelCenter, rayDirection };
+//      vec3 rayDirection = pixelCenter - cameraCenter;
+//      ray  ray  { cameraCenter, rayDirection };
+//      ray  ray  { cameraCenter, rayDirection };
 
 //      double r = double(pixelX) / (imgW - 1);
 //      double g = double(pixelY) / (imgH - 1);
@@ -397,12 +452,31 @@ int main()
 //      color3 pixelColor = RayColor(ray);
 //      color3 pixelColor = RayColor(ray);
         
-        color3 pixelColor = RayColor(ray, spheres);
+//      color3 pixelColor = RayColor(ray, spheres);
 //      color3 pixelColor = RayColor(ray, spheres);
 
-        int ir = int(255.999 * pixelColor.x);
-        int ig = int(255.999 * pixelColor.y);
-        int ib = int(255.999 * pixelColor.z);
+        color3 pixelColor{};
+//      color3 pixelColor{};
+        for (int sample = 0; sample < samplesPerPixel; ++sample)
+        {
+            vec3 sampleOffset{ Random() - 0.5, Random() - 0.5, 0.0 };
+//          vec3 sampleOffset{ Random() - 0.5, Random() - 0.5, 0.0 };
+            point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
+//          point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
+            vec3 rayDirection = pixelSampleCenter - cameraCenter;
+//          vec3 rayDirection = pixelSampleCenter - cameraCenter;
+            ray  ray{ cameraCenter, rayDirection };
+//          ray  ray{ cameraCenter, rayDirection };
+            pixelColor += RayColor(ray, spheres);
+//          pixelColor += RayColor(ray, spheres);
+        }
+        pixelColor *= pixelSamplesScale;
+//      pixelColor *= pixelSamplesScale;
+
+        static const interval intensity { 0.000 , 0.999 };
+        int ir = int(256 * intensity.Clamp(pixelColor.x));
+        int ig = int(256 * intensity.Clamp(pixelColor.y));
+        int ib = int(256 * intensity.Clamp(pixelColor.z));
         
         PPMFile << std::setw(3) << ir << " ";
         PPMFile << std::setw(3) << ig << " ";
