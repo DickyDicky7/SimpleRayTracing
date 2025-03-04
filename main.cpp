@@ -172,6 +172,41 @@ struct ray
 
 
 
+    static vec3 GenRandom(                      ) { return vec3 { Random(        ), Random(        ), Random(        ) }; }
+    static vec3 GenRandom(double min, double max) { return vec3 { Random(min, max), Random(min, max), Random(min, max) }; }
+	static vec3 GenRandomUnitVector()
+//  static vec3 GenRandomUnitVector()
+	{
+		while (true)
+		{
+			const vec3& p = GenRandom(-1.0, +1.0);
+//          const vec3& p = GenRandom(-1.0, +1.0);
+			const double& pLengthSquared = p.length_squared();
+//          const double& pLengthSquared = p.length_squared();
+			if (pLengthSquared <= 1
+		    &&  pLengthSquared >  1e-160)
+			{
+				return p / std::sqrt(pLengthSquared);
+			}
+		}
+	}
+    static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
+//  static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
+    {
+        const vec3& randomUnitVector = GenRandomUnitVector();
+//      const vec3& randomUnitVector = GenRandomUnitVector();
+        if (dot(randomUnitVector, normal) > 0.0)
+//      if (dot(randomUnitVector, normal) > 0.0)
+        {
+            return  randomUnitVector;
+        }
+        else
+        {
+            return -randomUnitVector;
+        }
+    }
+
+
 
 
 
@@ -356,7 +391,9 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres)
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
-        return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+        return 0.5 * RayColor({ rayHitResult.at, GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres);
+//      return 0.5 * RayColor({ rayHitResult.at, GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres);
+//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
 //      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
     }
 
@@ -373,8 +410,8 @@ int main()
 //  ThreadPool threadPool;
 //  ThreadPool threadPool;
 
-    int                              samplesPerPixel = 100;
-    double pixelSamplesScale = 1.0 / samplesPerPixel      ;
+    int                              samplesPerPixel = 1000;
+    double pixelSamplesScale = 1.0 / samplesPerPixel       ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
