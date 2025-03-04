@@ -9,6 +9,9 @@
 #include <chrono>
 #include <random>
 
+inline double LinearSpaceToGammasSpace(double linearSpaceComponent) { if    (linearSpaceComponent > 0) { return std::sqrt(linearSpaceComponent); } return 0.0; }
+inline double GammasSpaceToLinearSpace(double gammasSpaceComponent) { return gammasSpaceComponent *                       gammasSpaceComponent ;               }
+
     constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
 //  constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
     constexpr double negativeInfinity = -std::numeric_limits<double>::infinity();
@@ -384,15 +387,20 @@ static color3 RayColor(const ray& ray)
 
 
 
-static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres)
+static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int recursiveDepth = 50)
 {
+    if (recursiveDepth <= 0)
+    {
+        return color3 {};
+//      return color3 {};
+    }
     const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
 //  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
-        return 0.5 * RayColor({ rayHitResult.at, GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres);
-//      return 0.5 * RayColor({ rayHitResult.at, GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres);
+        return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
+//      return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
 //      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
 //      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
     }
@@ -511,9 +519,9 @@ int main()
 //      pixelColor *= pixelSamplesScale;
 
         static const interval intensity { 0.000 , 0.999 };
-        int ir = int(256 * intensity.Clamp(pixelColor.x));
-        int ig = int(256 * intensity.Clamp(pixelColor.y));
-        int ib = int(256 * intensity.Clamp(pixelColor.z));
+        int ir = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.x)));
+        int ig = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.y)));
+        int ib = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.z)));
         
         PPMFile << std::setw(3) << ir << " ";
         PPMFile << std::setw(3) << ig << " ";
