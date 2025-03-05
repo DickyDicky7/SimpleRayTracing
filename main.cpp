@@ -122,6 +122,16 @@ struct vec3
     double length_squared() const { return x * x
                                          + y * y
                                          + z * z                      ; }
+
+    bool NearZero() const
+    {
+        // Return true if the vector is close to zero in all dimensions.
+        // Return true if the vector is close to zero in all dimensions.
+        double s = 1e-8;
+//      double s = 1e-8;
+        return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
+//      return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
+    }
 };
 
 
@@ -175,24 +185,25 @@ struct ray
 
 
 
+
     static vec3 GenRandom(                      ) { return vec3 { Random(        ), Random(        ), Random(        ) }; }
     static vec3 GenRandom(double min, double max) { return vec3 { Random(min, max), Random(min, max), Random(min, max) }; }
-	static vec3 GenRandomUnitVector()
+    static vec3 GenRandomUnitVector()
 //  static vec3 GenRandomUnitVector()
-	{
-		while (true)
-		{
-			const vec3& p = GenRandom(-1.0, +1.0);
+    {
+        while (true)
+        {
+            const vec3& p = GenRandom(-1.0, +1.0);
 //          const vec3& p = GenRandom(-1.0, +1.0);
-			const double& pLengthSquared = p.length_squared();
+            const double& pLengthSquared = p.length_squared();
 //          const double& pLengthSquared = p.length_squared();
-			if (pLengthSquared <= 1
-		    &&  pLengthSquared >  1e-160)
-			{
-				return p / std::sqrt(pLengthSquared);
-			}
-		}
-	}
+            if (pLengthSquared <= 1
+            &&  pLengthSquared >  1e-160)
+            {
+                return p / std::sqrt(pLengthSquared);
+            }
+        }
+    }
     static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
 //  static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
     {
@@ -209,7 +220,8 @@ struct ray
         }
     }
 
-
+    inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
+//  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
 
 
 
@@ -235,17 +247,43 @@ return vec3 {
             };
 }
 
+
+enum class materialType : std::uint8_t
+{
+    LambertianDiffuseReflectance = 0,
+//  LambertianDiffuseReflectance = 0,
+    Metal = 1,
+//  Metal = 1,
+};
+
+
+struct material
+{
+    color3 albedo; float scatteredProbability = 1.0; materialType materialType;
+//  color3 albedo; float scatteredProbability = 1.0; materialType materialType;    
+};
+
+struct materialScatteredResult
+{
+    ray scatteredRay; color3 attenuation; bool isScattered;
+//  ray scatteredRay; color3 attenuation; bool isScattered;
+};
+
+
 struct sphere
 {
     point3 center;
     double radius;
+    material material;
+//  material material;
+
 };
 
 
 struct rayHitResult
 {
-    point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
-//  point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
+    material material; point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
+//  material material; point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
 
     void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
 //  void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
@@ -264,6 +302,63 @@ struct rayHitResult
 
 
 
+
+
+static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& rayHitResult)
+{
+    materialScatteredResult materialScatteredResult {};
+//  materialScatteredResult materialScatteredResult {};
+    switch (rayHitResult.material.materialType)
+//  switch (rayHitResult.material.materialType)
+    {
+
+    case materialType::LambertianDiffuseReflectance:
+//  case materialType::LambertianDiffuseReflectance:
+        vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+//      vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+        if (scatteredDirection.NearZero())
+//      if (scatteredDirection.NearZero())
+        {
+            materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+//          materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+        }
+        else
+        {
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+        }
+        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+        materialScatteredResult.isScattered = true;
+//      materialScatteredResult.isScattered = true;
+        break;
+//      break;
+
+    case materialType::Metal:
+//  case materialType::Metal:
+        vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//      vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+        materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+//      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+        materialScatteredResult.isScattered = true;
+//      materialScatteredResult.isScattered = true;
+        break;
+//      break;
+
+    default:
+//  default:
+        break;
+//      break;
+    }
+    return materialScatteredResult;
+//  return materialScatteredResult;
+}
 
 
 
@@ -285,7 +380,7 @@ static rayHitResult RayHit(const sphere& sphere
     const double& discriminant = h * h - a * c;
 //  const double& discriminant = h * h - a * c;
     rayHitResult
-    rayHitResult {};
+    rayHitResult { sphere.material };
 //  rayHitResult.hitted = discriminant >= 0.0;
 //  rayHitResult.hitted = discriminant >= 0.0;
     if (discriminant < 0)
@@ -399,7 +494,19 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
-        return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
+        const materialScatteredResult& materialScatteredResult = Scatter(ray, rayHitResult);
+//      const materialScatteredResult& materialScatteredResult = Scatter(ray, rayHitResult);
+
+        if (!materialScatteredResult.isScattered)
+//      if (!materialScatteredResult.isScattered)
+        {
+            return color3 {};
+//          return color3 {};
+        }
+
+        return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
+//      return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
+//      return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
 //      return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
 //      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
 //      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
@@ -425,8 +532,9 @@ int main()
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{ {  000.000,  000.000, -001.000 }, 000.500 });
-    spheres.emplace_back(sphere{ {  000.000, -100.500, -001.000 }, 100.000 });
+    spheres.emplace_back(sphere{ { +000.600,  000.000, -001.000 }, 000.500, { { 0.0, 1.0, 0.0 }, 1.0, materialType::LambertianDiffuseReflectance } });
+    spheres.emplace_back(sphere{ { -000.600,  000.000, -001.000 }, 000.500, { { 0.3, 0.3, 0.3 }, 1.0, materialType::Metal                        } });
+    spheres.emplace_back(sphere{ {  000.000, -100.500, -001.000 }, 100.000, { { 0.5, 0.5, 0.5 }, 1.0, materialType::LambertianDiffuseReflectance } });
 
     double aspectRatio = 16.0 / 9.0;
     int imgW = 400     ;
