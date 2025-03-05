@@ -489,8 +489,8 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
         return color3 {};
 //      return color3 {};
     }
-    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
-//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.0, positiveInfinity });
+    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.001, positiveInfinity });
+//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { 0.001, positiveInfinity });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
@@ -525,7 +525,7 @@ int main()
 //  ThreadPool threadPool;
 //  ThreadPool threadPool;
 
-    int                              samplesPerPixel = 0100;
+    int                              samplesPerPixel = 1000;
     double pixelSamplesScale = 1.0 / samplesPerPixel       ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
