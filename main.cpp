@@ -525,7 +525,7 @@ int main()
 //  ThreadPool threadPool;
 //  ThreadPool threadPool;
 
-    int                              samplesPerPixel = 1000;
+    int                              samplesPerPixel = 0100;
     double pixelSamplesScale = 1.0 / samplesPerPixel       ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
@@ -533,7 +533,7 @@ int main()
 
     std::vector<sphere> spheres;
     spheres.emplace_back(sphere{ { +000.600,  000.000, -001.000 }, 000.500, { { 0.0, 1.0, 0.0 }, 1.0, materialType::LambertianDiffuseReflectance } });
-    spheres.emplace_back(sphere{ { -000.600,  000.000, -001.000 }, 000.500, { { 0.3, 0.3, 0.3 }, 1.0, materialType::Metal                        } });
+    spheres.emplace_back(sphere{ { -000.600,  000.000, -001.000 }, 000.500, { { 0.8, 0.8, 0.8 }, 1.0, materialType::Metal                        } });
     spheres.emplace_back(sphere{ {  000.000, -100.500, -001.000 }, 100.000, { { 0.5, 0.5, 0.5 }, 1.0, materialType::LambertianDiffuseReflectance } });
 
     double aspectRatio = 16.0 / 9.0;
