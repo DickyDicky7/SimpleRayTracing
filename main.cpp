@@ -223,7 +223,17 @@ struct ray
     inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
 //  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
 
-
+    inline static vec3 Refract(const vec3& incomingVector, const vec3& normal, double ratioOfEtaiOverEtat)
+    {
+        const double& cosTheta = std::fmin(dot(-incomingVector, normal), 1.0);
+//      const double& cosTheta = std::fmin(dot(-incomingVector, normal), 1.0);
+        const vec3& refractedRayPerpendicular = ratioOfEtaiOverEtat * (incomingVector + cosTheta * normal);
+//      const vec3& refractedRayPerpendicular = ratioOfEtaiOverEtat * (incomingVector + cosTheta * normal);
+        const vec3& refractedRayParallel = -std::sqrt(std::fabs(1.0 - refractedRayPerpendicular.length_squared())) * normal;
+//      const vec3& refractedRayParallel = -std::sqrt(std::fabs(1.0 - refractedRayPerpendicular.length_squared())) * normal;
+        return refractedRayPerpendicular + refractedRayParallel;
+//      return refractedRayPerpendicular + refractedRayParallel;
+    }
 
 static double BlendLinear(      double  startValue,       double  ceaseValue,       double  ratio)
 {
@@ -260,13 +270,43 @@ enum class materialType : std::uint8_t
 //  MetalFuzzy1 = 3,
     MetalFuzzy2 = 4,
 //  MetalFuzzy2 = 4,
+    Dielectric  = 5,
+//  Dielectric  = 5,
 };
+
+
+enum class materialDielectric : std::int8_t
+{
+    GLASS = 0,
+//  GLASS = 0,
+    WATER = 1,
+//  WATER = 1,
+    AIR = 2,
+//  AIR = 2,
+    DIAMOND = 3,
+//  DIAMOND = 3,
+    NOTHING = 4,
+//  NOTHING = 4,
+};
+
+
+constexpr static double GetRefractionIndex(materialDielectric materialDielectric)
+{
+    switch (materialDielectric)
+    {
+    case materialDielectric::GLASS  : return 1.500000; break;
+    case materialDielectric::WATER  : return 1.333000; break;
+    case materialDielectric::AIR    : return 1.000293; break;
+    case materialDielectric::DIAMOND: return 2.400000; break;
+                             default: return 0.000000; break;
+    }
+}
 
 
 struct material
 {
-    color3 albedo; double scatteredProbability; double fuzz; materialType materialType;
-//  color3 albedo; double scatteredProbability; double fuzz; materialType materialType;    
+    color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;
+//  color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;    
 };
 
 struct materialScatteredResult
@@ -432,6 +472,48 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
         }
         break;
 //      break;
+
+
+
+    case materialType::Dielectric:
+        {
+        materialScatteredResult.attenuation = color3 { 1.0, 1.0, 1.0 };
+//      materialScatteredResult.attenuation = color3 { 1.0, 1.0, 1.0 };
+        double ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+//      double ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+        if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0 / rayHitResult.material.refractionIndex; }
+//      if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0 / rayHitResult.material.refractionIndex; }
+        vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
+//      vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
+
+        double cosTheta = std::fmin(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0);
+//      double cosTheta = std::fmin(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0);
+        double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
+//      double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
+        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0;
+//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0;
+        vec3 scatteredRayDirection;
+//      vec3 scatteredRayDirection;
+
+        if ( notAbleToRefract )
+        {
+             scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
+//           scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
+        }
+        else
+        {
+             scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
+//           scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
+        }
+
+        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+        materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
+//      materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
+        materialScatteredResult.isScattered = true;
+//      materialScatteredResult.isScattered = true;
+        }
+        break;
 
 
 
@@ -616,9 +698,9 @@ int main()
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{ .center = { +000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.0, 1.0, 0.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .materialType = materialType::LambertianDiffuseReflectance1 } });
-    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .materialType = materialType::Metal                         } });
-    spheres.emplace_back(sphere{ .center = {  000.000, -100.500, -001.000 }, .radius = 100.000, .material = { .albedo = { 0.5, 0.5, 0.5 }, .scatteredProbability = 1.0, .fuzz = 1.0, .materialType = materialType::LambertianDiffuseReflectance1 } });
+    spheres.emplace_back(sphere{ .center = { +000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.0, 1.0, 0.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
+    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::WATER), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = {  000.000, -100.500, -001.000 }, .radius = 100.000, .material = { .albedo = { 0.5, 0.5, 0.5 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
 
     double aspectRatio = 16.0 / 9.0;
     int imgW = 400     ;
