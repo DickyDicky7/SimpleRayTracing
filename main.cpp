@@ -502,8 +502,8 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
 //      double cosTheta = std::fmin(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0);
         double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
 //      double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
-        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0;
-//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0;
+        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0 || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
+//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0 || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
         vec3 scatteredRayDirection;
 //      vec3 scatteredRayDirection;
 
@@ -711,7 +711,9 @@ int main()
 
     std::vector<sphere> spheres;
     spheres.emplace_back(sphere{ .center = { +000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.0, 1.0, 0.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
-    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::WATER), .materialType = materialType::Dielectric                    } });
+//  spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.400, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
     spheres.emplace_back(sphere{ .center = {  000.000, -100.500, -001.000 }, .radius = 100.000, .material = { .albedo = { 0.5, 0.5, 0.5 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
 
     double aspectRatio = 16.0 / 9.0;
