@@ -235,6 +235,18 @@ struct ray
 //      return refractedRayPerpendicular + refractedRayParallel;
     }
 
+    inline static double Reflectance(double cosine, double ratioOfEtaiOverEtat)
+    {
+        // Use Schlick's approximation for reflectance.
+        // Use Schlick's approximation for reflectance.
+        double r0 = (1.0 - ratioOfEtaiOverEtat) / (1.0 + ratioOfEtaiOverEtat);
+//      double r0 = (1.0 - ratioOfEtaiOverEtat) / (1.0 + ratioOfEtaiOverEtat);
+        r0 = r0 * r0;
+//      r0 = r0 * r0;
+        return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
+//      return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
+    }
+
 static double BlendLinear(      double  startValue,       double  ceaseValue,       double  ratio)
 {
 return (1.0 - ratio) * startValue
