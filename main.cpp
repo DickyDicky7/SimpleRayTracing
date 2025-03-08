@@ -7,10 +7,12 @@
 #include <sstream>
 #include <ctime>
 #include <cmath>
+#include <array>
 #include <iomanip>
 #include "ThreadPool.h"
 #include <chrono>
 #include <random>
+#include <vector>
 
 inline double LinearSpaceToGammasSpace(double linearSpaceComponent) { if    (linearSpaceComponent > 0) { return std::sqrt(linearSpaceComponent); } return 0.0; }
 inline double GammasSpaceToLinearSpace(double gammasSpaceComponent) { return gammasSpaceComponent *                       gammasSpaceComponent ;               }
@@ -821,14 +823,29 @@ int main()
     PPMFile << "P3\n" << imgW << " " << imgH << "\n255\n";
 //  PPMFile << "P3\n" << imgW << " " << imgH << "\n255\n";
 
+    constexpr int numberOfChannels = 3; // R G B
+//  constexpr int numberOfChannels = 3; // R G B
+    std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
+//  std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
+    std::vector<std::thread> threads;
+//  std::vector<std::thread> threads;
+
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
 #ifdef _DEBUG
     std::clog << "Progress: " << pixelY << "\n";
 //  std::clog << "Progress: " << pixelY << "\n";
 #endif
+    threads.emplace_back(
+//  threads.emplace_back(
+    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &spheres, &rgbs
+//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &spheres, &rgbs
+    ]
+    {
+
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
     {
+
 
 //      point3 pixelCenter = pixel00Coord + fromPixelToPixelDeltaU * pixelX + fromPixelToPixelDeltaV * pixelY;
 //      point3 pixelCenter = pixel00Coord + fromPixelToPixelDeltaU * pixelX + fromPixelToPixelDeltaV * pixelY;
@@ -875,10 +892,30 @@ int main()
         int ir = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.x)));
         int ig = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.y)));
         int ib = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.z)));
-        
-        PPMFile << std::setw(3) << ir << " ";
-        PPMFile << std::setw(3) << ig << " ";
-        PPMFile << std::setw(3) << ib << " ";
+
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = ir;
+        rgbs[index + 1] = ig;
+        rgbs[index + 2] = ib;
+    }
+    });
+    }
+
+
+    for (std::thread& t : threads) { t.join(); }
+//  for (std::thread& t : threads) { t.join(); }
+
+
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        PPMFile << std::setw(3) << rgbs[index + 0] << " ";
+        PPMFile << std::setw(3) << rgbs[index + 1] << " ";
+        PPMFile << std::setw(3) << rgbs[index + 2] << " ";
     }
         PPMFile << "\n";
     }
@@ -902,3 +939,7 @@ int main()
 // defocus blur = depth of field
 
 
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL
+// OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
+// OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
