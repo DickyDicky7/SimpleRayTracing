@@ -223,6 +223,28 @@ struct ray
         }
     }
     static vec3 GenRandomPointInsideNormalizedDisk()
+    {
+        while (true)
+//      while (true)
+        {
+            point3 point { .x = Random(-1.0 , +1.0), .y = Random(-1.0 , +1.0), .z = 0.0 };
+//          point3 point { .x = Random(-1.0 , +1.0), .y = Random(-1.0 , +1.0), .z = 0.0 };
+            if (point.length_squared() < 1)
+//          if (point.length_squared() < 1)
+            {
+                return point;
+//              return point;
+            }
+        }
+    }
+    static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
+//  static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
+    {
+        point3 randomPointInsideNormalizedDisk = GenRandomPointInsideNormalizedDisk();
+//      point3 randomPointInsideNormalizedDisk = GenRandomPointInsideNormalizedDisk();
+        return diskCenter + randomPointInsideNormalizedDisk.x * defocusDiskRadiusU
+                          + randomPointInsideNormalizedDisk.y * defocusDiskRadiusV;
+    }
 
     inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
 //  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
@@ -736,6 +758,10 @@ int main()
     vec3 cameraV; // y
     vec3 cameraW; // z
 
+    double defocusAngle = 0.0 * M_PI; double focusDistance = 10.0;
+//  double defocusAngle = 0.0 * M_PI; double focusDistance = 10.0;
+    vec3 defocusDiskRadiusU;
+    vec3 defocusDiskRadiusV;
 
 
     double vFOV = M_PI / 8.0;
@@ -750,10 +776,14 @@ int main()
     cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
 //  cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
 
+    double defocusRadius = focusDistance * std::tan(defocusAngle / 2.0);
+//  double defocusRadius = focusDistance * std::tan(defocusAngle / 2.0);
+    defocusDiskRadiusU = cameraU * defocusRadius;
+    defocusDiskRadiusV = cameraV * defocusRadius;
 
 
-    double viewportH = 2.0 * h * focalLength;
-//  double viewportH = 2.0 * h * focalLength;
+    double viewportH = 2.0 * h * /* focalLength */ focusDistance;
+//  double viewportH = 2.0 * h * /* focalLength */ focusDistance;
     double viewportW = viewportH * (double(imgW) / imgH);
 //  double viewportW = viewportH * (double(imgW) / imgH);
 
@@ -780,8 +810,8 @@ int main()
 
 
 
-    point3 viewportTL = cameraCenter - (focalLength * cameraW) - viewportU / 2.0 - viewportV / 2.0;
-//  point3 viewportTL = cameraCenter - (focalLength * cameraW) - viewportU / 2.0 - viewportV / 2.0;
+    point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0 - viewportV / 2.0;
+//  point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0 - viewportV / 2.0;
     point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
 //  point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
 
@@ -829,8 +859,12 @@ int main()
 //          point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
             vec3 rayDirection = pixelSampleCenter - cameraCenter;
 //          vec3 rayDirection = pixelSampleCenter - cameraCenter;
-            ray  ray{ cameraCenter, rayDirection };
-//          ray  ray{ cameraCenter, rayDirection };
+            vec3 rayOrigin = cameraCenter;
+//          vec3 rayOrigin = cameraCenter;
+            if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+//          if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+            ray  ray{ rayOrigin, rayDirection };
+//          ray  ray{ rayOrigin, rayDirection };
             pixelColor += RayColor(ray, spheres);
 //          pixelColor += RayColor(ray, spheres);
         }
@@ -862,5 +896,9 @@ int main()
     return 0       ;
 //  return 0       ;
 }
+
+
+// defocus blur = depth of field
+// defocus blur = depth of field
 
 
