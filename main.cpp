@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <cmath>
 #include <iomanip>
 #include "ThreadPool.h"
 #include <chrono>
@@ -726,24 +727,51 @@ int main()
     imgH = std::max(imgH, 1);
 //  imgH = std::max(imgH, 1);
 
+    const point3 lookFrom { .x = -2.0, .y = +2.0, .z = +1.0 };
+    const point3 lookAt   { .x = +0.0, .y = +0.0, .z = -1.0 };
+    const point3 viewUp   { .x = +0.0, .y = +1.0, .z = +0.0 };
 
-    double viewportH = 2.0;
+    vec3 cameraU; // x
+    vec3 cameraV; // y
+    vec3 cameraW; // z
+
+
+
+    double vFOV = M_PI / 8.0;
+    double hFOV = M_PI / 2.0;
+    double h = std::tan(vFOV / 2.0);
+    double w = std::tan(hFOV / 2.0);
+
+    double focalLength = (lookAt - lookFrom).length();
+//  double focalLength = (lookAt - lookFrom).length();
+
+
+    cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
+//  cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
+
+
+
+    double viewportH = 2.0 * h * focalLength;
+//  double viewportH = 2.0 * h * focalLength;
     double viewportW = viewportH * (double(imgW) / imgH);
 //  double viewportW = viewportH * (double(imgW) / imgH);
-    double focalLength = 1.0;
-//  double focalLength = 1.0;
-    point3 cameraCenter { 0, 0, 0, };
-//  point3 cameraCenter { 0, 0, 0, };
+
+    point3 cameraCenter /* { 0, 0, 0, } */ = lookFrom;
+//  point3 cameraCenter /* { 0, 0, 0, } */ = lookFrom;
 
 
-    vec3 viewportU {};
-    viewportU.x = +viewportW;
-    viewportU.y = 0.0;
-    viewportU.z = 0.0;
-    vec3 viewportV {};
-    viewportV.x = 0.0;
-    viewportV.y = -viewportH;
-    viewportV.z = 0.0;
+
+//  vec3 viewportU {};
+//  viewportU.x = +viewportW;
+//  viewportU.y = 0.0;
+//  viewportU.z = 0.0;
+//  vec3 viewportV {};
+//  viewportV.x = 0.0;
+//  viewportV.y = -viewportH;
+//  viewportV.z = 0.0;
+
+    vec3 viewportU = viewportW *  cameraU;
+    vec3 viewportV = viewportH * -cameraV;
 
 
     vec3 fromPixelToPixelDeltaU = viewportU / imgW;
@@ -751,8 +779,8 @@ int main()
 
 
 
-    point3 viewportTL = cameraCenter - vec3 { 0.0, 0.0, focalLength } - viewportU / 2.0 - viewportV / 2.0;
-//  point3 viewportTL = cameraCenter - vec3 { 0.0, 0.0, focalLength } - viewportU / 2.0 - viewportV / 2.0;
+    point3 viewportTL = cameraCenter - (focalLength * cameraW) - viewportU / 2.0 - viewportV / 2.0;
+//  point3 viewportTL = cameraCenter - (focalLength * cameraW) - viewportU / 2.0 - viewportV / 2.0;
     point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
 //  point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
 
