@@ -1,4 +1,6 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 
 #include <iostream>
 #include <fstream>
