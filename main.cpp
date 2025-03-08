@@ -222,6 +222,7 @@ struct ray
             return -randomUnitVector;
         }
     }
+    static vec3 GenRandomPointInsideNormalizedDisk()
 
     inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
 //  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
