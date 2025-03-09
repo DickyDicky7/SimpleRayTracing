@@ -9,6 +9,7 @@
 #include <cmath>
 #include <array>
 #include <iomanip>
+#include <cstdint>
 #include "ThreadPool.h"
 #include <chrono>
 #include <random>
@@ -24,12 +25,19 @@ inline double GammasSpaceToLinearSpace(double gammasSpaceComponent) { return gam
 
 inline double Random()
 {
-    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-//  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    static std::mt19937 generator ;
-//  static std::mt19937 generator ;
+    thread_local std::uniform_real_distribution<double> distribution(0.0, 1.0);
+//  thread_local std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    thread_local std::mt19937 generator ;
+//  thread_local std::mt19937 generator ;
     return distribution(generator);
 //  return distribution(generator);
+
+//    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+////  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+//    static std::mt19937 generator ;
+////  static std::mt19937 generator ;
+//    return distribution(generator);
+////  return distribution(generator);
 }
 
 inline double Random(double min, double max)
