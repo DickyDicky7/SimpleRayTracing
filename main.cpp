@@ -25,10 +25,10 @@ inline double GammasSpaceToLinearSpace(double gammasSpaceComponent) { return gam
 
 inline double Random()
 {
-    thread_local std::uniform_real_distribution<double> distribution(0.0, 1.0);
-//  thread_local std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    thread_local std::mt19937 generator ;
-//  thread_local std::mt19937 generator ;
+    thread_local static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+//  thread_local static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    thread_local static std::mt19937 generator ;
+//  thread_local static std::mt19937 generator ;
     return distribution(generator);
 //  return distribution(generator);
 
