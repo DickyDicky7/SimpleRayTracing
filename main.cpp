@@ -747,6 +747,7 @@ int main()
 
     std::vector<sphere> spheres;
     spheres.emplace_back(sphere{ .center = { +000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.0, 1.0, 0.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
+    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -002.500 }, .radius = 000.500, .material = { .albedo = { 0.0, 0.0, 1.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
 //  spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
     spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
     spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.400, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
@@ -761,15 +762,18 @@ int main()
 //  imgH = std::max(imgH, 1);
 
     const point3 lookFrom { .x = -2.0, .y = +2.0, .z = +1.0 };
-    const point3 lookAt   { .x = +0.0, .y = +0.0, .z = -1.0 };
+    const point3 lookAt   { .x = -0.6, .y = +0.0, .z = -1.0 };
+//  const point3 lookAt   { .x = +0.0, .y = +0.0, .z = -1.0 };
     const point3 viewUp   { .x = +0.0, .y = +1.0, .z = +0.0 };
 
     vec3 cameraU; // x
     vec3 cameraV; // y
     vec3 cameraW; // z
 
-    double defocusAngle = 0.0 * M_PI; double focusDistance = 10.0;
-//  double defocusAngle = 0.0 * M_PI; double focusDistance = 10.0;
+    double defocusAngle = 0.05 * M_PI; double focusDistance = (lookAt - lookFrom).length();
+//  double defocusAngle = 0.05 * M_PI; double focusDistance = (lookAt - lookFrom).length();
+//  double defocusAngle = 0.00 * M_PI; double focusDistance = 10.0;
+//  double defocusAngle = 0.00 * M_PI; double focusDistance = 10.0;
     vec3 defocusDiskRadiusU;
     vec3 defocusDiskRadiusV;
 
@@ -882,12 +886,14 @@ int main()
 //          vec3 sampleOffset{ Random() - 0.5, Random() - 0.5, 0.0 };
             point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
 //          point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
-            vec3 rayDirection = pixelSampleCenter - cameraCenter;
+//          vec3 rayDirection = pixelSampleCenter - cameraCenter;
 //          vec3 rayDirection = pixelSampleCenter - cameraCenter;
             vec3 rayOrigin = cameraCenter;
 //          vec3 rayOrigin = cameraCenter;
             if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
 //          if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+            vec3 rayDirection = pixelSampleCenter - rayOrigin;
+//          vec3 rayDirection = pixelSampleCenter - rayOrigin;
             ray  ray{ rayOrigin, rayDirection };
 //          ray  ray{ rayOrigin, rayDirection };
             pixelColor += RayColor(ray, spheres);
