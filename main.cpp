@@ -187,11 +187,11 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 struct ray
 {
-    vec3 ori;
-    vec3 dir;
+    std::vector<double> oriX, oriY, oriZ;
+    std::vector<double> dirX, dirY, dirZ;
 
-    point3 Marching(double t) const { return ori + dir * t; }
-//  point3 Marching(double t) const { return ori + dir * t; }
+    void Marching(int rayIndex, double t, double& resultX, double& resultY, double& resultZ) const { resultX = oriX[rayIndex] + dirX[rayIndex] * t; resultY = oriY[rayIndex] + dirY[rayIndex] * t; resultZ = oriZ[rayIndex] + dirZ[rayIndex] * t; }
+//  void Marching(int rayIndex, double t, double& resultX, double& resultY, double& resultZ) const { resultX = oriX[rayIndex] + dirX[rayIndex] * t; resultY = oriY[rayIndex] + dirY[rayIndex] * t; resultZ = oriZ[rayIndex] + dirZ[rayIndex] * t; }
 };
 
 
