@@ -319,7 +319,15 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 
 std::vector<int> dbRay; // [ dbVec3IndexOri , dbVec3IndexDir , ... ]
-
+void Marching(int dbRayIndex, double t, double& x, double& y, double& z)
+{
+    int dbVec3IndexOri = dbRay[dbRayIndex + 0];
+    int dbVec3IndexDir = dbRay[dbRayIndex + 1];
+    Mul(dbVec3IndexDir, t, x, y, z);
+    x += dbVec3[dbVec3IndexOri + 0];
+    y += dbVec3[dbVec3IndexOri + 1];
+    z += dbVec3[dbVec3IndexOri + 2];
+}
 struct ray
 {
     vec3 ori;
@@ -331,6 +339,18 @@ struct ray
 
 
 
+void GenRandom(double& x, double& y, double& z)
+{
+    x = Random();
+    y = Random();
+    z = Random();
+}
+void GenRandom(double& x, double& y, double& z, double min, double max)
+{
+    x = Random(min, max);
+    y = Random(min, max);
+    z = Random(min, max);
+}
 
 
 
@@ -486,11 +506,14 @@ constexpr static double GetRefractionIndex(materialDielectric materialDielectric
 }
 
 
+std::vector<double> dbMaterial2; // [ scatteredProbability , fuzz , refractionIndex , ... ]
+std::vector<int> dbMaterial; // [ dbVec3IndexAlbedo , dbMaterial2Index , materialTypeIndex , ... ]
 struct material
 {
     color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;
 //  color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;    
 };
+
 
 struct materialScatteredResult
 {
