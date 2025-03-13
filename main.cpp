@@ -81,6 +81,71 @@ static std::string GetCurrentDateTime() {
 }
 
 
+std::vector<double> dbVec3; // [ x1 , y1 , z1 , x2 , y2 , z2 , ... ]
+void Negate(int dbVec3Index)
+{
+    dbVec3[dbVec3Index + 0] = -dbVec3[dbVec3Index + 0];
+    dbVec3[dbVec3Index + 1] = -dbVec3[dbVec3Index + 1];
+    dbVec3[dbVec3Index + 2] = -dbVec3[dbVec3Index + 2];
+}
+void AddEqual(int dbVec3Index1, int dbVec3Index2)
+{
+    dbVec3[dbVec3Index1 + 0] += dbVec3[dbVec3Index2 + 0];
+    dbVec3[dbVec3Index1 + 1] += dbVec3[dbVec3Index2 + 1];
+    dbVec3[dbVec3Index1 + 2] += dbVec3[dbVec3Index2 + 2];
+}
+void SubEqual(int dbVec3Index1, int dbVec3Index2)
+{
+    dbVec3[dbVec3Index1 + 0] -= dbVec3[dbVec3Index2 + 0];
+    dbVec3[dbVec3Index1 + 1] -= dbVec3[dbVec3Index2 + 1];
+    dbVec3[dbVec3Index1 + 2] -= dbVec3[dbVec3Index2 + 2];
+}
+void MulEqual(int dbVec3Index1, int dbVec3Index2)
+{
+    dbVec3[dbVec3Index1 + 0] *= dbVec3[dbVec3Index2 + 0];
+    dbVec3[dbVec3Index1 + 1] *= dbVec3[dbVec3Index2 + 1];
+    dbVec3[dbVec3Index1 + 2] *= dbVec3[dbVec3Index2 + 2];
+}
+void DivEqual(int dbVec3Index1, int dbVec3Index2)
+{
+    dbVec3[dbVec3Index1 + 0] /= dbVec3[dbVec3Index2 + 0];
+    dbVec3[dbVec3Index1 + 1] /= dbVec3[dbVec3Index2 + 1];
+    dbVec3[dbVec3Index1 + 2] /= dbVec3[dbVec3Index2 + 2];
+}
+void MulEqual(int dbVec3Index1, double v)
+{
+    dbVec3[dbVec3Index1 + 0] *= v;
+    dbVec3[dbVec3Index1 + 1] *= v;
+    dbVec3[dbVec3Index1 + 2] *= v;
+}
+void DivEqual(int dbVec3Index1, double v)
+{
+    dbVec3[dbVec3Index1 + 0] /= v;
+    dbVec3[dbVec3Index1 + 1] /= v;
+    dbVec3[dbVec3Index1 + 2] /= v;
+}
+double Length______(int dbVec3Index)
+{
+    return std::sqrt(dbVec3[dbVec3Index + 0] * dbVec3[dbVec3Index + 0]
+                   + dbVec3[dbVec3Index + 1] * dbVec3[dbVec3Index + 1]
+                   + dbVec3[dbVec3Index + 2] * dbVec3[dbVec3Index + 2]);
+}
+double LengthSquare(int dbVec3Index)
+{
+    return          (dbVec3[dbVec3Index + 0] * dbVec3[dbVec3Index + 0]
+                   + dbVec3[dbVec3Index + 1] * dbVec3[dbVec3Index + 1]
+                   + dbVec3[dbVec3Index + 2] * dbVec3[dbVec3Index + 2]);
+}
+    bool NearZero(int dbVec3Index)
+    {
+        // Return true if the vector is close to zero in all dimensions.
+        // Return true if the vector is close to zero in all dimensions.
+        double s = 1e-8;
+//      double s = 1e-8;
+        return (std::fabs(dbVec3[dbVec3Index + 0]) < s) && (std::fabs(dbVec3[dbVec3Index + 1]) < s) && (std::fabs(dbVec3[dbVec3Index + 2]) < s);
+//      return (std::fabs(dbVec3[dbVec3Index + 0]) < s) && (std::fabs(dbVec3[dbVec3Index + 1]) < s) && (std::fabs(dbVec3[dbVec3Index + 2]) < s);
+    }
+
 struct vec3
 {
     double x;
@@ -150,6 +215,13 @@ struct vec3
 
 using point3 = vec3;
 using color3 = vec3;
+
+void Add(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] + dbVec3[dbVec3Index2 + 0];
+    y = dbVec3[dbVec3Index1 + 1] + dbVec3[dbVec3Index2 + 1];
+    z = dbVec3[dbVec3Index1 + 2] + dbVec3[dbVec3Index2 + 2];
+}
 
 inline vec3 operator+(const vec3& u, const vec3& v) { return vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
 inline vec3 operator-(const vec3& u, const vec3& v) { return vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
