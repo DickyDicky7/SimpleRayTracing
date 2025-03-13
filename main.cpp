@@ -222,6 +222,50 @@ void Add(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
     y = dbVec3[dbVec3Index1 + 1] + dbVec3[dbVec3Index2 + 1];
     z = dbVec3[dbVec3Index1 + 2] + dbVec3[dbVec3Index2 + 2];
 }
+void Sub(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] - dbVec3[dbVec3Index2 + 0];
+    y = dbVec3[dbVec3Index1 + 1] - dbVec3[dbVec3Index2 + 1];
+    z = dbVec3[dbVec3Index1 + 2] - dbVec3[dbVec3Index2 + 2];
+}
+void Mul(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] * dbVec3[dbVec3Index2 + 0];
+    y = dbVec3[dbVec3Index1 + 1] * dbVec3[dbVec3Index2 + 1];
+    z = dbVec3[dbVec3Index1 + 2] * dbVec3[dbVec3Index2 + 2];
+}
+void Div(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] / dbVec3[dbVec3Index2 + 0];
+    y = dbVec3[dbVec3Index1 + 1] / dbVec3[dbVec3Index2 + 1];
+    z = dbVec3[dbVec3Index1 + 2] / dbVec3[dbVec3Index2 + 2];
+}
+
+void Mul(int dbVec3Index1, double v, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] * v;
+    y = dbVec3[dbVec3Index1 + 1] * v;
+    z = dbVec3[dbVec3Index1 + 2] * v;
+}
+void Div(int dbVec3Index1, double v, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 0] / v;
+    y = dbVec3[dbVec3Index1 + 1] / v;
+    z = dbVec3[dbVec3Index1 + 2] / v;
+}
+
+void Mul(double v, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = v * dbVec3[dbVec3Index2 + 0];
+    y = v * dbVec3[dbVec3Index2 + 1];
+    z = v * dbVec3[dbVec3Index2 + 2];
+}
+void Div(double v, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = v / dbVec3[dbVec3Index2 + 0];
+    y = v / dbVec3[dbVec3Index2 + 1];
+    z = v / dbVec3[dbVec3Index2 + 2];
+}
 
 inline vec3 operator+(const vec3& u, const vec3& v) { return vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
 inline vec3 operator-(const vec3& u, const vec3& v) { return vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
@@ -234,6 +278,24 @@ inline vec3 operator/(const vec3& u, double t) { return vec3 { u.x / t, u.y / t,
 inline vec3 operator*(double t, const vec3& u) { return vec3 { u.x * t, u.y * t, u.z * t }; }
 inline vec3 operator/(double t, const vec3& u) { return vec3 { u.x / t, u.y / t, u.z / t }; }
 
+
+double Dot  (int dbVec3Index1, int dbVec3Index2)
+{
+    return dbVec3[dbVec3Index1 + 0] * dbVec3[dbVec3Index2 + 0]
+         + dbVec3[dbVec3Index1 + 1] * dbVec3[dbVec3Index2 + 1]
+         + dbVec3[dbVec3Index1 + 2] * dbVec3[dbVec3Index2 + 2]
+         ;
+}
+
+void   Cross(int dbVec3Index1, int dbVec3Index2, double& x, double& y, double& z)
+{
+    x = dbVec3[dbVec3Index1 + 1] * dbVec3[dbVec3Index2 + 2] - dbVec3[dbVec3Index1 + 2] * dbVec3[dbVec3Index2 + 1];
+    y = dbVec3[dbVec3Index1 + 2] * dbVec3[dbVec3Index2 + 0] - dbVec3[dbVec3Index1 + 0] * dbVec3[dbVec3Index2 + 2];
+    z = dbVec3[dbVec3Index1 + 0] * dbVec3[dbVec3Index2 + 1] - dbVec3[dbVec3Index1 + 1] * dbVec3[dbVec3Index2 + 0];
+}
+
+  void Normalize(int dbVec3Index, double& x, double& y, double& z) { Div(dbVec3Index, Length______(dbVec3Index), x, y, z); }
+//void Normalize(int dbVec3Index, double& x, double& y, double& z) { Div(dbVec3Index, Length______(dbVec3Index), x, y, z); }
 
 inline double dot  (const vec3& u, const vec3& v)
 {
@@ -256,6 +318,7 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 
 
+std::vector<int> dbRay; // [ dbVec3IndexOri , dbVec3IndexDir , ... ]
 
 struct ray
 {
