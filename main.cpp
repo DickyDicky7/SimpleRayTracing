@@ -15,32 +15,36 @@
 #include <random>
 #include <vector>
 
-inline double LinearSpaceToGammasSpace(double linearSpaceComponent) { if    (linearSpaceComponent > 0) { return std::sqrt(linearSpaceComponent); } return 0.0; }
-inline double GammasSpaceToLinearSpace(double gammasSpaceComponent) { return gammasSpaceComponent *                       gammasSpaceComponent ;               }
+  static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
+//static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
+  static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return gammasSpaceComponent *                          gammasSpaceComponent ;                }
+//static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return gammasSpaceComponent *                          gammasSpaceComponent ;                }
 
-    constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
-//  constexpr double positiveInfinity = +std::numeric_limits<double>::infinity();
-    constexpr double negativeInfinity = -std::numeric_limits<double>::infinity();
-//  constexpr double negativeInfinity = -std::numeric_limits<double>::infinity();
+    constexpr float positiveInfinity = +std::numeric_limits<float>::infinity();
+//  constexpr float positiveInfinity = +std::numeric_limits<float>::infinity();
+    constexpr float negativeInfinity = -std::numeric_limits<float>::infinity();
+//  constexpr float negativeInfinity = -std::numeric_limits<float>::infinity();
 
-inline double Random()
+static
+inline float Random()
 {
-    thread_local static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-//  thread_local static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+//  thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
     thread_local static std::mt19937 generator ;
 //  thread_local static std::mt19937 generator ;
     return distribution(generator);
 //  return distribution(generator);
 
-//    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-////  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+//    static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+////  static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 //    static std::mt19937 generator ;
 ////  static std::mt19937 generator ;
 //    return distribution(generator);
 ////  return distribution(generator);
 }
 
-inline double Random(double min, double max)
+static
+inline float Random(float min, float max)
 {
     return min + (max - min) * Random();
 //  return min + (max - min) * Random();
@@ -49,20 +53,20 @@ inline double Random(double min, double max)
 
 struct interval
 {
-    double min = positiveInfinity;
-    double max = negativeInfinity;
+    float min = positiveInfinity;
+    float max = negativeInfinity;
 
     static const interval empty;
 //  static const interval empty;
     static const interval universe;
 //  static const interval universe;
 
-    bool Contains (double x) const { return min <= x && x <= max; }
-//  bool Contains (double x) const { return min <= x && x <= max; }
-    bool Surrounds(double x) const { return min <  x && x <  max; }
-//  bool Surrounds(double x) const { return min <  x && x <  max; }
+    bool Contains (float x) const { return min <= x && x <= max; }
+//  bool Contains (float x) const { return min <= x && x <= max; }
+    bool Surrounds(float x) const { return min <  x && x <  max; }
+//  bool Surrounds(float x) const { return min <  x && x <  max; }
 
-    double Clamp(double x) const
+    float Clamp(float x) const
     {
         if (x < min) return min;
         if (x > max) return max;
@@ -83,9 +87,9 @@ static std::string GetCurrentDateTime() {
 
 struct vec3
 {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 
     vec3  operator- (             ) const { return vec3 { -x, -y, -z }; }
     vec3& operator+=(const vec3& v)
@@ -116,14 +120,14 @@ struct vec3
         z /= v.z;
         return *this;
     }
-    vec3& operator*=(const double& v)
+    vec3& operator*=(const float& v)
     {
         x *= v;
         y *= v;
         z *= v;
         return *this;
     }
-    vec3& operator/=(const double& v)
+    vec3& operator/=(const float& v)
     {
         x /= v;
         y /= v;
@@ -131,17 +135,17 @@ struct vec3
         return *this;
     }
 
-    double length        () const { return std::sqrt(length_squared()); }
-    double length_squared() const { return x * x
-                                         + y * y
-                                         + z * z                      ; }
+    float length        () const { return std::sqrt(length_squared()); }
+    float length_squared() const { return x * x
+                                        + y * y
+                                        + z * z                      ; }
 
     bool NearZero() const
     {
         // Return true if the vector is close to zero in all dimensions.
         // Return true if the vector is close to zero in all dimensions.
-        double s = 1e-8;
-//      double s = 1e-8;
+        float s = 1e-8;
+//      float s = 1e-8;
         return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
 //      return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
     }
@@ -151,26 +155,28 @@ struct vec3
 using point3 = vec3;
 using color3 = vec3;
 
-inline vec3 operator+(const vec3& u, const vec3& v) { return vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
-inline vec3 operator-(const vec3& u, const vec3& v) { return vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
-inline vec3 operator*(const vec3& u, const vec3& v) { return vec3 { u.x * v.x, u.y * v.y, u.z * v.z }; }
-inline vec3 operator/(const vec3& u, const vec3& v) { return vec3 { u.x / v.x, u.y / v.y, u.z / v.z }; }
+static inline vec3 operator+(const vec3& u, const vec3& v) { return vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
+static inline vec3 operator-(const vec3& u, const vec3& v) { return vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
+static inline vec3 operator*(const vec3& u, const vec3& v) { return vec3 { u.x * v.x, u.y * v.y, u.z * v.z }; }
+static inline vec3 operator/(const vec3& u, const vec3& v) { return vec3 { u.x / v.x, u.y / v.y, u.z / v.z }; }
 
-inline vec3 operator*(const vec3& u, double t) { return vec3 { u.x * t, u.y * t, u.z * t }; }
-inline vec3 operator/(const vec3& u, double t) { return vec3 { u.x / t, u.y / t, u.z / t }; }
+static inline vec3 operator*(const vec3& u, float t) { return vec3 { u.x * t, u.y * t, u.z * t }; }
+static inline vec3 operator/(const vec3& u, float t) { return vec3 { u.x / t, u.y / t, u.z / t }; }
 
-inline vec3 operator*(double t, const vec3& u) { return vec3 { u.x * t, u.y * t, u.z * t }; }
-inline vec3 operator/(double t, const vec3& u) { return vec3 { u.x / t, u.y / t, u.z / t }; }
+static inline vec3 operator*(float t, const vec3& u) { return vec3 { u.x * t, u.y * t, u.z * t }; }
+static inline vec3 operator/(float t, const vec3& u) { return vec3 { u.x / t, u.y / t, u.z / t }; }
 
 
-inline double dot  (const vec3& u, const vec3& v)
+static
+inline float dot  (const vec3& u, const vec3& v)
 {
 return u.x * v.x
      + u.y * v.y
      + u.z * v.z;
 }
 
-inline vec3   cross(const vec3& u, const vec3& v)
+static
+inline vec3  cross(const vec3& u, const vec3& v)
 {
 return vec3 { u.y * v.z - u.z * v.y,
               u.z * v.x - u.x * v.z,
@@ -190,8 +196,8 @@ struct ray
     vec3 ori;
     vec3 dir;
 
-    point3 Marching(double t) const { return ori + dir * t; }
-//  point3 Marching(double t) const { return ori + dir * t; }
+    point3 Marching(float t) const { return ori + dir * t; }
+//  point3 Marching(float t) const { return ori + dir * t; }
 };
 
 
@@ -199,31 +205,31 @@ struct ray
 
 
 
-    static vec3 GenRandom(                      ) { return vec3 { Random(        ), Random(        ), Random(        ) }; }
-    static vec3 GenRandom(double min, double max) { return vec3 { Random(min, max), Random(min, max), Random(min, max) }; }
-    static vec3 GenRandomUnitVector()
-//  static vec3 GenRandomUnitVector()
+    inline static vec3 GenRandom(                    ) { return vec3 { Random(        ), Random(        ), Random(        ) }; }
+    inline static vec3 GenRandom(float min, float max) { return vec3 { Random(min, max), Random(min, max), Random(min, max) }; }
+    inline static vec3 GenRandomUnitVector()
+//  inline static vec3 GenRandomUnitVector()
     {
         while (true)
         {
-            const vec3& p = GenRandom(-1.0, +1.0);
-//          const vec3& p = GenRandom(-1.0, +1.0);
-            const double& pLengthSquared = p.length_squared();
-//          const double& pLengthSquared = p.length_squared();
-            if (pLengthSquared <= 1
-            &&  pLengthSquared >  1e-160)
+            const vec3& p = GenRandom(-1.0f, +1.0f);
+//          const vec3& p = GenRandom(-1.0f, +1.0f);
+            const float& pLengthSquared = p.length_squared();
+//          const float& pLengthSquared = p.length_squared();
+            if (pLengthSquared <= 1.0000f
+            &&  pLengthSquared >  1e-160f)
             {
                 return p / std::sqrt(pLengthSquared);
             }
         }
     }
-    static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
-//  static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
+    inline static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
+//  inline static vec3 GenRandomUnitVectorOnHemisphere(const vec3& normal)
     {
         const vec3& randomUnitVector = GenRandomUnitVector();
 //      const vec3& randomUnitVector = GenRandomUnitVector();
-        if (dot(randomUnitVector, normal) > 0.0)
-//      if (dot(randomUnitVector, normal) > 0.0)
+        if (dot(randomUnitVector, normal) > 0.0f)
+//      if (dot(randomUnitVector, normal) > 0.0f)
         {
             return  randomUnitVector;
         }
@@ -232,23 +238,23 @@ struct ray
             return -randomUnitVector;
         }
     }
-    static vec3 GenRandomPointInsideNormalizedDisk()
+    inline static vec3 GenRandomPointInsideNormalizedDisk()
     {
         while (true)
 //      while (true)
         {
-            point3 point { .x = Random(-1.0 , +1.0), .y = Random(-1.0 , +1.0), .z = 0.0 };
-//          point3 point { .x = Random(-1.0 , +1.0), .y = Random(-1.0 , +1.0), .z = 0.0 };
-            if (point.length_squared() < 1)
-//          if (point.length_squared() < 1)
+            point3 point { .x = Random(-1.0f , +1.0f), .y = Random(-1.0f , +1.0f), .z = 0.0f };
+//          point3 point { .x = Random(-1.0f , +1.0f), .y = Random(-1.0f , +1.0f), .z = 0.0f };
+            if (point.length_squared() < 1.0f)
+//          if (point.length_squared() < 1.0f)
             {
                 return point;
 //              return point;
             }
         }
     }
-    static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
-//  static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
+    inline static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
+//  inline static vec3 DefocusDiskSample(const point3& diskCenter, const vec3& defocusDiskRadiusU, const vec3& defocusDiskRadiusV)
     {
         point3 randomPointInsideNormalizedDisk = GenRandomPointInsideNormalizedDisk();
 //      point3 randomPointInsideNormalizedDisk = GenRandomPointInsideNormalizedDisk();
@@ -256,39 +262,41 @@ struct ray
                           + randomPointInsideNormalizedDisk.y * defocusDiskRadiusV;
     }
 
-    inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
-//  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0 * dot(incomingVector, normal) * normal; }
+    inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0f * dot(incomingVector, normal) * normal; }
+//  inline static vec3 Reflect(const vec3& incomingVector, const vec3& normal) { return incomingVector - 2.0f * dot(incomingVector, normal) * normal; }
 
-    inline static vec3 Refract(const vec3& incomingVector, const vec3& normal, double ratioOfEtaiOverEtat)
+    inline static vec3 Refract(const vec3& incomingVector, const vec3& normal, float ratioOfEtaiOverEtat)
     {
-        const double& cosTheta = std::fmin(dot(-incomingVector, normal), 1.0);
-//      const double& cosTheta = std::fmin(dot(-incomingVector, normal), 1.0);
+        const float& cosTheta = std::fminf(dot(-incomingVector, normal), 1.0f);
+//      const float& cosTheta = std::fminf(dot(-incomingVector, normal), 1.0f);
         const vec3& refractedRayPerpendicular = ratioOfEtaiOverEtat * (incomingVector + cosTheta * normal);
 //      const vec3& refractedRayPerpendicular = ratioOfEtaiOverEtat * (incomingVector + cosTheta * normal);
-        const vec3& refractedRayParallel = -std::sqrt(std::fabs(1.0 - refractedRayPerpendicular.length_squared())) * normal;
-//      const vec3& refractedRayParallel = -std::sqrt(std::fabs(1.0 - refractedRayPerpendicular.length_squared())) * normal;
+        const vec3& refractedRayParallel = -std::sqrtf(std::fabsf(1.0f - refractedRayPerpendicular.length_squared())) * normal;
+//      const vec3& refractedRayParallel = -std::sqrtf(std::fabsf(1.0f - refractedRayPerpendicular.length_squared())) * normal;
         return refractedRayPerpendicular + refractedRayParallel;
 //      return refractedRayPerpendicular + refractedRayParallel;
     }
 
-    inline static double Reflectance(double cosine, double ratioOfEtaiOverEtat)
+    inline static float Reflectance(float cosine, float ratioOfEtaiOverEtat)
     {
         // Use Schlick's approximation for reflectance.
         // Use Schlick's approximation for reflectance.
-        double r0 = (1.0 - ratioOfEtaiOverEtat) / (1.0 + ratioOfEtaiOverEtat);
-//      double r0 = (1.0 - ratioOfEtaiOverEtat) / (1.0 + ratioOfEtaiOverEtat);
+        float r0 = (1.0f - ratioOfEtaiOverEtat) / (1.0f + ratioOfEtaiOverEtat);
+//      float r0 = (1.0f - ratioOfEtaiOverEtat) / (1.0f + ratioOfEtaiOverEtat);
         r0 = r0 * r0;
 //      r0 = r0 * r0;
-        return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
-//      return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
+        return r0 + (1.0f - r0) * std::powf((1.0f - cosine), 5.0f);
+//      return r0 + (1.0f - r0) * std::powf((1.0f - cosine), 5.0f);
     }
 
-static double BlendLinear(      double  startValue,       double  ceaseValue,       double  ratio)
+inline
+static float  BlendLinear(      float startValue,       float ceaseValue,       float ratio)
 {
-return (1.0 - ratio) * startValue
-            + ratio  * ceaseValue;
+return (1.0f - ratio) * startValue
+             + ratio  * ceaseValue;
 }
-static vec3   BlendLinear(const vec3  & startValue, const vec3  & ceaseValue,       double  ratio)
+inline
+static vec3   BlendLinear(const vec3& startValue, const vec3& ceaseValue,       float ratio)
 {
 return vec3 {
               BlendLinear(startValue.x, ceaseValue.x, ratio),
@@ -296,7 +304,8 @@ return vec3 {
               BlendLinear(startValue.z, ceaseValue.z, ratio),
             };
 }
-static vec3   BlendLinear(const vec3  & startValue, const vec3  & ceaseValue, const vec3  & ratio)
+inline
+static vec3   BlendLinear(const vec3& startValue, const vec3& ceaseValue, const vec3& ratio)
 {
 return vec3 {
               BlendLinear(startValue.x, ceaseValue.x, ratio.x),
@@ -338,23 +347,23 @@ enum class materialDielectric : std::int8_t
 };
 
 
-constexpr static double GetRefractionIndex(materialDielectric materialDielectric)
+constexpr inline static float GetRefractionIndex(materialDielectric materialDielectric)
 {
     switch (materialDielectric)
     {
-    case materialDielectric::GLASS  : return 1.500000; break;
-    case materialDielectric::WATER  : return 1.333000; break;
-    case materialDielectric::AIR    : return 1.000293; break;
-    case materialDielectric::DIAMOND: return 2.400000; break;
-                             default: return 0.000000; break;
+    case materialDielectric::GLASS  : return 1.500000f; break;
+    case materialDielectric::WATER  : return 1.333000f; break;
+    case materialDielectric::AIR    : return 1.000293f; break;
+    case materialDielectric::DIAMOND: return 2.400000f; break;
+                             default: return 0.000000f; break;
     }
 }
 
 
 struct material
 {
-    color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;
-//  color3 albedo; double scatteredProbability; double fuzz; double refractionIndex; materialType materialType;    
+    color3 albedo; float scatteredProbability; float fuzz; float refractionIndex; materialType materialType;
+//  color3 albedo; float scatteredProbability; float fuzz; float refractionIndex; materialType materialType;    
 };
 
 struct materialScatteredResult
@@ -367,7 +376,7 @@ struct materialScatteredResult
 struct sphere
 {
     point3 center;
-    double radius;
+    float radius;
     material material;
 //  material material;
 
@@ -376,13 +385,13 @@ struct sphere
 
 struct rayHitResult
 {
-    material material; point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
-//  material material; point3 at; vec3 normal; double minT; bool hitted; bool isFrontFace;
+    material material; point3 at; vec3 normal; float minT; bool hitted; bool isFrontFace;
+//  material material; point3 at; vec3 normal; float minT; bool hitted; bool isFrontFace;
 
     void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
 //  void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
     {
-            isFrontFace = dot(ray.dir, outwardNormal) < 0;
+            isFrontFace = dot(ray.dir, outwardNormal) < 0.0f;
         if (isFrontFace)
         {
             normal =  outwardNormal;
@@ -398,7 +407,7 @@ struct rayHitResult
 
 
 
-static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& rayHitResult)
+inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& rayHitResult)
 {
     materialScatteredResult materialScatteredResult {};
 //  materialScatteredResult materialScatteredResult {};
@@ -494,8 +503,8 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
 //      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0;
-//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0;
+        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
 //      break;
@@ -515,8 +524,8 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
 //      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0;
-//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0;
+        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
 //      break;
@@ -525,21 +534,21 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
 
     case materialType::Dielectric:
         {
-        materialScatteredResult.attenuation = color3 { 1.0, 1.0, 1.0 };
-//      materialScatteredResult.attenuation = color3 { 1.0, 1.0, 1.0 };
-        double ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
-//      double ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
-        if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0 / rayHitResult.material.refractionIndex; }
-//      if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0 / rayHitResult.material.refractionIndex; }
+        materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
+//      materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
+        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+        if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
+//      if (rayHitResult.isFrontFace) { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
         vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
 //      vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
 
-        double cosTheta = std::fmin(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0);
-//      double cosTheta = std::fmin(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0);
-        double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
-//      double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
-        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0 || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
-//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0 || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
+        float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
+//      float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
+        float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
+//      float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
+        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
+//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
         vec3 scatteredRayDirection;
 //      vec3 scatteredRayDirection;
 
@@ -577,6 +586,7 @@ static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& ray
 
 
 
+inline
 static rayHitResult RayHit(const sphere& sphere
                           ,const ray   & ray
                           ,const interval&& rayT
@@ -585,30 +595,30 @@ static rayHitResult RayHit(const sphere& sphere
 {
     const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
 //  const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
-    const double& a = ray.dir.length_squared();
-//  const double& a = ray.dir.length_squared();
-    const double& h = dot(ray.dir, fromSphereCenterToRayOrigin);
-//  const double& h = dot(ray.dir, fromSphereCenterToRayOrigin);
-    const double& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
-//  const double& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
-    const double& discriminant = h * h - a * c;
-//  const double& discriminant = h * h - a * c;
+    const float& a = ray.dir.length_squared();
+//  const float& a = ray.dir.length_squared();
+    const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+//  const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+    const float& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
+//  const float& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
+    const float& discriminant = h * h - a * c;
+//  const float& discriminant = h * h - a * c;
     rayHitResult
     rayHitResult { sphere.material };
-//  rayHitResult.hitted = discriminant >= 0.0;
-//  rayHitResult.hitted = discriminant >= 0.0;
-    if (discriminant < 0)
+//  rayHitResult.hitted = discriminant >= 0.0f;
+//  rayHitResult.hitted = discriminant >= 0.0f;
+    if (discriminant < 0.0f)
     {
         rayHitResult.hitted = false;
 //      rayHitResult.hitted = false;
     }
     else
     {
-        double sqrtDiscriminant = std::sqrt(discriminant);
-//      double sqrtDiscriminant = std::sqrt(discriminant);
+        float sqrtDiscriminant = std::sqrt(discriminant);
+//      float sqrtDiscriminant = std::sqrt(discriminant);
 
-        double t = (h - sqrtDiscriminant) / a;
-//      double t = (h - sqrtDiscriminant) / a;
+        float t = (h - sqrtDiscriminant) / a;
+//      float t = (h - sqrtDiscriminant) / a;
 
         if (!rayT.Surrounds(t))
 //      if (!rayT.Surrounds(t))
@@ -648,12 +658,13 @@ static rayHitResult RayHit(const sphere& sphere
 
 
 
+inline
 static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval&& rayT)
 {
     rayHitResult finalRayHitResult{};
 //  rayHitResult finalRayHitResult{};
-    double closestTSoFar = rayT.max;
-//  double closestTSoFar = rayT.max;
+    float closestTSoFar = rayT.max;
+//  float closestTSoFar = rayT.max;
     for (const sphere& sphere : spheres)
 //  for (const sphere& sphere : spheres)
     {
@@ -671,26 +682,27 @@ static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, c
 //  return finalRayHitResult;
 }
 
+
 inline
 static color3 RayColor(const ray& ray)
 {
-    sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
-//  sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
-    const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0, .max = +10.0 });
-//  const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0, .max = +10.0 });
+    sphere sphere{ { 0.0f, 0.0f, -1.0f }, 0.5f, };
+//  sphere sphere{ { 0.0f, 0.0f, -1.0f }, 0.5f, };
+    const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0f, .max = +10.0f });
+//  const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0f, .max = +10.0f });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
-        return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
-//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+        return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
+//      return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
     }
 
     const vec3& normalizedRayDirection = normalize(ray.dir);
 //  const vec3& normalizedRayDirection = normalize(ray.dir);
-    const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-//  const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-    return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
-//  return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
+    const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//  const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+    return BlendLinear(color3{ 1.0f, 1.0f, 1.0f, }, color3{ 0.5f, 0.7f, 1.0f, }, ratio);
+//  return BlendLinear(color3{ 1.0f, 1.0f, 1.0f, }, color3{ 0.5f, 0.7f, 1.0f, }, ratio);
 }
 
 
@@ -699,13 +711,13 @@ static color3 RayColor(const ray& ray)
 inline
 static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int recursiveDepth = 50)
 {
-    if (recursiveDepth <= 0)
+    if (recursiveDepth <= 0.0f)
     {
         return color3 {};
 //      return color3 {};
     }
-    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001, .max = positiveInfinity });
-//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001, .max = positiveInfinity });
+    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001f, .max = positiveInfinity });
+//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001f, .max = positiveInfinity });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
@@ -721,18 +733,18 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
 
         return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
 //      return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
-//      return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
-//      return 0.5 * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
-//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
-//      return color3 { rayHitResult.normal.x + 1.0, rayHitResult.normal.y + 1.0, rayHitResult.normal.z + 1.0, } * 0.5;
+//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
+//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
+//      return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
+//      return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
     }
 
     const vec3& normalizedRayDirection = normalize(ray.dir);
 //  const vec3& normalizedRayDirection = normalize(ray.dir);
-    const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-//  const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-    return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
-//  return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
+    const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//  const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+    return BlendLinear(color3{ 1.0f, 1.0f, 1.0f, }, color3{ 0.5f, 0.7f, 1.0f, }, ratio);
+//  return BlendLinear(color3{ 1.0f, 1.0f, 1.0f, }, color3{ 0.5f, 0.7f, 1.0f, }, ratio);
 }
 */
 
@@ -741,16 +753,16 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
 inline
 static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres, int maxDepth = 50)
 {
-    color3 finalColor = { .x = 1.0, .y = 1.0, .z = 1.0 };  // Initial color multiplier
-//  color3 finalColor = { .x = 1.0, .y = 1.0, .z = 1.0 };  // Initial color multiplier
+    color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
+//  color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
     ray currentRay = initialRay;
 //  ray currentRay = initialRay;
 
     for (int depth = 0; depth < maxDepth; ++depth)
 //  for (int depth = 0; depth < maxDepth; ++depth)
     {
-        const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001, .max = positiveInfinity });
-//      const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001, .max = positiveInfinity });
+        const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
+//      const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
 
         if (rayHitResult.hitted)
 //      if (rayHitResult.hitted)
@@ -781,10 +793,10 @@ static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres
 //          // If no hit, calculate background color and return final result
             const vec3& normalizedRayDirection = normalize(currentRay.dir);
 //          const vec3& normalizedRayDirection = normalize(currentRay.dir);
-            const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-//          const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
-            color3 backgroundColor = BlendLinear(color3{ .x = 1.0, .y = 1.0, .z = 1.0 }, color3{ .x = 0.5, .y = 0.7, .z = 1.0 }, ratio);
-//          color3 backgroundColor = BlendLinear(color3{ .x = 1.0, .y = 1.0, .z = 1.0 }, color3{ .x = 0.5, .y = 0.7, .z = 1.0 }, ratio);
+            const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//          const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+            color3 backgroundColor = BlendLinear(color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }, color3{ .x = 0.5f, .y = 0.7f, .z = 1.0f }, ratio);
+//          color3 backgroundColor = BlendLinear(color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }, color3{ .x = 0.5f, .y = 0.7f, .z = 1.0f }, ratio);
             return finalColor * backgroundColor;
 //          return finalColor * backgroundColor;
         }
@@ -804,20 +816,20 @@ int main()
 //  ThreadPool threadPool;
 
     int                              samplesPerPixel = 1000;
-    double pixelSamplesScale = 1.0 / samplesPerPixel       ;
+    float pixelSamplesScale = 1.0f / samplesPerPixel       ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{ .center = { +000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.0, 1.0, 0.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
-    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -002.500 }, .radius = 000.500, .material = { .albedo = { 0.0, 0.0, 1.0 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
-//  spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
-    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.500, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
-    spheres.emplace_back(sphere{ .center = { -000.600,  000.000, -001.000 }, .radius = 000.400, .material = { .albedo = { 0.8, 0.8, 0.8 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
-    spheres.emplace_back(sphere{ .center = {  000.000, -100.500, -001.000 }, .radius = 100.000, .material = { .albedo = { 0.5, 0.5, 0.5 }, .scatteredProbability = 1.0, .fuzz = 1.0, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
+    spheres.emplace_back(sphere{ .center = { +000.600f,  000.000f, -001.000f }, .radius = 000.500f, .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
+    spheres.emplace_back(sphere{ .center = { -000.600f,  000.000f, -002.500f }, .radius = 000.500f, .material = { .albedo = { 0.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
+//  spheres.emplace_back(sphere{ .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.500f, .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.500f, .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.400f, .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    } });
+    spheres.emplace_back(sphere{ .center = {  000.000f, -100.500f, -001.000f }, .radius = 100.000f, .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 } });
 
-    double aspectRatio = 16.0 / 9.0;
+    float aspectRatio = 16.0f / 9.0f;
     int imgW = 400     ;
     int imgH = int    (
         imgW /
@@ -825,73 +837,73 @@ int main()
     imgH = std::max(imgH, 1);
 //  imgH = std::max(imgH, 1);
 
-    const point3 lookFrom { .x = -2.0, .y = +2.0, .z = +1.0 };
-    const point3 lookAt   { .x = -0.6, .y = +0.0, .z = -1.0 };
-//  const point3 lookAt   { .x = +0.0, .y = +0.0, .z = -1.0 };
-    const point3 viewUp   { .x = +0.0, .y = +1.0, .z = +0.0 };
+    const point3 lookFrom { .x = -2.0f, .y = +2.0f, .z = +1.0f };
+    const point3 lookAt   { .x = -0.6f, .y = +0.0f, .z = -1.0f };
+//  const point3 lookAt   { .x = +0.0f, .y = +0.0f, .z = -1.0f };
+    const point3 viewUp   { .x = +0.0f, .y = +1.0f, .z = +0.0f };
 
     vec3 cameraU; // x
     vec3 cameraV; // y
     vec3 cameraW; // z
 
-    double defocusAngle = 0.05 * M_PI; double focusDistance = (lookAt - lookFrom).length();
-//  double defocusAngle = 0.05 * M_PI; double focusDistance = (lookAt - lookFrom).length();
-//  double defocusAngle = 0.00 * M_PI; double focusDistance = 10.0;
-//  double defocusAngle = 0.00 * M_PI; double focusDistance = 10.0;
+    float defocusAngle = 0.05f * M_PI; float focusDistance = (lookAt - lookFrom).length();
+//  float defocusAngle = 0.05f * M_PI; float focusDistance = (lookAt - lookFrom).length();
+//  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
+//  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
     vec3 defocusDiskRadiusU;
     vec3 defocusDiskRadiusV;
 
 
-    double vFOV = M_PI / 8.0;
-    double hFOV = M_PI / 2.0;
-    double h = std::tan(vFOV / 2.0);
-    double w = std::tan(hFOV / 2.0);
+    float vFOV = M_PI / 8.0f;
+    float hFOV = M_PI / 2.0f;
+    float h = std::tanf(vFOV / 2.0f);
+    float w = std::tanf(hFOV / 2.0f);
 
-    double focalLength = (lookAt - lookFrom).length();
-//  double focalLength = (lookAt - lookFrom).length();
+    float focalLength = (lookAt - lookFrom).length();
+//  float focalLength = (lookAt - lookFrom).length();
 
 
     cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
 //  cameraW = normalize(lookFrom - lookAt); cameraU = normalize(cross(viewUp, cameraW)); cameraV = cross(cameraW, cameraU);
 
-    double defocusRadius = focusDistance * std::tan(defocusAngle / 2.0);
-//  double defocusRadius = focusDistance * std::tan(defocusAngle / 2.0);
+    float defocusRadius = focusDistance * std::tanf(defocusAngle / 2.0f);
+//  float defocusRadius = focusDistance * std::tanf(defocusAngle / 2.0f);
     defocusDiskRadiusU = cameraU * defocusRadius;
     defocusDiskRadiusV = cameraV * defocusRadius;
 
 
-    double viewportH = 2.0 * h * /* focalLength */ focusDistance;
-//  double viewportH = 2.0 * h * /* focalLength */ focusDistance;
-    double viewportW = viewportH * (double(imgW) / imgH);
-//  double viewportW = viewportH * (double(imgW) / imgH);
+    float viewportH = 2.0f * h * /* focalLength */ focusDistance;
+//  float viewportH = 2.0f * h * /* focalLength */ focusDistance;
+    float viewportW = viewportH * (float(imgW) / imgH);
+//  float viewportW = viewportH * (float(imgW) / imgH);
 
-    point3 cameraCenter /* { 0, 0, 0, } */ = lookFrom;
-//  point3 cameraCenter /* { 0, 0, 0, } */ = lookFrom;
+    point3 cameraCenter /* { 0.0f, 0.0f, 0.0f, } */ = lookFrom;
+//  point3 cameraCenter /* { 0.0f, 0.0f, 0.0f, } */ = lookFrom;
 
 
 
-//  vec3 viewportU {};
+//  vec3 viewportU { };
 //  viewportU.x = +viewportW;
-//  viewportU.y = 0.0;
-//  viewportU.z = 0.0;
-//  vec3 viewportV {};
-//  viewportV.x = 0.0;
+//  viewportU.y = 0.0f;
+//  viewportU.z = 0.0f;
+//  vec3 viewportV { };
+//  viewportV.x = 0.0f;
 //  viewportV.y = -viewportH;
-//  viewportV.z = 0.0;
+//  viewportV.z = 0.0f;
 
     vec3 viewportU = viewportW *  cameraU;
     vec3 viewportV = viewportH * -cameraV;
 
 
-    vec3 fromPixelToPixelDeltaU = viewportU / imgW;
-    vec3 fromPixelToPixelDeltaV = viewportV / imgH;
+    vec3 fromPixelToPixelDeltaU = viewportU / float(imgW);
+    vec3 fromPixelToPixelDeltaV = viewportV / float(imgH);
 
 
 
-    point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0 - viewportV / 2.0;
-//  point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0 - viewportV / 2.0;
-    point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
-//  point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5 + fromPixelToPixelDeltaV * 0.5;
+    point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
+//  point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
+    point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5f + fromPixelToPixelDeltaV * 0.5f;
+//  point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5f + fromPixelToPixelDeltaV * 0.5f;
 
 
     std::ofstream PPMFile(GetCurrentDateTime());
@@ -930,9 +942,9 @@ int main()
 //      ray  ray  { cameraCenter, rayDirection };
 //      ray  ray  { cameraCenter, rayDirection };
 
-//      double r = double(pixelX) / (imgW - 1);
-//      double g = double(pixelY) / (imgH - 1);
-//      double b = 0.00;
+//      float r = float(pixelX) / float(imgW - 1);
+//      float g = float(pixelY) / float(imgH - 1);
+//      float b = 0.00f;
 //      color3 pixelColor { r, g, b, };
 //      color3 pixelColor { r, g, b, };
 
@@ -946,16 +958,16 @@ int main()
 //      color3 pixelColor{};
         for (int sample = 0; sample < samplesPerPixel; ++sample)
         {
-            vec3 sampleOffset{ Random() - 0.5, Random() - 0.5, 0.0 };
-//          vec3 sampleOffset{ Random() - 0.5, Random() - 0.5, 0.0 };
+            vec3 sampleOffset{ Random() - 0.5f, Random() - 0.5f, 0.0f };
+//          vec3 sampleOffset{ Random() - 0.5f, Random() - 0.5f, 0.0f };
             point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
 //          point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
 //          vec3 rayDirection = pixelSampleCenter - cameraCenter;
 //          vec3 rayDirection = pixelSampleCenter - cameraCenter;
             vec3 rayOrigin = cameraCenter;
 //          vec3 rayOrigin = cameraCenter;
-            if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
-//          if (defocusAngle > 0.0) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+            if (defocusAngle > 0.0f) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+//          if (defocusAngle > 0.0f) { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
             vec3 rayDirection = pixelSampleCenter - rayOrigin;
 //          vec3 rayDirection = pixelSampleCenter - rayOrigin;
             ray  ray{ rayOrigin, rayDirection };
@@ -966,7 +978,8 @@ int main()
         pixelColor *= pixelSamplesScale;
 //      pixelColor *= pixelSamplesScale;
 
-        static const interval intensity { 0.000 , 0.999 };
+        static const interval intensity { 0.000f , 0.999f };
+//      static const interval intensity { 0.000f , 0.999f };
         int ir = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.x)));
         int ig = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.y)));
         int ib = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.z)));
@@ -1017,7 +1030,7 @@ int main()
 // defocus blur = depth of field
 
 
-// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL
-// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
