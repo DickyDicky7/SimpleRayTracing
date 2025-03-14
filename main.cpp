@@ -671,6 +671,7 @@ static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, c
 //  return finalRayHitResult;
 }
 
+inline
 static color3 RayColor(const ray& ray)
 {
     sphere sphere{ { 0.0, 0.0, -1.0 }, 0.5, };
@@ -694,8 +695,8 @@ static color3 RayColor(const ray& ray)
 
 
 
-
-
+/*
+inline
 static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int recursiveDepth = 50)
 {
     if (recursiveDepth <= 0)
@@ -733,6 +734,69 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
     return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
 //  return BlendLinear(color3{ 1.0, 1.0, 1.0, }, color3{ 0.5, 0.7, 1.0, }, ratio);
 }
+*/
+
+
+
+inline
+static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres, int maxDepth = 50)
+{
+    color3 finalColor = { .x = 1.0, .y = 1.0, .z = 1.0 };  // Initial color multiplier
+//  color3 finalColor = { .x = 1.0, .y = 1.0, .z = 1.0 };  // Initial color multiplier
+    ray currentRay = initialRay;
+//  ray currentRay = initialRay;
+
+    for (int depth = 0; depth < maxDepth; ++depth)
+//  for (int depth = 0; depth < maxDepth; ++depth)
+    {
+        const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001, .max = positiveInfinity });
+//      const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001, .max = positiveInfinity });
+
+        if (rayHitResult.hitted)
+//      if (rayHitResult.hitted)
+        {
+            const materialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
+//          const materialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
+
+            if (!materialScatteredResult.isScattered)
+//          if (!materialScatteredResult.isScattered)
+            {
+                return color3{};  // Return black if scattering fails
+//              return color3{};  // Return black if scattering fails
+            }
+
+            // Multiply the current color by the attenuation
+//          // Multiply the current color by the attenuation
+            finalColor = finalColor * materialScatteredResult.attenuation;
+//          finalColor = finalColor * materialScatteredResult.attenuation;
+            // Update the ray for the next iteration
+//          // Update the ray for the next iteration
+            currentRay = materialScatteredResult.scatteredRay;
+//          currentRay = materialScatteredResult.scatteredRay;
+        }
+        else
+//      else
+        {
+            // If no hit, calculate background color and return final result
+//          // If no hit, calculate background color and return final result
+            const vec3& normalizedRayDirection = normalize(currentRay.dir);
+//          const vec3& normalizedRayDirection = normalize(currentRay.dir);
+            const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
+//          const double& ratio = 0.5 * (normalizedRayDirection.y + 1.0);
+            color3 backgroundColor = BlendLinear(color3{ .x = 1.0, .y = 1.0, .z = 1.0 }, color3{ .x = 0.5, .y = 0.7, .z = 1.0 }, ratio);
+//          color3 backgroundColor = BlendLinear(color3{ .x = 1.0, .y = 1.0, .z = 1.0 }, color3{ .x = 0.5, .y = 0.7, .z = 1.0 }, ratio);
+            return finalColor * backgroundColor;
+//          return finalColor * backgroundColor;
+        }
+    }
+
+    // If we reach max depth, return black
+//  // If we reach max depth, return black
+    return color3{};
+//  return color3{};
+}
+
+
 
 int main()
 {
