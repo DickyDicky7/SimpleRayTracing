@@ -195,6 +195,8 @@ struct ray
 {
     vec3 ori;
     vec3 dir;
+    float time;
+//  float time;
 
     point3 Marching(float t) const { return ori + dir * t; }
 //  point3 Marching(float t) const { return ori + dir * t; }
@@ -378,8 +380,8 @@ struct materialScatteredResult
 
 struct sphere
 {
-    material material; point3 center; float radius;
-//  material material; point3 center; float radius;
+    material material; /* point3 */ ray center; float radius;
+//  material material; /* point3 */ ray center; float radius;
 
 };
 
@@ -434,6 +436,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
             materialScatteredResult.scatteredRay.dir = scatteredDirection;
 //          materialScatteredResult.scatteredRay.dir = scatteredDirection;
         }
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
@@ -462,6 +466,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
             materialScatteredResult.scatteredRay.dir = scatteredDirection;
 //          materialScatteredResult.scatteredRay.dir = scatteredDirection;
         }
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
@@ -481,6 +487,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
@@ -502,6 +510,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
@@ -523,6 +533,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
@@ -568,6 +580,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
 //      materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.isScattered = true;
 //      materialScatteredResult.isScattered = true;
         }
@@ -594,8 +608,10 @@ static rayHitResult RayHit(const sphere& sphere
 //                        ,const interval&& rayT
                           )
 {
-    const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
-//  const vec3& fromSphereCenterToRayOrigin = sphere.center - ray.ori;
+    const point3& currentSphereCenterByIncomingRayTime = sphere.center.Marching(ray.time);
+//  const point3& currentSphereCenterByIncomingRayTime = sphere.center.Marching(ray.time);
+    const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
+//  const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
     const float& a = ray.dir.length_squared();
 //  const float& a = ray.dir.length_squared();
     const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
@@ -646,8 +662,8 @@ static rayHitResult RayHit(const sphere& sphere
         rayHitResult.at = ray.Marching(rayHitResult.minT);
 //      rayHitResult.at = ray.Marching(rayHitResult.minT);
 
-        const vec3& outwardNormal = (rayHitResult.at - sphere.center) / sphere.radius;
-//      const vec3& outwardNormal = (rayHitResult.at - sphere.center) / sphere.radius;
+        const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / sphere.radius;
+//      const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / sphere.radius;
 
         rayHitResult.SetFaceNormal(ray, outwardNormal);
 //      rayHitResult.SetFaceNormal(ray, outwardNormal);
@@ -823,12 +839,12 @@ int main()
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { +000.600f,  000.000f, -001.000f }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { -000.600f,  000.000f, -002.500f }, .radius = 000.500f,  });
-//  spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { -000.600f,  000.000f, -001.000f }, .radius = 000.400f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = {  000.000f, -100.500f, -001.000f }, .radius = 100.000f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+//  spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f,  });
 
     float aspectRatio = 16.0f / 9.0f;
     int imgW = 400     ;
@@ -847,8 +863,8 @@ int main()
     vec3 cameraV; // y
     vec3 cameraW; // z
 
-    float defocusAngle = 0.05f * M_PI; float focusDistance = (lookAt - lookFrom).length();
-//  float defocusAngle = 0.05f * M_PI; float focusDistance = (lookAt - lookFrom).length();
+    float defocusAngle = 0.00f * M_PI; float focusDistance = (lookAt - lookFrom).length();
+//  float defocusAngle = 0.00f * M_PI; float focusDistance = (lookAt - lookFrom).length();
 //  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
 //  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
     vec3 defocusDiskRadiusU;
@@ -967,12 +983,12 @@ int main()
 //          vec3 rayDirection = pixelSampleCenter - cameraCenter;
             vec3 rayOrigin = cameraCenter;
 //          vec3 rayOrigin = cameraCenter;
-            if (defocusAngle > 0.0f) _LIKELY { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
-//          if (defocusAngle > 0.0f) _LIKELY { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+            if (defocusAngle > 0.0f) _UNLIKELY { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
+//          if (defocusAngle > 0.0f) _UNLIKELY { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
             vec3 rayDirection = pixelSampleCenter - rayOrigin;
 //          vec3 rayDirection = pixelSampleCenter - rayOrigin;
-            ray  ray{ rayOrigin, rayDirection };
-//          ray  ray{ rayOrigin, rayDirection };
+            ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
+//          ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
             pixelColor += RayColor(ray, spheres);
 //          pixelColor += RayColor(ray, spheres);
         }
