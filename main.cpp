@@ -839,7 +839,8 @@ int main()
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+//  spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
     spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
 //  spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
     spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
@@ -871,7 +872,7 @@ int main()
     vec3 defocusDiskRadiusV;
 
 
-    float vFOV = M_PI / 8.0f;
+    float vFOV = M_PI / 4.0f;
     float hFOV = M_PI / 2.0f;
     float h = std::tanf(vFOV / 2.0f);
     float w = std::tanf(hFOV / 2.0f);
