@@ -30,10 +30,12 @@
 static
 inline float Random()
 {
+//  thread_local static std::random_device rd;// Non-deterministic seed source
+//  thread_local static std::random_device rd;// Non-deterministic seed source
     thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 //  thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-    thread_local static std::mt19937 generator ;
-//  thread_local static std::mt19937 generator ;
+    thread_local static std::mt19937 generator/*(rd())*/ ;
+//  thread_local static std::mt19937 generator/*(rd())*/ ;
     return distribution(generator);
 //  return distribution(generator);
 
