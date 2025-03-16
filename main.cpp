@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 
+#include <string_view>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -14,6 +15,7 @@
 #include <chrono>
 #include <random>
 #include <vector>
+#include <span>
 
   static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
 //static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
@@ -72,12 +74,29 @@ struct interval
         if (x > max) return max;
         return x;
     }
+
+    interval Expand(float delta) const { float padding = delta / 2.0f; return interval{ .min = min - padding, .max = max + padding }; }
+//  interval Expand(float delta) const { float padding = delta / 2.0f; return interval{ .min = min - padding, .max = max + padding }; }
 };
 
     const interval interval::empty    { positiveInfinity, negativeInfinity };
 //  const interval interval::empty    { positiveInfinity, negativeInfinity };
     const interval interval::universe { negativeInfinity, positiveInfinity };
 //  const interval interval::universe { negativeInfinity, positiveInfinity };
+
+
+struct AABB2D
+{
+    interval intervalAxisX;
+    interval intervalAxisY;
+//  interval intervalAxisZ;
+};
+struct AABB3D
+{
+    interval intervalAxisX;
+    interval intervalAxisY;
+    interval intervalAxisZ;
+};
 
 
 static std::string GetCurrentDateTime() {
@@ -204,6 +223,69 @@ struct ray
 
 
 
+static bool HitAABB(const ray& ray, interval rayT, const AABB2D& aabb2d)
+{
+    return true;
+}
+static bool HitAABB(const ray& ray, interval rayT, const AABB3D& aabb3d)
+{
+    const float& rayDirAxisXInverse = 1.0f / ray.dir.x;
+    const float& tX0 = (aabb3d.intervalAxisX.min - ray.ori.x) * rayDirAxisXInverse;
+    const float& tX1 = (aabb3d.intervalAxisX.max - ray.ori.x) * rayDirAxisXInverse;
+    if (tX0 < tX1)
+    {
+        if (tX0 > rayT.min) { rayT.min = tX0; }
+        if (tX1 < rayT.max) { rayT.max = tX1; }
+    }
+    else
+    {
+        if (tX1 > rayT.min) { rayT.min = tX1; }
+        if (tX0 < rayT.max) { rayT.max = tX0; }
+    }
+    if (rayT.max <= rayT.min)
+    {
+        return false;
+    }
+
+    const float& rayDirAxisYInverse = 1.0f / ray.dir.y;
+    const float& tY0 = (aabb3d.intervalAxisY.min - ray.ori.y) * rayDirAxisYInverse;
+    const float& tY1 = (aabb3d.intervalAxisY.max - ray.ori.y) * rayDirAxisYInverse;
+    if (tY0 < tY1)
+    {
+        if (tY0 > rayT.min) { rayT.min = tY0; }
+        if (tY1 < rayT.max) { rayT.max = tY1; }
+    }
+    else
+    {
+        if (tY1 > rayT.min) { rayT.min = tY1; }
+        if (tY0 < rayT.max) { rayT.max = tY0; }
+    }
+    if (rayT.max <= rayT.min)
+    {
+        return false;
+    }
+
+    const float& rayDirAxisZInverse = 1.0f / ray.dir.z;
+    const float& tZ0 = (aabb3d.intervalAxisZ.min - ray.ori.z) * rayDirAxisZInverse;
+    const float& tZ1 = (aabb3d.intervalAxisZ.max - ray.ori.z) * rayDirAxisZInverse;
+    if (tZ0 < tZ1)
+    {
+        if (tZ0 > rayT.min) { rayT.min = tZ0; }
+        if (tZ1 < rayT.max) { rayT.max = tZ1; }
+    }
+    else
+    {
+        if (tZ1 > rayT.min) { rayT.min = tZ1; }
+        if (tZ0 < rayT.max) { rayT.max = tZ0; }
+    }
+    if (rayT.max <= rayT.min)
+    {
+        return false;
+    }
+
+
+    return true;
+}
 
 
 
@@ -380,11 +462,53 @@ struct materialScatteredResult
 
 struct sphere
 {
-    material material; /* point3 */ ray center; float radius;
-//  material material; /* point3 */ ray center; float radius;
+    material material; /* point3 */ ray center; AABB3D aabb3d; float radius;
+//  material material; /* point3 */ ray center; AABB3D aabb3d; float radius;
 
 };
 
+
+inline static bool IsStationary   (sphere& sphere) { return sphere.center.dir.x == 0.0f && sphere.center.dir.y == 0.0f && sphere.center.dir.z == 0.0f; }
+inline static bool IsStationary   (              ) { return false;                                                                                     }
+
+inline static void CalculateAABB3D(sphere& sphere)
+{
+    if (IsStationary(sphere))
+    {
+        sphere.aabb3d.intervalAxisX.min = sphere.center.ori.x - sphere.radius;
+        sphere.aabb3d.intervalAxisX.max = sphere.center.ori.x + sphere.radius;
+        sphere.aabb3d.intervalAxisY.min = sphere.center.ori.y - sphere.radius;
+        sphere.aabb3d.intervalAxisY.max = sphere.center.ori.y + sphere.radius;
+        sphere.aabb3d.intervalAxisZ.min = sphere.center.ori.z - sphere.radius;
+        sphere.aabb3d.intervalAxisZ.max = sphere.center.ori.z + sphere.radius;
+    }
+    else
+    {
+        const point3& destinationPoint3 = sphere.center.Marching(1.0f);
+        sphere.aabb3d.intervalAxisX.min = std::fminf(sphere.center.ori.x, destinationPoint3.x) - sphere.radius;
+        sphere.aabb3d.intervalAxisX.max = std::fmaxf(sphere.center.ori.x, destinationPoint3.x) + sphere.radius;
+        sphere.aabb3d.intervalAxisY.min = std::fminf(sphere.center.ori.y, destinationPoint3.y) - sphere.radius;
+        sphere.aabb3d.intervalAxisY.max = std::fmaxf(sphere.center.ori.y, destinationPoint3.y) + sphere.radius;
+        sphere.aabb3d.intervalAxisZ.min = std::fminf(sphere.center.ori.z, destinationPoint3.z) - sphere.radius;
+        sphere.aabb3d.intervalAxisZ.max = std::fmaxf(sphere.center.ori.z, destinationPoint3.z) + sphere.radius;
+    }
+}
+
+inline static void CalculateAABB3D(std::vector<sphere>& spheres, AABB3D& aabb3d)
+{
+    for (sphere& sphere : spheres)
+//  for (sphere& sphere : spheres)
+    {
+        CalculateAABB3D(sphere);
+//      CalculateAABB3D(sphere);
+        aabb3d.intervalAxisX.min = std::fminf(sphere.aabb3d.intervalAxisX.min, aabb3d.intervalAxisX.min);
+        aabb3d.intervalAxisX.max = std::fmaxf(sphere.aabb3d.intervalAxisX.max, aabb3d.intervalAxisX.max);
+        aabb3d.intervalAxisY.min = std::fminf(sphere.aabb3d.intervalAxisY.min, aabb3d.intervalAxisY.min);
+        aabb3d.intervalAxisY.max = std::fmaxf(sphere.aabb3d.intervalAxisY.max, aabb3d.intervalAxisY.max);
+        aabb3d.intervalAxisZ.min = std::fminf(sphere.aabb3d.intervalAxisZ.min, aabb3d.intervalAxisZ.min);
+        aabb3d.intervalAxisZ.max = std::fmaxf(sphere.aabb3d.intervalAxisZ.max, aabb3d.intervalAxisZ.max);
+    }
+}
 
 struct rayHitResult
 {
@@ -846,6 +970,11 @@ int main()
     spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
     spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f,  });
     spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f,  });
+
+    AABB3D aabb3d;
+//  AABB3D aabb3d;
+    CalculateAABB3D(spheres, aabb3d);
+//  CalculateAABB3D(spheres, aabb3d);
 
     float aspectRatio = 16.0f / 9.0f;
     int imgW = 400     ;
