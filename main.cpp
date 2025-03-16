@@ -52,6 +52,8 @@ inline float Random(float min, float max)
 //  return min + (max - min) * Random();
 }
 
+    static inline int RandomInt(int min, int max) { return int(Random((float)min, float(max + 1))); }
+//  static inline int RandomInt(int min, int max) { return int(Random((float)min, float(max + 1))); }
 
 struct interval
 {
@@ -728,8 +730,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 inline
 static rayHitResult RayHit(const sphere& sphere
                           ,const ray   & ray
-                          ,const interval&& rayT
-//                        ,const interval&& rayT
+                          ,const interval& rayT
+//                        ,const interval& rayT
                           )
 {
     const point3& currentSphereCenterByIncomingRayTime = sphere.center.Marching(ray.time);
@@ -799,8 +801,8 @@ static rayHitResult RayHit(const sphere& sphere
 
 
 
-inline
-static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval&& rayT)
+        inline static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval& rayT)
+//      inline static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval& rayT)
 {
     rayHitResult finalRayHitResult{};
 //  rayHitResult finalRayHitResult{};
@@ -951,6 +953,265 @@ static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres
 
 
 
+
+struct BVHNode
+{
+    AABB3D  aabb3d      ;
+    int shapeIndex  = -1;
+    int childIndexL = -1;
+    int childIndexR = -1;
+};
+struct BVHTree
+{
+    std::vector<BVHNode> bvhNodes; std::vector<sphere> spheres;
+//  std::vector<BVHNode> bvhNodes; std::vector<sphere> spheres;
+};
+inline static rayHitResult RayHit(const BVHTree& bvhTree, int bvhNodeIndex, const ray& ray, const interval& rayT)
+{
+    const BVHNode& bvhNode = bvhTree.bvhNodes[bvhNodeIndex];
+//  const BVHNode& bvhNode = bvhTree.bvhNodes[bvhNodeIndex];
+
+    // Leaf node: test sphere intersection
+    // Leaf node: test sphere intersection
+    if (bvhNode.shapeIndex != -1)
+//  if (bvhNode.shapeIndex != -1)
+    {
+        return RayHit(bvhTree.spheres[bvhNode.shapeIndex], ray, rayT);
+//      return RayHit(bvhTree.spheres[bvhNode.shapeIndex], ray, rayT);
+    }
+
+    // Non-leaf node: test AABB first
+    // Non-leaf node: test AABB first
+    if (!HitAABB(ray, rayT, bvhNode.aabb3d))
+//  if (!HitAABB(ray, rayT, bvhNode.aabb3d))
+    {
+        rayHitResult rayHitResult{};
+//      rayHitResult rayHitResult{};
+        rayHitResult.hitted = false;
+//      rayHitResult.hitted = false;
+        return rayHitResult;
+//      return rayHitResult;
+    }
+
+    // Recursively traverse children
+    // Recursively traverse children
+    rayHitResult rayHitResultL = RayHit(bvhTree, bvhNode.childIndexL, ray,        rayT);
+//  rayHitResult rayHitResultL = RayHit(bvhTree, bvhNode.childIndexL, ray,        rayT);
+    interval updatedRayT;
+//  interval updatedRayT;
+    if (rayHitResultL.hitted)
+//  if (rayHitResultL.hitted)
+    {
+        updatedRayT = interval{ .min = rayT.min, .max = rayHitResultL.minT };
+//      updatedRayT = interval{ .min = rayT.min, .max = rayHitResultL.minT };
+    }
+    else
+    {
+        updatedRayT = rayT;
+//      updatedRayT = rayT;
+    }
+    rayHitResult rayHitResultR = RayHit(bvhTree, bvhNode.childIndexR, ray, updatedRayT);
+//  rayHitResult rayHitResultR = RayHit(bvhTree, bvhNode.childIndexR, ray, updatedRayT);
+
+    // Return the closest hit
+    // Return the closest hit
+    if (rayHitResultL.hitted
+    &&  rayHitResultR.hitted)
+    {
+        if (rayHitResultL.minT < rayHitResultR.minT)
+        {
+            return rayHitResultL;
+        }
+        else
+        {
+            return rayHitResultR;
+        }
+    }
+    else
+    if (rayHitResultL.hitted)
+    {
+        return rayHitResultL;
+    }
+    else
+    {
+        return rayHitResultR;
+    }
+}
+static inline bool AABB3DCompareAxisX(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisX.min < sphere2.aabb3d.intervalAxisX.min; }
+static inline bool AABB3DCompareAxisY(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisY.min < sphere2.aabb3d.intervalAxisY.min; }
+static inline bool AABB3DCompareAxisZ(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisZ.min < sphere2.aabb3d.intervalAxisZ.min; }
+inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
+{
+    int objectSpan = cease - start;
+//  int objectSpan = cease - start;
+    if (objectSpan == 1)
+    {
+        // Single sphere: create a leaf node directly
+        // Single sphere: create a leaf node directly
+        int current = (int)bvhTree.bvhNodes.size();
+//      int current = (int)bvhTree.bvhNodes.size();
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
+//      bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
+        return current;
+    }
+    else
+    if (objectSpan == 2)
+    {
+        // Two spheres: create a parent with two leaf children
+        // Two spheres: create a parent with two leaf children
+        int current = (int)bvhTree.bvhNodes.size();
+//      int current = (int)bvhTree.bvhNodes.size();
+        // Reserve space for parent node
+        // Reserve space for parent node
+        bvhTree.bvhNodes.emplace_back(BVHNode{});
+//      bvhTree.bvhNodes.emplace_back(BVHNode{});
+
+        // Create left and right leaf nodes
+        // Create left and right leaf nodes
+        int childIndexL = (int)bvhTree.bvhNodes.size();
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start + 0].aabb3d, .shapeIndex = start + 0, .childIndexL = -1, .childIndexR = -1 });
+        int childIndexR = (int)bvhTree.bvhNodes.size();
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start + 1].aabb3d, .shapeIndex = start + 1, .childIndexL = -1, .childIndexR = -1 });
+
+        // Compute combined AABB for parent
+        // Compute combined AABB for parent
+        // Update parent node
+        // Update parent node
+        const BVHNode& bvhNodeL = bvhTree.bvhNodes[childIndexL];
+        const BVHNode& bvhNodeR = bvhTree.bvhNodes[childIndexR];
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisX.min = std::fminf(bvhNodeL.aabb3d.intervalAxisX.min, bvhNodeR.aabb3d.intervalAxisX.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisX.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisX.max, bvhNodeR.aabb3d.intervalAxisX.max);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisY.min = std::fminf(bvhNodeL.aabb3d.intervalAxisY.min, bvhNodeR.aabb3d.intervalAxisY.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisY.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisY.max, bvhNodeR.aabb3d.intervalAxisY.max);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisZ.min = std::fminf(bvhNodeL.aabb3d.intervalAxisZ.min, bvhNodeR.aabb3d.intervalAxisZ.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisZ.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisZ.max, bvhNodeR.aabb3d.intervalAxisZ.max);
+        bvhTree.bvhNodes[current].shapeIndex  = -1;
+        bvhTree.bvhNodes[current].childIndexL = childIndexL;
+        bvhTree.bvhNodes[current].childIndexR = childIndexR;
+        
+        return current;
+    }
+    else
+    {
+        // Multiple spheres: recursive split
+        // Multiple spheres: recursive split
+        int axis = RandomInt(0, 2);
+//      int axis = RandomInt(0, 2);
+        std::function<bool(const sphere&, const sphere&)> comparator;
+//      std::function<bool(const sphere&, const sphere&)> comparator;
+        if (axis == 0)
+        {
+            comparator = AABB3DCompareAxisX;
+        }
+        else
+        if (axis == 1)
+        {
+            comparator = AABB3DCompareAxisY;
+        }
+        else
+        if (axis == 2)
+        {
+            comparator = AABB3DCompareAxisZ;
+        }
+
+        int current = (int)bvhTree.bvhNodes.size();
+//      int current = (int)bvhTree.bvhNodes.size();
+        bvhTree.bvhNodes.emplace_back(BVHNode{}); // Placeholder for parent
+//      bvhTree.bvhNodes.emplace_back(BVHNode{}); // Placeholder for parent
+
+        // Sort and split
+        // Sort and split
+        std::sort(std::begin(bvhTree.spheres) + start,
+                  std::begin(bvhTree.spheres) + cease, comparator);
+        int mid = start + objectSpan / 2;
+//      int mid = start + objectSpan / 2;
+
+        // Recursively build subtrees
+        // Recursively build subtrees
+        int childIndexL = BuildBVHTree(bvhTree, start, mid       );
+//      int childIndexL = BuildBVHTree(bvhTree, start, mid       );
+        int childIndexR = BuildBVHTree(bvhTree,        mid, cease);
+//      int childIndexR = BuildBVHTree(bvhTree,        mid, cease);
+
+        // Combine AABBs from children
+        // Combine AABBs from children
+        // Update parent node
+        // Update parent node
+        const BVHNode& bvhNodeL = bvhTree.bvhNodes[childIndexL];
+        const BVHNode& bvhNodeR = bvhTree.bvhNodes[childIndexR];
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisX.min = std::fminf(bvhNodeL.aabb3d.intervalAxisX.min, bvhNodeR.aabb3d.intervalAxisX.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisX.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisX.max, bvhNodeR.aabb3d.intervalAxisX.max);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisY.min = std::fminf(bvhNodeL.aabb3d.intervalAxisY.min, bvhNodeR.aabb3d.intervalAxisY.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisY.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisY.max, bvhNodeR.aabb3d.intervalAxisY.max);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisZ.min = std::fminf(bvhNodeL.aabb3d.intervalAxisZ.min, bvhNodeR.aabb3d.intervalAxisZ.min);
+        bvhTree.bvhNodes[current].aabb3d.intervalAxisZ.max = std::fmaxf(bvhNodeL.aabb3d.intervalAxisZ.max, bvhNodeR.aabb3d.intervalAxisZ.max);
+        bvhTree.bvhNodes[current].shapeIndex  = -1;
+        bvhTree.bvhNodes[current].childIndexL = childIndexL;
+        bvhTree.bvhNodes[current].childIndexR = childIndexR;
+
+        return current;
+    }
+}
+inline
+static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDepth = 50)
+{
+    color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
+//  color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
+    ray currentRay = initialRay;
+//  ray currentRay = initialRay;
+
+    for (int depth = 0; depth < maxDepth; ++depth)
+//  for (int depth = 0; depth < maxDepth; ++depth)
+    {
+        const rayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
+//      const rayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
+
+        if (rayHitResult.hitted) _UNLIKELY
+//      if (rayHitResult.hitted) _UNLIKELY
+        {
+            const materialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
+//          const materialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
+
+            if (!materialScatteredResult.isScattered) _UNLIKELY
+//          if (!materialScatteredResult.isScattered) _UNLIKELY
+            {
+                return color3{};  // Return black if scattering fails
+//              return color3{};  // Return black if scattering fails
+            }
+
+            // Multiply the current color by the attenuation
+//          // Multiply the current color by the attenuation
+            finalColor = finalColor * materialScatteredResult.attenuation;
+//          finalColor = finalColor * materialScatteredResult.attenuation;
+            // Update the ray for the next iteration
+//          // Update the ray for the next iteration
+            currentRay = materialScatteredResult.scatteredRay;
+//          currentRay = materialScatteredResult.scatteredRay;
+        }
+        else
+//      else
+        {
+            // If no hit, calculate background color and return final result
+//          // If no hit, calculate background color and return final result
+            const vec3& normalizedRayDirection = normalize(currentRay.dir);
+//          const vec3& normalizedRayDirection = normalize(currentRay.dir);
+            const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//          const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+            color3 backgroundColor = BlendLinear(color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }, color3{ .x = 0.5f, .y = 0.7f, .z = 1.0f }, ratio);
+//          color3 backgroundColor = BlendLinear(color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }, color3{ .x = 0.5f, .y = 0.7f, .z = 1.0f }, ratio);
+            return finalColor * backgroundColor;
+//          return finalColor * backgroundColor;
+        }
+    }
+
+    // If we reach max depth, return black
+//  // If we reach max depth, return black
+    return color3{};
+//  return color3{};
+}
+
+
+
 int main()
 {
 //  ThreadPool threadPool;
@@ -962,19 +1223,49 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    std::vector<sphere> spheres;
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-//  spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-//  spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f,  });
-    spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f,  });
+//  std::vector<sphere> spheres;
+//  std::vector<sphere> spheres;
+    BVHTree bvhTree;
+//  BVHTree bvhTree;
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f,  });
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f,  });
+    
+    for (int i = -5; i < 5; ++i)
+    for (int j = -5; j < 5; ++j)
+    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f,  });
+//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f,  });
 
-    AABB3D aabb3d;
-//  AABB3D aabb3d;
-    CalculateAABB3D(spheres, aabb3d);
-//  CalculateAABB3D(spheres, aabb3d);
+    for (sphere& sphere : bvhTree.spheres) CalculateAABB3D(sphere);
+//  for (sphere& sphere : bvhTree.spheres) CalculateAABB3D(sphere);
+    
+//  for (sphere& sphere : bvhTree.spheres)
+//  {
+//      std::cout << "x min:" << sphere.aabb3d.intervalAxisX.min << " " << "x max:" << sphere.aabb3d.intervalAxisX.max << std::endl;
+//      std::cout << "y min:" << sphere.aabb3d.intervalAxisY.min << " " << "y max:" << sphere.aabb3d.intervalAxisY.max << std::endl;
+//      std::cout << "z min:" << sphere.aabb3d.intervalAxisZ.min << " " << "z max:" << sphere.aabb3d.intervalAxisZ.max << std::endl << std::endl << std::endl;
+//  }
+//  return 0;
+
+    bvhTree.bvhNodes.reserve(2 * bvhTree.spheres.size() - 1);
+//  bvhTree.bvhNodes.reserve(2 * bvhTree.spheres.size() - 1);
+    BuildBVHTree(bvhTree, 0,(int)bvhTree.spheres.size());
+//  BuildBVHTree(bvhTree, 0,(int)bvhTree.spheres.size());
+
+    //for (const BVHNode& bvhNode : bvhTree.bvhNodes)
+    //{
+    //    std::cout << "x min:" << bvhNode.aabb3d.intervalAxisX.min << " " << "x max:" << bvhNode.aabb3d.intervalAxisX.max << std::endl;
+    //    std::cout << "y min:" << bvhNode.aabb3d.intervalAxisY.min << " " << "y max:" << bvhNode.aabb3d.intervalAxisY.max << std::endl;
+    //    std::cout << "z min:" << bvhNode.aabb3d.intervalAxisZ.min << " " << "z max:" << bvhNode.aabb3d.intervalAxisZ.max << std::endl;
+    //    std::cout << "shape   index:" << bvhNode.shapeIndex  << "  "
+    //              << "child L index:" << bvhNode.childIndexL << "  "
+    //              << "child R index:" << bvhNode.childIndexR << std::endl << std::endl << std::endl;
+    //}
+    //return 0;
 
     float aspectRatio = 16.0f / 9.0f;
     int imgW = 400     ;
@@ -1073,8 +1364,8 @@ int main()
 #endif
     threads.emplace_back(
 //  threads.emplace_back(
-    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &spheres, &rgbs
-//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &spheres, &rgbs
+    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
+//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
     ]
     {
 
@@ -1119,7 +1410,9 @@ int main()
 //          vec3 rayDirection = pixelSampleCenter - rayOrigin;
             ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
 //          ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
-            pixelColor += RayColor(ray, spheres);
+            pixelColor += RayColor(ray, bvhTree);
+//          pixelColor += RayColor(ray, bvhTree);
+//          pixelColor += RayColor(ray, spheres);
 //          pixelColor += RayColor(ray, spheres);
         }
         pixelColor *= pixelSamplesScale;
