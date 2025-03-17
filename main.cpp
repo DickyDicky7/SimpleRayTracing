@@ -1219,8 +1219,10 @@ int main()
 //  ThreadPool threadPool;
 //  ThreadPool threadPool;
 
-    int                              samplesPerPixel = 1000;
+    int                              samplesPerPixel = 100 ;
+//  int                              samplesPerPixel = 100 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel       ;
+//  float pixelSamplesScale = 1.0f / samplesPerPixel       ;
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
