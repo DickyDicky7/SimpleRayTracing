@@ -21,7 +21,38 @@ public:
         {
             threads.emplace_back([this]
             {
-                while (!stop)
+                while (true)
+                {
+                    std::function<void()> task;
+//                  std::function<void()> task;
+                    {
+                        std::unique_lock<std::mutex> lock(tasksMutex);
+//                      std::unique_lock<std::mutex> lock(tasksMutex);
+                        conditionVariable.wait(lock, [this] { return !tasks.empty() || stop; });
+//                      conditionVariable.wait(lock, [this] { return !tasks.empty() || stop; });
+                        if (stop && tasks.empty()) { return; }
+//                      if (stop && tasks.empty()) { return; }
+                        task = std::move(tasks.front());
+//                      task = std::move(tasks.front());
+                        tasks.pop();
+//                      tasks.pop();
+                    }
+                    task();
+//                  task();
+                }
+            });
+        }
+    }
+
+      ThreadPool(size_t numberOfThreads)
+    {
+        size_t numberOfThreadsAvailable = std::min<size_t>(numberOfThreads, std::thread::hardware_concurrency());
+//      size_t numberOfThreadsAvailable = std::min<size_t>(numberOfThreads, std::thread::hardware_concurrency());
+        for (size_t i = 0; i < numberOfThreadsAvailable; ++i)
+        {
+            threads.emplace_back([this]
+            {
+                while (true)
                 {
                     std::function<void()> task;
 //                  std::function<void()> task;
@@ -57,16 +88,16 @@ public:
 
         for (std::thread& thread : threads)
         {
-            if (thread.joinable())
 //          if (thread.joinable())
-            {
+//          if (thread.joinable())
+//          {
                 thread.join();
 //              thread.join();
-            }
+//          }
         }
     }
 
-    void Enqueue(std::function<void()> task)
+    void Enqueue(std::function<void()>&& task)
     {
         {
             std::unique_lock<std::mutex> lock(tasksMutex);
@@ -98,6 +129,15 @@ private:
 };
 
 #endif
+
+
+
+
+
+
+
+
+
 
 
 

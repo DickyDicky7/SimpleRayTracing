@@ -1216,8 +1216,8 @@ static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDep
 
 int main()
 {
-//  ThreadPool threadPool;
-//  ThreadPool threadPool;
+    ThreadPool* threadPool = new ThreadPool(225);
+//  ThreadPool* threadPool = new ThreadPool(225);
 
     int                              samplesPerPixel = 100 ;
 //  int                              samplesPerPixel = 100 ;
@@ -1357,7 +1357,8 @@ int main()
 //  constexpr int numberOfChannels = 3; // R G B
     std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
 //  std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
-    std::vector<std::thread> threads;
+
+//  std::vector<std::thread> threads;
 //  std::vector<std::thread> threads;
 
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
@@ -1366,7 +1367,9 @@ int main()
     std::clog << "Progress: " << pixelY << "\n";
 //  std::clog << "Progress: " << pixelY << "\n";
 #endif
-    threads.emplace_back(
+    threadPool->Enqueue(
+//  threadPool->Enqueue(
+//  threads.emplace_back(
 //  threads.emplace_back(
     [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
 //  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
@@ -1437,8 +1440,12 @@ int main()
     });
     }
 
+    delete threadPool;
+//  delete threadPool;
+//  threadPool = nullptr;
+//  threadPool = nullptr;
 
-    for (std::thread& t : threads) { t.join(); }
+//  for (std::thread& t : threads) { t.join(); }
 //  for (std::thread& t : threads) { t.join(); }
 
 
