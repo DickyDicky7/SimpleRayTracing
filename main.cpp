@@ -1208,6 +1208,8 @@ enum class Axis : std::uint8_t
         aabb3dResult.intervalAxisZ.min = std::fminf(aabb3d1.intervalAxisZ.min, aabb3d2.intervalAxisZ.min);
         aabb3dResult.intervalAxisZ.max = std::fmaxf(aabb3d1.intervalAxisZ.max, aabb3d2.intervalAxisZ.max);
 }
+//  SAH BVH
+//  SAH BVH
     inline static int BuildBVHTree(BVHTree& bvhTree, int start, int cease)
 //  inline static int BuildBVHTree(BVHTree& bvhTree, int start, int cease)
 {
