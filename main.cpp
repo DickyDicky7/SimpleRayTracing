@@ -1039,6 +1039,7 @@ inline static rayHitResult RayHit(const BVHTree& bvhTree, int bvhNodeIndex, cons
         return rayHitResultR;
     }
 }
+/*
 static inline bool AABB3DCompareAxisX(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisX.min < sphere2.aabb3d.intervalAxisX.min; }
 static inline bool AABB3DCompareAxisY(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisY.min < sphere2.aabb3d.intervalAxisY.min; }
 static inline bool AABB3DCompareAxisZ(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisZ.min < sphere2.aabb3d.intervalAxisZ.min; }
@@ -1153,6 +1154,200 @@ inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
 
         return current;
     }
+}
+*/
+enum class Axis : std::uint8_t
+{
+    X = +0,
+    Y = +1,
+    Z = +2,
+    _ = +3,
+};
+//  Calculate the centroid of a sphere's AABB along a specific axis
+//  Calculate the centroid of a sphere's AABB along a specific axis
+    static inline float GetCentroid(const sphere& sphere, const Axis& axis)
+//  static inline float GetCentroid(const sphere& sphere, const Axis& axis)
+{
+        switch (axis)
+        {
+        case Axis::X:
+            return (sphere.aabb3d.intervalAxisX.min + sphere.aabb3d.intervalAxisX.max) / 2.0f;
+        case Axis::Y:
+            return (sphere.aabb3d.intervalAxisY.min + sphere.aabb3d.intervalAxisY.max) / 2.0f;
+        case Axis::Z:
+            return (sphere.aabb3d.intervalAxisZ.min + sphere.aabb3d.intervalAxisZ.max) / 2.0f;
+        default:
+            return 0;
+        }
+}
+
+//  Calculate the surface area of an AABB3D
+//  Calculate the surface area of an AABB3D
+    static inline float SurfaceArea(const AABB3D& aabb3d)
+//  static inline float SurfaceArea(const AABB3D& aabb3d)
+{
+        float  width = aabb3d.intervalAxisX.max - aabb3d.intervalAxisX.min;
+//      float  width = aabb3d.intervalAxisX.max - aabb3d.intervalAxisX.min;
+        float height = aabb3d.intervalAxisY.max - aabb3d.intervalAxisY.min;
+//      float height = aabb3d.intervalAxisY.max - aabb3d.intervalAxisY.min;
+        float  depth = aabb3d.intervalAxisZ.max - aabb3d.intervalAxisZ.min;
+//      float  depth = aabb3d.intervalAxisZ.max - aabb3d.intervalAxisZ.min;
+        return 2.0f * (width * height + width * depth + height * depth);
+//      return 2.0f * (width * height + width * depth + height * depth);
+}
+
+//  Compute the union of two AABB3Ds
+//  Compute the union of two AABB3Ds
+    static inline void Union(const AABB3D& aabb3d1, const AABB3D& aabb3d2, AABB3D& aabb3dResult)
+//  static inline void Union(const AABB3D& aabb3d1, const AABB3D& aabb3d2, AABB3D& aabb3dResult)
+{
+        aabb3dResult.intervalAxisX.min = std::fminf(aabb3d1.intervalAxisX.min, aabb3d2.intervalAxisX.min);
+        aabb3dResult.intervalAxisX.max = std::fmaxf(aabb3d1.intervalAxisX.max, aabb3d2.intervalAxisX.max);
+        aabb3dResult.intervalAxisY.min = std::fminf(aabb3d1.intervalAxisY.min, aabb3d2.intervalAxisY.min);
+        aabb3dResult.intervalAxisY.max = std::fmaxf(aabb3d1.intervalAxisY.max, aabb3d2.intervalAxisY.max);
+        aabb3dResult.intervalAxisZ.min = std::fminf(aabb3d1.intervalAxisZ.min, aabb3d2.intervalAxisZ.min);
+        aabb3dResult.intervalAxisZ.max = std::fmaxf(aabb3d1.intervalAxisZ.max, aabb3d2.intervalAxisZ.max);
+}
+    inline static int BuildBVHTree(BVHTree& bvhTree, int start, int cease)
+//  inline static int BuildBVHTree(BVHTree& bvhTree, int start, int cease)
+{
+        int objectSpan = cease - start;
+//      int objectSpan = cease - start;
+
+        // Base case: create a leaf node with a single sphere
+        // Base case: create a leaf node with a single sphere
+        if (objectSpan == 1)
+//      if (objectSpan == 1)
+        {
+            int current = (int)bvhTree.bvhNodes.size();
+//          int current = (int)bvhTree.bvhNodes.size();
+            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+            return current;
+//          return current;
+        }
+
+        // Variables to track the best split
+        // Variables to track the best split
+        float bestCost =  std::numeric_limits<float>::infinity(); // Assuming positiveInfinity is not defined
+//      float bestCost =  std::numeric_limits<float>::infinity(); // Assuming positiveInfinity is not defined
+        Axis  bestAxis = Axis::_;
+//      Axis  bestAxis = Axis::_;
+        int   bestIndexToSplit = -1;
+//      int   bestIndexToSplit = -1;
+
+        // Evaluate splits along each axis ( x = 0 , y = 1 , z = 2 )
+        // Evaluate splits along each axis ( x = 0 , y = 1 , z = 2 )
+        for (int axis = 0; axis < 3; ++axis)
+//      for (int axis = 0; axis < 3; ++axis)
+        {
+            // Sort spheres based on centroid along the current axis
+            // Sort spheres based on centroid along the current axis
+            std::function<bool(const sphere&        , const sphere&        )> comparator = [axis]
+                              (const sphere& sphere1, const sphere& sphere2)
+                        ->bool{ return GetCentroid(sphere1, Axis(axis))
+                         <             GetCentroid(sphere2, Axis(axis));
+                              };
+            std::sort(std::begin(bvhTree.spheres) + start ,
+                      std::begin(bvhTree.spheres) + cease , comparator);
+
+            // Compute cumulative AABB3Ds from the left!
+            // Compute cumulative AABB3Ds from the left!
+            std::vector<AABB3D> lAABB3Ds(objectSpan);
+//          std::vector<AABB3D> lAABB3Ds(objectSpan);
+            lAABB3Ds[0] = bvhTree.spheres[start].aabb3d;
+//          lAABB3Ds[0] = bvhTree.spheres[start].aabb3d;
+            for (int i = 1; i < objectSpan; ++i)
+//          for (int i = 1; i < objectSpan; ++i)
+            {
+                Union(lAABB3Ds[i - 1], bvhTree.spheres[start + i].aabb3d, lAABB3Ds[i]);
+//              Union(lAABB3Ds[i - 1], bvhTree.spheres[start + i].aabb3d, lAABB3Ds[i]);
+            }
+
+            // Compute cumulative AABB3Ds from the right
+            // Compute cumulative AABB3Ds from the right
+            std::vector<AABB3D> rAABB3Ds(objectSpan);
+//          std::vector<AABB3D> rAABB3Ds(objectSpan);
+            rAABB3Ds[objectSpan - 1] = bvhTree.spheres[cease - 1].aabb3d;
+//          rAABB3Ds[objectSpan - 1] = bvhTree.spheres[cease - 1].aabb3d;
+            for (int i = objectSpan - 2; i >= 0; --i)
+//          for (int i = objectSpan - 2; i >= 0; --i)
+            {
+                Union(bvhTree.spheres[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
+//              Union(bvhTree.spheres[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
+            }
+
+            // Evaluate all possible splits
+            // Evaluate all possible splits
+            for (int i = 0; i < objectSpan - 1; ++i)
+//          for (int i = 0; i < objectSpan - 1; ++i)
+            {
+                float   cost = SurfaceArea(lAABB3Ds[i    ]) * (             i + 1)
+                             + SurfaceArea(rAABB3Ds[i + 1]) * (objectSpan - i - 1);
+                if (    cost <
+                    bestCost)
+                {
+                    bestCost =      cost ;
+//                  bestCost =      cost ;
+                    bestAxis = Axis(axis);
+//                  bestAxis = Axis(axis);
+                    bestIndexToSplit = i ;
+//                  bestIndexToSplit = i ;
+                }
+            }
+        }
+
+        // If no valid split is found (shouldn't happen), create a leaf node as fallback
+        // If no valid split is found (shouldn't happen), create a leaf node as fallback
+        if (bestAxis == Axis::_)
+        {
+            int current = (int)bvhTree.bvhNodes.size();
+//          int current = (int)bvhTree.bvhNodes.size();
+            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+            return current;
+//          return current;
+        }
+
+        // Apply the best split
+        // Apply the best split
+        std::function<bool(const sphere&        , const sphere&        )> bestComparator = [bestAxis]
+                          (const sphere& sphere1, const sphere& sphere2)
+                    ->bool{      return GetCentroid(sphere1, bestAxis)
+                     <                  GetCentroid(sphere2, bestAxis);
+                          };
+        std::sort(std::begin(bvhTree.spheres) + start,
+                  std::begin(bvhTree.spheres) + cease, bestComparator);
+        int mid = start + bestIndexToSplit + 1;
+//      int mid = start + bestIndexToSplit + 1;
+
+        // Create an internal node
+        // Create an internal node
+        int current = (int)bvhTree.bvhNodes.size();
+//      int current = (int)bvhTree.bvhNodes.size();
+        bvhTree.bvhNodes.emplace_back(BVHNode{  });
+//      bvhTree.bvhNodes.emplace_back(BVHNode{  });
+
+        // Recursively build left and right subtrees
+        // Recursively build left and right subtrees
+        int childIndexL = BuildBVHTree(bvhTree, start, mid       );
+//      int childIndexL = BuildBVHTree(bvhTree, start, mid       );
+        int childIndexR = BuildBVHTree(bvhTree,        mid, cease);
+//      int childIndexR = BuildBVHTree(bvhTree,        mid, cease);
+
+        // Set up the internal node
+        // Set up the internal node
+        const BVHNode& bvhNodeL = bvhTree.bvhNodes[childIndexL];
+        const BVHNode& bvhNodeR = bvhTree.bvhNodes[childIndexR];
+        Union(bvhNodeL         .aabb3d ,
+              bvhNodeR         .aabb3d ,
+      bvhTree.bvhNodes[current].aabb3d);
+      bvhTree.bvhNodes[current].shapeIndex  = -1         ;
+      bvhTree.bvhNodes[current].childIndexL = childIndexL;
+      bvhTree.bvhNodes[current].childIndexR = childIndexR;
+
+      return current;
+//    return current;
 }
 inline
 static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDepth = 50)
