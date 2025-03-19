@@ -27,25 +27,40 @@
     constexpr float negativeInfinity = -std::numeric_limits<float>::infinity();
 //  constexpr float negativeInfinity = -std::numeric_limits<float>::infinity();
 
-static
-inline float Random()
-{
-//  thread_local static std::random_device rd;// Non-deterministic seed source
-//  thread_local static std::random_device rd;// Non-deterministic seed source
-    thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-//  thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-    thread_local static std::mt19937 generator/*(rd())*/ ;
-//  thread_local static std::mt19937 generator/*(rd())*/ ;
-    return distribution(generator);
-//  return distribution(generator);
-
-//    static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-////  static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-//    static std::mt19937 generator ;
-////  static std::mt19937 generator ;
+//static
+//inline float Random()
+//{
+////  thread_local static std::random_device rd;// Non-deterministic seed source
+////  thread_local static std::random_device rd;// Non-deterministic seed source
+//    thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+////  thread_local static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+//    thread_local static std::mt19937 generator/*(rd())*/ ;
+////  thread_local static std::mt19937 generator/*(rd())*/ ;
 //    return distribution(generator);
 ////  return distribution(generator);
+//
+////    static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+//////  static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+////    static std::mt19937 generator ;
+//////  static std::mt19937 generator ;
+////    return distribution(generator);
+//////  return distribution(generator);
+//}
+
+       thread_local static uint32_t seed = 123456789;
+//     thread_local static uint32_t seed = 123456789;
+static inline float Random()
+{
+    seed ^= seed << 13;
+//  seed ^= seed << 13;
+    seed ^= seed >> 17;
+//  seed ^= seed >> 17;
+    seed ^= seed << 5 ;
+//  seed ^= seed << 5 ;
+    return (seed & 0xFFFFFF) / 16777216.0f; // Normalize to [ 0.0f , 1.0f ]
+//  return (seed & 0xFFFFFF) / 16777216.0f; // Normalize to [ 0.0f , 1.0f ]
 }
+
 
 static
 inline float Random(float min, float max)
@@ -1257,8 +1272,12 @@ enum class Axis : std::uint8_t
             // Compute cumulative AABB3Ds from the left!
             std::vector<AABB3D> lAABB3Ds(objectSpan);
 //          std::vector<AABB3D> lAABB3Ds(objectSpan);
-            lAABB3Ds[0] = bvhTree.spheres[start].aabb3d;
-//          lAABB3Ds[0] = bvhTree.spheres[start].aabb3d;
+            lAABB3Ds[0].intervalAxisX.min = bvhTree.spheres[start].aabb3d.intervalAxisX.min;
+            lAABB3Ds[0].intervalAxisX.max = bvhTree.spheres[start].aabb3d.intervalAxisX.max;
+            lAABB3Ds[0].intervalAxisY.min = bvhTree.spheres[start].aabb3d.intervalAxisY.min;
+            lAABB3Ds[0].intervalAxisY.max = bvhTree.spheres[start].aabb3d.intervalAxisY.max;
+            lAABB3Ds[0].intervalAxisZ.min = bvhTree.spheres[start].aabb3d.intervalAxisZ.min;
+            lAABB3Ds[0].intervalAxisZ.max = bvhTree.spheres[start].aabb3d.intervalAxisZ.max;
             for (int i = 1; i < objectSpan; ++i)
 //          for (int i = 1; i < objectSpan; ++i)
             {
@@ -1270,8 +1289,16 @@ enum class Axis : std::uint8_t
             // Compute cumulative AABB3Ds from the right
             std::vector<AABB3D> rAABB3Ds(objectSpan);
 //          std::vector<AABB3D> rAABB3Ds(objectSpan);
-            rAABB3Ds[objectSpan - 1] = bvhTree.spheres[cease - 1].aabb3d;
-//          rAABB3Ds[objectSpan - 1] = bvhTree.spheres[cease - 1].aabb3d;
+            int r1 = objectSpan - 1;
+//          int r1 = objectSpan - 1;
+            int r2 = cease      - 1;
+//          int r2 = cease      - 1;
+            rAABB3Ds[r1].intervalAxisX.min = bvhTree.spheres[r2].aabb3d.intervalAxisX.min;
+            rAABB3Ds[r1].intervalAxisX.max = bvhTree.spheres[r2].aabb3d.intervalAxisX.max;
+            rAABB3Ds[r1].intervalAxisY.min = bvhTree.spheres[r2].aabb3d.intervalAxisY.min;
+            rAABB3Ds[r1].intervalAxisY.max = bvhTree.spheres[r2].aabb3d.intervalAxisY.max;
+            rAABB3Ds[r1].intervalAxisZ.min = bvhTree.spheres[r2].aabb3d.intervalAxisZ.min;
+            rAABB3Ds[r1].intervalAxisZ.max = bvhTree.spheres[r2].aabb3d.intervalAxisZ.max;
             for (int i = objectSpan - 2; i >= 0; --i)
 //          for (int i = objectSpan - 2; i >= 0; --i)
             {
@@ -1416,13 +1443,15 @@ int main()
     ThreadPool* threadPool = new ThreadPool(225);
 //  ThreadPool* threadPool = new ThreadPool(225);
 
+    const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
+//  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
+
     int                              samplesPerPixel = 100 ;
 //  int                              samplesPerPixel = 100 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel       ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel       ;
 
-    const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
-//  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
+
 
 //  std::vector<sphere> spheres;
 //  std::vector<sphere> spheres;
