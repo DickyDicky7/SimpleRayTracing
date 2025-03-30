@@ -1318,12 +1318,15 @@ enum class Axis : std::uint8_t
             // Sort geometries based on centroid along the current axis
             // Sort geometries based on centroid along the current axis
             std::function<bool(const geometry& geo1, const geometry& geo2)> comparator = [axis]
+//          std::function<bool(const geometry& geo1, const geometry& geo2)> comparator = [axis]
                               (const geometry& geo1, const geometry& geo2)
+//                            (const geometry& geo1, const geometry& geo2)
                         ->bool{ return GetCentroid(geo1, Axis(axis))
                          <             GetCentroid(geo2, Axis(axis));
                               };
             std::sort(std::begin(bvhTree.geometries) + start ,
                       std::begin(bvhTree.geometries) + cease , comparator);
+//                    std::begin(bvhTree.geometries) + cease , comparator);
 
             // Compute cumulative AABB3Ds from the left!
             // Compute cumulative AABB3Ds from the left!
@@ -1398,12 +1401,15 @@ enum class Axis : std::uint8_t
         // Apply the best split
         // Apply the best split
         std::function<bool(const geometry& geo1, const geometry& geo2)> bestComparator = [bestAxis]
+//      std::function<bool(const geometry& geo1, const geometry& geo2)> bestComparator = [bestAxis]
                           (const geometry& geo1, const geometry& geo2)
+//                        (const geometry& geo1, const geometry& geo2)
                     ->bool{      return GetCentroid(geo1, bestAxis)
                      <                  GetCentroid(geo2, bestAxis);
                           };
         std::sort(std::begin(bvhTree.geometries) + start,
                   std::begin(bvhTree.geometries) + cease, bestComparator);
+//                std::begin(bvhTree.geometries) + cease, bestComparator);
         int mid = start + bestIndexToSplit + 1;
 //      int mid = start + bestIndexToSplit + 1;
 
