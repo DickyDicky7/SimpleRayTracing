@@ -478,54 +478,91 @@ struct materialScatteredResult
 //  ray scatteredRay; color3 attenuation; bool isScattered;
 };
 
-
-struct sphere
+enum class geometryType : std::int8_t
 {
-    material material; /* point3 */ ray center; AABB3D aabb3d; float radius;
-//  material material; /* point3 */ ray center; AABB3D aabb3d; float radius;
+    SPHERE = 0,
+//  SPHERE = 0,
+};
+
+struct geometry
+{
+    material material; /* point3 */ ray center; AABB3D aabb3d; float radius; geometryType geometryType;
+//  material material; /* point3 */ ray center; AABB3D aabb3d; float radius; geometryType geometryType;
 
 };
 
 
-inline static bool IsStationary   (sphere& sphere) { return sphere.center.dir.x == 0.0f && sphere.center.dir.y == 0.0f && sphere.center.dir.z == 0.0f; }
-inline static bool IsStationary   (              ) { return false;                                                                                     }
+inline static bool IsStationary   (geometry& g) { return g.center.dir.x == 0.0f
+                                                      && g.center.dir.y == 0.0f
+                                                      && g.center.dir.z == 0.0f;
+                                                }
 
-inline static void CalculateAABB3D(sphere& sphere)
+inline static void CalculateAABB3D(geometry& g)
 {
-    if (IsStationary(sphere))
+    if (IsStationary(g))
+//  if (IsStationary(g))
     {
-        sphere.aabb3d.intervalAxisX.min = sphere.center.ori.x - sphere.radius;
-        sphere.aabb3d.intervalAxisX.max = sphere.center.ori.x + sphere.radius;
-        sphere.aabb3d.intervalAxisY.min = sphere.center.ori.y - sphere.radius;
-        sphere.aabb3d.intervalAxisY.max = sphere.center.ori.y + sphere.radius;
-        sphere.aabb3d.intervalAxisZ.min = sphere.center.ori.z - sphere.radius;
-        sphere.aabb3d.intervalAxisZ.max = sphere.center.ori.z + sphere.radius;
+        switch (g.geometryType)
+//      switch (g.geometryType)
+        {
+        case geometryType::SPHERE:
+//      case geometryType::SPHERE:
+            {
+                g.aabb3d.intervalAxisX.min = g.center.ori.x - g.radius;
+                g.aabb3d.intervalAxisX.max = g.center.ori.x + g.radius;
+                g.aabb3d.intervalAxisY.min = g.center.ori.y - g.radius;
+                g.aabb3d.intervalAxisY.max = g.center.ori.y + g.radius;
+                g.aabb3d.intervalAxisZ.min = g.center.ori.z - g.radius;
+                g.aabb3d.intervalAxisZ.max = g.center.ori.z + g.radius;
+    }
+            break;
+//          break;
+        default:
+//      default:
+            break;
+//          break;
+        }
     }
     else
     {
-        const point3& destinationPoint3 = sphere.center.Marching(1.0f);
-        sphere.aabb3d.intervalAxisX.min = std::fminf(sphere.center.ori.x, destinationPoint3.x) - sphere.radius;
-        sphere.aabb3d.intervalAxisX.max = std::fmaxf(sphere.center.ori.x, destinationPoint3.x) + sphere.radius;
-        sphere.aabb3d.intervalAxisY.min = std::fminf(sphere.center.ori.y, destinationPoint3.y) - sphere.radius;
-        sphere.aabb3d.intervalAxisY.max = std::fmaxf(sphere.center.ori.y, destinationPoint3.y) + sphere.radius;
-        sphere.aabb3d.intervalAxisZ.min = std::fminf(sphere.center.ori.z, destinationPoint3.z) - sphere.radius;
-        sphere.aabb3d.intervalAxisZ.max = std::fmaxf(sphere.center.ori.z, destinationPoint3.z) + sphere.radius;
+        switch (g.geometryType)
+//      switch (g.geometryType)
+        {
+        case geometryType::SPHERE:
+//      case geometryType::SPHERE:
+            {
+                const point3& destinationPoint3 = g.center.Marching(1.0f);
+//              const point3& destinationPoint3 = g.center.Marching(1.0f);
+                g.aabb3d.intervalAxisX.min = std::fminf(g.center.ori.x, destinationPoint3.x) - g.radius;
+                g.aabb3d.intervalAxisX.max = std::fmaxf(g.center.ori.x, destinationPoint3.x) + g.radius;
+                g.aabb3d.intervalAxisY.min = std::fminf(g.center.ori.y, destinationPoint3.y) - g.radius;
+                g.aabb3d.intervalAxisY.max = std::fmaxf(g.center.ori.y, destinationPoint3.y) + g.radius;
+                g.aabb3d.intervalAxisZ.min = std::fminf(g.center.ori.z, destinationPoint3.z) - g.radius;
+                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.center.ori.z, destinationPoint3.z) + g.radius;
+    }
+            break;
+//          break;
+        default:
+//      default:
+            break;
+//          break;
+}
     }
 }
 
-inline static void CalculateAABB3D(std::vector<sphere>& spheres, AABB3D& aabb3d)
+inline static void CalculateAABB3D(std::vector<geometry>& geometries, AABB3D& aabb3d)
 {
-    for (sphere& sphere : spheres)
-//  for (sphere& sphere : spheres)
+    for (geometry& g : geometries)
+//  for (geometry& g : geometries)
     {
-        CalculateAABB3D(sphere);
-//      CalculateAABB3D(sphere);
-        aabb3d.intervalAxisX.min = std::fminf(sphere.aabb3d.intervalAxisX.min, aabb3d.intervalAxisX.min);
-        aabb3d.intervalAxisX.max = std::fmaxf(sphere.aabb3d.intervalAxisX.max, aabb3d.intervalAxisX.max);
-        aabb3d.intervalAxisY.min = std::fminf(sphere.aabb3d.intervalAxisY.min, aabb3d.intervalAxisY.min);
-        aabb3d.intervalAxisY.max = std::fmaxf(sphere.aabb3d.intervalAxisY.max, aabb3d.intervalAxisY.max);
-        aabb3d.intervalAxisZ.min = std::fminf(sphere.aabb3d.intervalAxisZ.min, aabb3d.intervalAxisZ.min);
-        aabb3d.intervalAxisZ.max = std::fmaxf(sphere.aabb3d.intervalAxisZ.max, aabb3d.intervalAxisZ.max);
+        CalculateAABB3D(g);
+//      CalculateAABB3D(g);
+        aabb3d.intervalAxisX.min = std::fminf(g.aabb3d.intervalAxisX.min, aabb3d.intervalAxisX.min);
+        aabb3d.intervalAxisX.max = std::fmaxf(g.aabb3d.intervalAxisX.max, aabb3d.intervalAxisX.max);
+        aabb3d.intervalAxisY.min = std::fminf(g.aabb3d.intervalAxisY.min, aabb3d.intervalAxisY.min);
+        aabb3d.intervalAxisY.max = std::fmaxf(g.aabb3d.intervalAxisY.max, aabb3d.intervalAxisY.max);
+        aabb3d.intervalAxisZ.min = std::fminf(g.aabb3d.intervalAxisZ.min, aabb3d.intervalAxisZ.min);
+        aabb3d.intervalAxisZ.max = std::fmaxf(g.aabb3d.intervalAxisZ.max, aabb3d.intervalAxisZ.max);
     }
 }
 
@@ -565,26 +602,26 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //  case materialType::LambertianDiffuseReflectance1:
         {
         vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
-//      vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+//          vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         if (scatteredDirection.NearZero()) _UNLIKELY
-//      if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
         {
             materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
-//          materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+//              materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
         }
         else
         {
             materialScatteredResult.scatteredRay.dir = scatteredDirection;
-//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//              materialScatteredResult.scatteredRay.dir = scatteredDirection;
         }
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
-//      materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
         }
         break;
 //      break;
@@ -595,26 +632,26 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //  case materialType::LambertianDiffuseReflectance2:
         {
         vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
-//      vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
+//          vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         if (scatteredDirection.NearZero()) _UNLIKELY
-//      if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
         {
             materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
-//          materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+//              materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
         }
         else
         {
             materialScatteredResult.scatteredRay.dir = scatteredDirection;
-//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//              materialScatteredResult.scatteredRay.dir = scatteredDirection;
         }
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
-//      materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
         }
         break;
 //      break;
@@ -625,17 +662,17 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //  case materialType::Metal:
         {
         vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-//      vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-//      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = true;
-//      materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
         }
         break;
 //      break;
@@ -646,19 +683,19 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //  case materialType::MetalFuzzy1:
         {
         vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-//      vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
         reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
-//      reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
+//          reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-//      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
-//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+//          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
 //      break;
@@ -669,19 +706,19 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //  case materialType::MetalFuzzy2:
         {
         vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-//      vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
         reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
-//      reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-//      materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//      materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
         materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
-//      materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+//          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
 //      break;
@@ -691,44 +728,45 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::Dielectric:
         {
         materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
-//      materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
+//          materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
         float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
-//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+//          float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
         if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
-//      if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
+//          if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
         vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
-//      vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
+//          vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
 
         float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
-//      float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
+//          float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
         float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
-//      float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
+//          float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
         bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
-//      bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
+//          bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
         vec3 scatteredRayDirection;
-//      vec3 scatteredRayDirection;
+//          vec3 scatteredRayDirection;
 
         if ( notAbleToRefract )
         {
              scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
-//           scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
+//               scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
         }
         else
         {
              scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
-//           scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
+//               scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
         }
 
         materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-//      materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
         materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
-//      materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
         materialScatteredResult.scatteredRay.time = rayIn.time;
-//      materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
         materialScatteredResult.isScattered = true;
-//      materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
         }
         break;
+//      break;
 
 
 
@@ -745,91 +783,110 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 
 
 inline
-static rayHitResult RayHit(const sphere& sphere
-                          ,const ray   & ray
+static rayHitResult RayHit(const geometry& geo
+                          ,const ray     & ray
                           ,const interval& rayT
 //                        ,const interval& rayT
                           )
 {
-    const point3& currentSphereCenterByIncomingRayTime = sphere.center.Marching(ray.time);
-//  const point3& currentSphereCenterByIncomingRayTime = sphere.center.Marching(ray.time);
+    switch (geo.geometryType)
+//  switch (geo.geometryType)
+    {
+    case geometryType::SPHERE:
+//  case geometryType::SPHERE:
+        {
+            const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
+//          const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
     const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
-//  const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
+//          const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
     const float& a = ray.dir.length_squared();
-//  const float& a = ray.dir.length_squared();
+//          const float& a = ray.dir.length_squared();
     const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
-//  const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
-    const float& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
-//  const float& c = fromSphereCenterToRayOrigin.length_squared() - sphere.radius * sphere.radius;
+//          const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+            const float& c = fromSphereCenterToRayOrigin.length_squared() - geo.radius * geo.radius;
+//          const float& c = fromSphereCenterToRayOrigin.length_squared() - geo.radius * geo.radius;
     const float& discriminant = h * h - a * c;
-//  const float& discriminant = h * h - a * c;
-    rayHitResult
-    rayHitResult { sphere.material };
-//  rayHitResult.hitted = discriminant >= 0.0f;
-//  rayHitResult.hitted = discriminant >= 0.0f;
+//          const float& discriminant = h * h - a * c;
+            rayHitResult rayHitResult { .material = geo.material };
+//          rayHitResult rayHitResult { .material = geo.material };
+//          rayHitResult.hitted = discriminant >= 0.0f;
+//          rayHitResult.hitted = discriminant >= 0.0f;
     if (discriminant < 0.0f)
     {
         rayHitResult.hitted = false;
-//      rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
     }
     else
     {
         float sqrtDiscriminant = std::sqrt(discriminant);
-//      float sqrtDiscriminant = std::sqrt(discriminant);
+//              float sqrtDiscriminant = std::sqrt(discriminant);
 
         float t = (h - sqrtDiscriminant) / a;
-//      float t = (h - sqrtDiscriminant) / a;
+//              float t = (h - sqrtDiscriminant) / a;
 
         if (!rayT.Surrounds(t))
-//      if (!rayT.Surrounds(t))
+//              if (!rayT.Surrounds(t))
         {
             t = (h + sqrtDiscriminant) / a;
-//          t = (h + sqrtDiscriminant) / a;
+//                  t = (h + sqrtDiscriminant) / a;
 
             if (!rayT.Surrounds(t))
-//          if (!rayT.Surrounds(t))
+//                  if (!rayT.Surrounds(t))
             {
                 rayHitResult.hitted = false;
-//              rayHitResult.hitted = false;
+//                      rayHitResult.hitted = false;
                 return rayHitResult;
-//              return rayHitResult;
+//                      return rayHitResult;
             }
         }
 
         rayHitResult.hitted = true;
-//      rayHitResult.hitted = true;
+//              rayHitResult.hitted = true;
 
         rayHitResult.minT = t;
-//      rayHitResult.minT = t;
+//              rayHitResult.minT = t;
 
         rayHitResult.at = ray.Marching(rayHitResult.minT);
-//      rayHitResult.at = ray.Marching(rayHitResult.minT);
+//              rayHitResult.at = ray.Marching(rayHitResult.minT);
 
-        const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / sphere.radius;
-//      const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / sphere.radius;
+                const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
+//              const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
 
         rayHitResult.SetFaceNormal(ray, outwardNormal);
-//      rayHitResult.SetFaceNormal(ray, outwardNormal);
+//              rayHitResult.SetFaceNormal(ray, outwardNormal);
     }
     
     return rayHitResult;
-//  return rayHitResult;
+//          return rayHitResult;
+        }
+
+        break;
+//      break;
+    default:
+        {
+            return { .material = geo.material };
+//          return { .material = geo.material };
+        }
+
+        break;
+//      break;
+    }
 }
 
 
 
-        inline static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval& rayT)
-//      inline static rayHitResult RayHit(const std::vector<sphere>& spheres, const ray& ray, const interval& rayT)
+        inline static rayHitResult RayHit(const std::vector<geometry>& geometries, const ray& ray, const interval& rayT)
+//      inline static rayHitResult RayHit(const std::vector<geometry>& geometries, const ray& ray, const interval& rayT)
 {
     rayHitResult finalRayHitResult{};
 //  rayHitResult finalRayHitResult{};
     float closestTSoFar = rayT.max;
 //  float closestTSoFar = rayT.max;
-    for (const sphere& sphere : spheres)
-//  for (const sphere& sphere : spheres)
+    for (const geometry& geo : geometries)
+//  for (const geometry& geo : geometries)
     {
-        rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, interval { .min = rayT.min, .max = closestTSoFar }));
-//      rayHitResult temporaryRayHitResult = std::move(RayHit(sphere, ray, interval { .min = rayT.min, .max = closestTSoFar }));
+        rayHitResult temporaryRayHitResult = std::move(RayHit(geo, ray, interval { .min = rayT.min, .max = closestTSoFar }));
+//      rayHitResult temporaryRayHitResult = std::move(RayHit(geo, ray, interval { .min = rayT.min, .max = closestTSoFar }));
         if (temporaryRayHitResult.hitted) _UNLIKELY
         {
             finalRayHitResult = std::move(temporaryRayHitResult);
@@ -846,8 +903,8 @@ static rayHitResult RayHit(const sphere& sphere
 inline
 static color3 RayColor(const ray& ray)
 {
-    sphere sphere{ { 0.0f, 0.0f, -1.0f }, 0.5f, };
-//  sphere sphere{ { 0.0f, 0.0f, -1.0f }, 0.5f, };
+    geometry sphere{ .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, .geometryType = geometryType::SPHERE };
+//  geometry sphere{ .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, .geometryType = geometryType::SPHERE };
     const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0f, .max = +10.0f });
 //  const rayHitResult& rayHitResult = RayHit(sphere, ray, interval { .min = -10.0f, .max = +10.0f });
     if (rayHitResult.hitted) _UNLIKELY
@@ -869,15 +926,15 @@ static color3 RayColor(const ray& ray)
 
 /*
 inline
-static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int recursiveDepth = 50)
+static color3 RayColor(const ray& ray, const std::vector<geometry>& geometries, int recursiveDepth = 50)
 {
     if (recursiveDepth <= 0.0f)
     {
         return color3 {};
 //      return color3 {};
     }
-    const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001f, .max = positiveInfinity });
-//  const rayHitResult& rayHitResult = RayHit(spheres, ray, interval { .min = 0.001f, .max = positiveInfinity });
+    const rayHitResult& rayHitResult = RayHit(geometries, ray, interval { .min = 0.001f, .max = positiveInfinity });
+//  const rayHitResult& rayHitResult = RayHit(geometries, ray, interval { .min = 0.001f, .max = positiveInfinity });
     if (rayHitResult.hitted)
 //  if (rayHitResult.hitted)
     {
@@ -891,10 +948,10 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
 //          return color3 {};
         }
 
-        return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
-//      return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, spheres, --recursiveDepth);
-//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
-//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, spheres, --recursiveDepth);
+        return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, geometries, --recursiveDepth);
+//      return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, geometries, --recursiveDepth);
+//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, geometries, --recursiveDepth);
+//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, geometries, --recursiveDepth);
 //      return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
 //      return color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
     }
@@ -911,7 +968,7 @@ static color3 RayColor(const ray& ray, const std::vector<sphere>& spheres, int r
 
 
 inline
-static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres, int maxDepth = 50)
+static color3 RayColor(const ray& initialRay, const std::vector<geometry>& geometries, int maxDepth = 50)
 {
     color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
 //  color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
@@ -921,8 +978,8 @@ static color3 RayColor(const ray& initialRay, const std::vector<sphere>& spheres
     for (int depth = 0; depth < maxDepth; ++depth)
 //  for (int depth = 0; depth < maxDepth; ++depth)
     {
-        const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
-//      const rayHitResult& rayHitResult = RayHit(spheres, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
+        const rayHitResult& rayHitResult = RayHit(geometries, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
+//      const rayHitResult& rayHitResult = RayHit(geometries, currentRay, interval{ .min = 0.001f, .max = positiveInfinity });
 
         if (rayHitResult.hitted) _UNLIKELY
 //      if (rayHitResult.hitted) _UNLIKELY
@@ -980,21 +1037,21 @@ struct BVHNode
 };
 struct BVHTree
 {
-    std::vector<BVHNode> bvhNodes; std::vector<sphere> spheres;
-//  std::vector<BVHNode> bvhNodes; std::vector<sphere> spheres;
+    std::vector<BVHNode> bvhNodes; std::vector<geometry> geometries;
+//  std::vector<BVHNode> bvhNodes; std::vector<geometry> geometries;
 };
 inline static rayHitResult RayHit(const BVHTree& bvhTree, int bvhNodeIndex, const ray& ray, const interval& rayT)
 {
     const BVHNode& bvhNode = bvhTree.bvhNodes[bvhNodeIndex];
 //  const BVHNode& bvhNode = bvhTree.bvhNodes[bvhNodeIndex];
 
-    // Leaf node: test sphere intersection
-    // Leaf node: test sphere intersection
+    // Leaf node: test geometry intersection
+    // Leaf node: test geometry intersection
     if (bvhNode.shapeIndex != -1)
 //  if (bvhNode.shapeIndex != -1)
     {
-        return RayHit(bvhTree.spheres[bvhNode.shapeIndex], ray, rayT);
-//      return RayHit(bvhTree.spheres[bvhNode.shapeIndex], ray, rayT);
+        return RayHit(bvhTree.geometries[bvhNode.shapeIndex], ray, rayT);
+//      return RayHit(bvhTree.geometries[bvhNode.shapeIndex], ray, rayT);
     }
 
     // Non-leaf node: test AABB first
@@ -1055,28 +1112,28 @@ inline static rayHitResult RayHit(const BVHTree& bvhTree, int bvhNodeIndex, cons
     }
 }
 /*
-static inline bool AABB3DCompareAxisX(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisX.min < sphere2.aabb3d.intervalAxisX.min; }
-static inline bool AABB3DCompareAxisY(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisY.min < sphere2.aabb3d.intervalAxisY.min; }
-static inline bool AABB3DCompareAxisZ(const sphere& sphere1, const sphere& sphere2) { return sphere1.aabb3d.intervalAxisZ.min < sphere2.aabb3d.intervalAxisZ.min; }
+static inline bool AABB3DCompareAxisX(const geometry& g1, const geometry& g2) { return g1.aabb3d.intervalAxisX.min < g2.aabb3d.intervalAxisX.min; }
+static inline bool AABB3DCompareAxisY(const geometry& g1, const geometry& g2) { return g1.aabb3d.intervalAxisY.min < g2.aabb3d.intervalAxisY.min; }
+static inline bool AABB3DCompareAxisZ(const geometry& g1, const geometry& g2) { return g1.aabb3d.intervalAxisZ.min < g2.aabb3d.intervalAxisZ.min; }
 inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
 {
     int objectSpan = cease - start;
 //  int objectSpan = cease - start;
     if (objectSpan == 1)
     {
-        // Single sphere: create a leaf node directly
-        // Single sphere: create a leaf node directly
+        // Single geometry: create a leaf node directly
+        // Single geometry: create a leaf node directly
         int current = (int)bvhTree.bvhNodes.size();
 //      int current = (int)bvhTree.bvhNodes.size();
-        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
-//      bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
+//      bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1 });
         return current;
     }
     else
     if (objectSpan == 2)
     {
-        // Two spheres: create a parent with two leaf children
-        // Two spheres: create a parent with two leaf children
+        // Two geometries: create a parent with two leaf children
+        // Two geometries: create a parent with two leaf children
         int current = (int)bvhTree.bvhNodes.size();
 //      int current = (int)bvhTree.bvhNodes.size();
         // Reserve space for parent node
@@ -1087,9 +1144,9 @@ inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
         // Create left and right leaf nodes
         // Create left and right leaf nodes
         int childIndexL = (int)bvhTree.bvhNodes.size();
-        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start + 0].aabb3d, .shapeIndex = start + 0, .childIndexL = -1, .childIndexR = -1 });
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start + 0].aabb3d, .shapeIndex = start + 0, .childIndexL = -1, .childIndexR = -1 });
         int childIndexR = (int)bvhTree.bvhNodes.size();
-        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start + 1].aabb3d, .shapeIndex = start + 1, .childIndexL = -1, .childIndexR = -1 });
+        bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start + 1].aabb3d, .shapeIndex = start + 1, .childIndexL = -1, .childIndexR = -1 });
 
         // Compute combined AABB for parent
         // Compute combined AABB for parent
@@ -1111,12 +1168,12 @@ inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
     }
     else
     {
-        // Multiple spheres: recursive split
-        // Multiple spheres: recursive split
+        // Multiple geometries: recursive split
+        // Multiple geometries: recursive split
         int axis = RandomInt(0, 2);
 //      int axis = RandomInt(0, 2);
-        std::function<bool(const sphere&, const sphere&)> comparator;
-//      std::function<bool(const sphere&, const sphere&)> comparator;
+        std::function<bool(const geometry&, const geometry&)> comparator;
+//      std::function<bool(const geometry&, const geometry&)> comparator;
         if (axis == 0)
         {
             comparator = AABB3DCompareAxisX;
@@ -1139,8 +1196,8 @@ inline static int  BuildBVHTree(BVHTree& bvhTree, int start, int cease)
 
         // Sort and split
         // Sort and split
-        std::sort(std::begin(bvhTree.spheres) + start,
-                  std::begin(bvhTree.spheres) + cease, comparator);
+        std::sort(std::begin(bvhTree.geometries) + start,
+                  std::begin(bvhTree.geometries) + cease, comparator);
         int mid = start + objectSpan / 2;
 //      int mid = start + objectSpan / 2;
 
@@ -1178,19 +1235,19 @@ enum class Axis : std::uint8_t
     Z = +2,
     _ = +3,
 };
-//  Calculate the centroid of a sphere's AABB along a specific axis
-//  Calculate the centroid of a sphere's AABB along a specific axis
-    static inline float GetCentroid(const sphere& sphere, const Axis& axis)
-//  static inline float GetCentroid(const sphere& sphere, const Axis& axis)
+//  Calculate the centroid of a geometry's AABB along a specific axis
+//  Calculate the centroid of a geometry's AABB along a specific axis
+    static inline float GetCentroid(const geometry& geo, const Axis& axis)
+//  static inline float GetCentroid(const geometry& geo, const Axis& axis)
 {
         switch (axis)
         {
         case Axis::X:
-            return (sphere.aabb3d.intervalAxisX.min + sphere.aabb3d.intervalAxisX.max) / 2.0f;
+            return (geo.aabb3d.intervalAxisX.min + geo.aabb3d.intervalAxisX.max) / 2.0f;
         case Axis::Y:
-            return (sphere.aabb3d.intervalAxisY.min + sphere.aabb3d.intervalAxisY.max) / 2.0f;
+            return (geo.aabb3d.intervalAxisY.min + geo.aabb3d.intervalAxisY.max) / 2.0f;
         case Axis::Z:
-            return (sphere.aabb3d.intervalAxisZ.min + sphere.aabb3d.intervalAxisZ.max) / 2.0f;
+            return (geo.aabb3d.intervalAxisZ.min + geo.aabb3d.intervalAxisZ.max) / 2.0f;
         default:
             return 0;
         }
@@ -1231,15 +1288,15 @@ enum class Axis : std::uint8_t
         int objectSpan = cease - start;
 //      int objectSpan = cease - start;
 
-        // Base case: create a leaf node with a single sphere
-        // Base case: create a leaf node with a single sphere
+        // Base case: create a leaf node with a single geometry
+        // Base case: create a leaf node with a single geometry
         if (objectSpan == 1)
 //      if (objectSpan == 1)
         {
             int current = (int)bvhTree.bvhNodes.size();
 //          int current = (int)bvhTree.bvhNodes.size();
-            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
-//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
             return current;
 //          return current;
         }
@@ -1258,31 +1315,31 @@ enum class Axis : std::uint8_t
         for (int axis = 0; axis < 3; ++axis)
 //      for (int axis = 0; axis < 3; ++axis)
         {
-            // Sort spheres based on centroid along the current axis
-            // Sort spheres based on centroid along the current axis
-            std::function<bool(const sphere&        , const sphere&        )> comparator = [axis]
-                              (const sphere& sphere1, const sphere& sphere2)
-                        ->bool{ return GetCentroid(sphere1, Axis(axis))
-                         <             GetCentroid(sphere2, Axis(axis));
+            // Sort geometries based on centroid along the current axis
+            // Sort geometries based on centroid along the current axis
+            std::function<bool(const geometry& geo1, const geometry& geo2)> comparator = [axis]
+                              (const geometry& geo1, const geometry& geo2)
+                        ->bool{ return GetCentroid(geo1, Axis(axis))
+                         <             GetCentroid(geo2, Axis(axis));
                               };
-            std::sort(std::begin(bvhTree.spheres) + start ,
-                      std::begin(bvhTree.spheres) + cease , comparator);
+            std::sort(std::begin(bvhTree.geometries) + start ,
+                      std::begin(bvhTree.geometries) + cease , comparator);
 
             // Compute cumulative AABB3Ds from the left!
             // Compute cumulative AABB3Ds from the left!
             std::vector<AABB3D> lAABB3Ds(objectSpan);
 //          std::vector<AABB3D> lAABB3Ds(objectSpan);
-            lAABB3Ds[0].intervalAxisX.min = bvhTree.spheres[start].aabb3d.intervalAxisX.min;
-            lAABB3Ds[0].intervalAxisX.max = bvhTree.spheres[start].aabb3d.intervalAxisX.max;
-            lAABB3Ds[0].intervalAxisY.min = bvhTree.spheres[start].aabb3d.intervalAxisY.min;
-            lAABB3Ds[0].intervalAxisY.max = bvhTree.spheres[start].aabb3d.intervalAxisY.max;
-            lAABB3Ds[0].intervalAxisZ.min = bvhTree.spheres[start].aabb3d.intervalAxisZ.min;
-            lAABB3Ds[0].intervalAxisZ.max = bvhTree.spheres[start].aabb3d.intervalAxisZ.max;
+            lAABB3Ds[0].intervalAxisX.min = bvhTree.geometries[start].aabb3d.intervalAxisX.min;
+            lAABB3Ds[0].intervalAxisX.max = bvhTree.geometries[start].aabb3d.intervalAxisX.max;
+            lAABB3Ds[0].intervalAxisY.min = bvhTree.geometries[start].aabb3d.intervalAxisY.min;
+            lAABB3Ds[0].intervalAxisY.max = bvhTree.geometries[start].aabb3d.intervalAxisY.max;
+            lAABB3Ds[0].intervalAxisZ.min = bvhTree.geometries[start].aabb3d.intervalAxisZ.min;
+            lAABB3Ds[0].intervalAxisZ.max = bvhTree.geometries[start].aabb3d.intervalAxisZ.max;
             for (int i = 1; i < objectSpan; ++i)
 //          for (int i = 1; i < objectSpan; ++i)
             {
-                Union(lAABB3Ds[i - 1], bvhTree.spheres[start + i].aabb3d, lAABB3Ds[i]);
-//              Union(lAABB3Ds[i - 1], bvhTree.spheres[start + i].aabb3d, lAABB3Ds[i]);
+                Union(lAABB3Ds[i - 1], bvhTree.geometries[start + i].aabb3d, lAABB3Ds[i]);
+//              Union(lAABB3Ds[i - 1], bvhTree.geometries[start + i].aabb3d, lAABB3Ds[i]);
             }
 
             // Compute cumulative AABB3Ds from the right
@@ -1293,17 +1350,17 @@ enum class Axis : std::uint8_t
 //          int r1 = objectSpan - 1;
             int r2 = cease      - 1;
 //          int r2 = cease      - 1;
-            rAABB3Ds[r1].intervalAxisX.min = bvhTree.spheres[r2].aabb3d.intervalAxisX.min;
-            rAABB3Ds[r1].intervalAxisX.max = bvhTree.spheres[r2].aabb3d.intervalAxisX.max;
-            rAABB3Ds[r1].intervalAxisY.min = bvhTree.spheres[r2].aabb3d.intervalAxisY.min;
-            rAABB3Ds[r1].intervalAxisY.max = bvhTree.spheres[r2].aabb3d.intervalAxisY.max;
-            rAABB3Ds[r1].intervalAxisZ.min = bvhTree.spheres[r2].aabb3d.intervalAxisZ.min;
-            rAABB3Ds[r1].intervalAxisZ.max = bvhTree.spheres[r2].aabb3d.intervalAxisZ.max;
+            rAABB3Ds[r1].intervalAxisX.min = bvhTree.geometries[r2].aabb3d.intervalAxisX.min;
+            rAABB3Ds[r1].intervalAxisX.max = bvhTree.geometries[r2].aabb3d.intervalAxisX.max;
+            rAABB3Ds[r1].intervalAxisY.min = bvhTree.geometries[r2].aabb3d.intervalAxisY.min;
+            rAABB3Ds[r1].intervalAxisY.max = bvhTree.geometries[r2].aabb3d.intervalAxisY.max;
+            rAABB3Ds[r1].intervalAxisZ.min = bvhTree.geometries[r2].aabb3d.intervalAxisZ.min;
+            rAABB3Ds[r1].intervalAxisZ.max = bvhTree.geometries[r2].aabb3d.intervalAxisZ.max;
             for (int i = objectSpan - 2; i >= 0; --i)
 //          for (int i = objectSpan - 2; i >= 0; --i)
             {
-                Union(bvhTree.spheres[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
-//              Union(bvhTree.spheres[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
+                Union(bvhTree.geometries[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
+//              Union(bvhTree.geometries[start + i].aabb3d, rAABB3Ds[i + 1], rAABB3Ds[i]);
             }
 
             // Evaluate all possible splits
@@ -1332,21 +1389,21 @@ enum class Axis : std::uint8_t
         {
             int current = (int)bvhTree.bvhNodes.size();
 //          int current = (int)bvhTree.bvhNodes.size();
-            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
-//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.spheres[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+            bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
+//          bvhTree.bvhNodes.emplace_back(BVHNode{ .aabb3d = bvhTree.geometries[start].aabb3d, .shapeIndex = start, .childIndexL = -1, .childIndexR = -1, });
             return current;
 //          return current;
         }
 
         // Apply the best split
         // Apply the best split
-        std::function<bool(const sphere&        , const sphere&        )> bestComparator = [bestAxis]
-                          (const sphere& sphere1, const sphere& sphere2)
-                    ->bool{      return GetCentroid(sphere1, bestAxis)
-                     <                  GetCentroid(sphere2, bestAxis);
+        std::function<bool(const geometry& geo1, const geometry& geo2)> bestComparator = [bestAxis]
+                          (const geometry& geo1, const geometry& geo2)
+                    ->bool{      return GetCentroid(geo1, bestAxis)
+                     <                  GetCentroid(geo2, bestAxis);
                           };
-        std::sort(std::begin(bvhTree.spheres) + start,
-                  std::begin(bvhTree.spheres) + cease, bestComparator);
+        std::sort(std::begin(bvhTree.geometries) + start,
+                  std::begin(bvhTree.geometries) + cease, bestComparator);
         int mid = start + bestIndexToSplit + 1;
 //      int mid = start + bestIndexToSplit + 1;
 
