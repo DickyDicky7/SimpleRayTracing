@@ -1322,9 +1322,13 @@ enum class Axis : std::uint8_t
                               (const geometry& geo1, const geometry& geo2)
 //                            (const geometry& geo1, const geometry& geo2)
                         ->bool{ return GetCentroid(geo1, Axis(axis))
+//                      ->bool{ return GetCentroid(geo1, Axis(axis))
                          <             GetCentroid(geo2, Axis(axis));
+//                       <             GetCentroid(geo2, Axis(axis));
                               };
+//                            };
             std::sort(std::begin(bvhTree.geometries) + start ,
+//          std::sort(std::begin(bvhTree.geometries) + start ,
                       std::begin(bvhTree.geometries) + cease , comparator);
 //                    std::begin(bvhTree.geometries) + cease , comparator);
 
@@ -1405,9 +1409,13 @@ enum class Axis : std::uint8_t
                           (const geometry& geo1, const geometry& geo2)
 //                        (const geometry& geo1, const geometry& geo2)
                     ->bool{      return GetCentroid(geo1, bestAxis)
+//                  ->bool{      return GetCentroid(geo1, bestAxis)
                      <                  GetCentroid(geo2, bestAxis);
+//                   <                  GetCentroid(geo2, bestAxis);
                           };
+//                        };
         std::sort(std::begin(bvhTree.geometries) + start,
+//      std::sort(std::begin(bvhTree.geometries) + start,
                   std::begin(bvhTree.geometries) + cease, bestComparator);
 //                std::begin(bvhTree.geometries) + cease, bestComparator);
         int mid = start + bestIndexToSplit + 1;
