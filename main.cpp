@@ -514,7 +514,7 @@ inline static void CalculateAABB3D(geometry& g)
                 g.aabb3d.intervalAxisY.max = g.center.ori.y + g.radius;
                 g.aabb3d.intervalAxisZ.min = g.center.ori.z - g.radius;
                 g.aabb3d.intervalAxisZ.max = g.center.ori.z + g.radius;
-    }
+            }
             break;
 //          break;
         default:
@@ -539,14 +539,14 @@ inline static void CalculateAABB3D(geometry& g)
                 g.aabb3d.intervalAxisY.max = std::fmaxf(g.center.ori.y, destinationPoint3.y) + g.radius;
                 g.aabb3d.intervalAxisZ.min = std::fminf(g.center.ori.z, destinationPoint3.z) - g.radius;
                 g.aabb3d.intervalAxisZ.max = std::fmaxf(g.center.ori.z, destinationPoint3.z) + g.radius;
-    }
+            }
             break;
 //          break;
         default:
 //      default:
             break;
 //          break;
-}
+        }
     }
 }
 
@@ -601,26 +601,26 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::LambertianDiffuseReflectance1:
 //  case materialType::LambertianDiffuseReflectance1:
         {
-        vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+            vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
 //          vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        if (scatteredDirection.NearZero()) _UNLIKELY
+            if (scatteredDirection.NearZero()) _UNLIKELY
 //          if (scatteredDirection.NearZero()) _UNLIKELY
-        {
-            materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+            {
+                materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
 //              materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
-        }
-        else
-        {
-            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            }
+            else
+            {
+                materialScatteredResult.scatteredRay.dir = scatteredDirection;
 //              materialScatteredResult.scatteredRay.dir = scatteredDirection;
-        }
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            }
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = true;
+            materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
         break;
@@ -631,26 +631,26 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::LambertianDiffuseReflectance2:
 //  case materialType::LambertianDiffuseReflectance2:
         {
-        vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
+            vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
 //          vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        if (scatteredDirection.NearZero()) _UNLIKELY
+            if (scatteredDirection.NearZero()) _UNLIKELY
 //          if (scatteredDirection.NearZero()) _UNLIKELY
-        {
-            materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
+            {
+                materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
 //              materialScatteredResult.scatteredRay.dir = rayHitResult.normal;
-        }
-        else
-        {
-            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            }
+            else
+            {
+                materialScatteredResult.scatteredRay.dir = scatteredDirection;
 //              materialScatteredResult.scatteredRay.dir = scatteredDirection;
-        }
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            }
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = true;
+            materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
         break;
@@ -661,17 +661,17 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::Metal:
 //  case materialType::Metal:
         {
-        vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+            vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
 //          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+            materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = true;
+            materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
         break;
@@ -682,19 +682,19 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::MetalFuzzy1:
 //  case materialType::MetalFuzzy1:
         {
-        vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+            vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
 //          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-        reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
+            reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
 //          reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+            materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+            materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
@@ -705,19 +705,19 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
     case materialType::MetalFuzzy2:
 //  case materialType::MetalFuzzy2:
         {
-        vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
+            vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
 //          vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-        reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+            reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
 //          reflectionScatteredDirection = normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
+            materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-        materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+            materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
         break;
@@ -727,42 +727,42 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 
     case materialType::Dielectric:
         {
-        materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
+            materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
 //          materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
-        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
+            float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
 //          float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
-        if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
+            if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
 //          if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
-        vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
+            vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
 //          vec3 normalizedIncomingRayDirection = normalize(rayIn.dir);
 
-        float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
+            float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
 //          float cosTheta = std::fminf(dot(-normalizedIncomingRayDirection, rayHitResult.normal), 1.0f);
-        float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
+            float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
 //          float sinTheta = std::sqrtf(1.0f - cosTheta * cosTheta);
-        bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
+            bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
 //          bool notAbleToRefract = sinTheta * ratioOfEtaiOverEtat > 1.0f || Reflectance(cosTheta, ratioOfEtaiOverEtat) > Random();
-        vec3 scatteredRayDirection;
+            vec3 scatteredRayDirection;
 //          vec3 scatteredRayDirection;
 
-        if ( notAbleToRefract )
-        {
-             scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
+            if ( notAbleToRefract )
+            {
+                 scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
 //               scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
-        }
-        else
-        {
-             scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
+            }
+            else
+            {
+                 scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
 //               scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
-        }
+            }
 
-        materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
-        materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
+            materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
 //          materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
-        materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-        materialScatteredResult.isScattered = true;
+            materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
         break;
@@ -797,66 +797,66 @@ static rayHitResult RayHit(const geometry& geo
         {
             const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
 //          const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
-    const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
+            const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
 //          const vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
-    const float& a = ray.dir.length_squared();
+            const float& a = ray.dir.length_squared();
 //          const float& a = ray.dir.length_squared();
-    const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
+            const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
 //          const float& h = dot(ray.dir, fromSphereCenterToRayOrigin);
             const float& c = fromSphereCenterToRayOrigin.length_squared() - geo.radius * geo.radius;
 //          const float& c = fromSphereCenterToRayOrigin.length_squared() - geo.radius * geo.radius;
-    const float& discriminant = h * h - a * c;
+            const float& discriminant = h * h - a * c;
 //          const float& discriminant = h * h - a * c;
             rayHitResult rayHitResult { .material = geo.material };
 //          rayHitResult rayHitResult { .material = geo.material };
 //          rayHitResult.hitted = discriminant >= 0.0f;
 //          rayHitResult.hitted = discriminant >= 0.0f;
-    if (discriminant < 0.0f)
-    {
-        rayHitResult.hitted = false;
-//              rayHitResult.hitted = false;
-    }
-    else
-    {
-        float sqrtDiscriminant = std::sqrt(discriminant);
-//              float sqrtDiscriminant = std::sqrt(discriminant);
-
-        float t = (h - sqrtDiscriminant) / a;
-//              float t = (h - sqrtDiscriminant) / a;
-
-        if (!rayT.Surrounds(t))
-//              if (!rayT.Surrounds(t))
-        {
-            t = (h + sqrtDiscriminant) / a;
-//                  t = (h + sqrtDiscriminant) / a;
-
-            if (!rayT.Surrounds(t))
-//                  if (!rayT.Surrounds(t))
+            if (discriminant < 0.0f)
             {
                 rayHitResult.hitted = false;
-//                      rayHitResult.hitted = false;
-                return rayHitResult;
-//                      return rayHitResult;
+//              rayHitResult.hitted = false;
             }
-        }
+            else
+            {
+                float sqrtDiscriminant = std::sqrt(discriminant);
+//              float sqrtDiscriminant = std::sqrt(discriminant);
 
-        rayHitResult.hitted = true;
+                float t = (h - sqrtDiscriminant) / a;
+//              float t = (h - sqrtDiscriminant) / a;
+
+                if (!rayT.Surrounds(t))
+//              if (!rayT.Surrounds(t))
+                {
+                    t = (h + sqrtDiscriminant) / a;
+//                  t = (h + sqrtDiscriminant) / a;
+
+                    if (!rayT.Surrounds(t))
+//                  if (!rayT.Surrounds(t))
+                    {
+                        rayHitResult.hitted = false;
+//                      rayHitResult.hitted = false;
+                        return rayHitResult;
+//                      return rayHitResult;
+                    }
+                }
+
+                rayHitResult.hitted = true;
 //              rayHitResult.hitted = true;
 
-        rayHitResult.minT = t;
+                rayHitResult.minT = t;
 //              rayHitResult.minT = t;
 
-        rayHitResult.at = ray.Marching(rayHitResult.minT);
+                rayHitResult.at = ray.Marching(rayHitResult.minT);
 //              rayHitResult.at = ray.Marching(rayHitResult.minT);
 
                 const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
 //              const vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
 
-        rayHitResult.SetFaceNormal(ray, outwardNormal);
+                rayHitResult.SetFaceNormal(ray, outwardNormal);
 //              rayHitResult.SetFaceNormal(ray, outwardNormal);
-    }
+            }
     
-    return rayHitResult;
+            return rayHitResult;
 //          return rayHitResult;
         }
 
@@ -1510,38 +1510,38 @@ int main()
 
 
 
-//  std::vector<sphere> spheres;
-//  std::vector<sphere> spheres;
+//  std::vector<geometry> geometries;
+//  std::vector<geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f,  });
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f,  });
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.0f, 1.0f, 0.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 1.0f, 0.0f, 1.0f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.8f, 0.8f, 0.8f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { 0.5f, 0.5f, 0.5f }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f, .geometryType = geometryType::SPHERE,  });
     
     for (int i = -5; i < 5; ++i)
     for (int j = -5; j < 5; ++j)
-    bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f,  });
-//  bvhTree.spheres.emplace_back(sphere{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f, .geometryType = geometryType::SPHERE,  });
 
-    for (sphere& sphere : bvhTree.spheres) CalculateAABB3D(sphere);
-//  for (sphere& sphere : bvhTree.spheres) CalculateAABB3D(sphere);
+    for (geometry& geo : bvhTree.geometries) CalculateAABB3D(geo);
+//  for (geometry& geo : bvhTree.geometries) CalculateAABB3D(geo);
     
-//  for (sphere& sphere : bvhTree.spheres)
+//  for (geometry& geo : bvhTree.geometries)
 //  {
-//      std::cout << "x min:" << sphere.aabb3d.intervalAxisX.min << " " << "x max:" << sphere.aabb3d.intervalAxisX.max << std::endl;
-//      std::cout << "y min:" << sphere.aabb3d.intervalAxisY.min << " " << "y max:" << sphere.aabb3d.intervalAxisY.max << std::endl;
-//      std::cout << "z min:" << sphere.aabb3d.intervalAxisZ.min << " " << "z max:" << sphere.aabb3d.intervalAxisZ.max << std::endl << std::endl << std::endl;
+//      std::cout << "x min:" << geo.aabb3d.intervalAxisX.min << " " << "x max:" << geo.aabb3d.intervalAxisX.max << std::endl;
+//      std::cout << "y min:" << geo.aabb3d.intervalAxisY.min << " " << "y max:" << geo.aabb3d.intervalAxisY.max << std::endl;
+//      std::cout << "z min:" << geo.aabb3d.intervalAxisZ.min << " " << "z max:" << geo.aabb3d.intervalAxisZ.max << std::endl << std::endl << std::endl;
 //  }
 //  return 0;
 
-    bvhTree.bvhNodes.reserve(2 * bvhTree.spheres.size() - 1);
-//  bvhTree.bvhNodes.reserve(2 * bvhTree.spheres.size() - 1);
-    BuildBVHTree(bvhTree, 0,(int)bvhTree.spheres.size());
-//  BuildBVHTree(bvhTree, 0,(int)bvhTree.spheres.size());
+    bvhTree.bvhNodes.reserve(2 * bvhTree.geometries.size() - 1);
+//  bvhTree.bvhNodes.reserve(2 * bvhTree.geometries.size() - 1);
+    BuildBVHTree(bvhTree, 0,(int)bvhTree.geometries.size());
+//  BuildBVHTree(bvhTree, 0,(int)bvhTree.geometries.size());
 
     //for (const BVHNode& bvhNode : bvhTree.bvhNodes)
     //{
@@ -1654,8 +1654,8 @@ int main()
 //  threadPool->Enqueue(
 //  threads.emplace_back(
 //  threads.emplace_back(
-    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
-//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &spheres */ &bvhTree, &rgbs
+    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries */ &bvhTree, &rgbs
+//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries */ &bvhTree, &rgbs
     ]
     {
 
@@ -1679,8 +1679,8 @@ int main()
 //      color3 pixelColor = RayColor(ray);
 //      color3 pixelColor = RayColor(ray);
         
-//      color3 pixelColor = RayColor(ray, spheres);
-//      color3 pixelColor = RayColor(ray, spheres);
+//      color3 pixelColor = RayColor(ray, geometries);
+//      color3 pixelColor = RayColor(ray, geometries);
 
         color3 pixelColor{};
 //      color3 pixelColor{};
@@ -1702,8 +1702,8 @@ int main()
 //          ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
             pixelColor += RayColor(ray, bvhTree);
 //          pixelColor += RayColor(ray, bvhTree);
-//          pixelColor += RayColor(ray, spheres);
-//          pixelColor += RayColor(ray, spheres);
+//          pixelColor += RayColor(ray, geometries);
+//          pixelColor += RayColor(ray, geometries);
         }
         pixelColor *= pixelSamplesScale;
 //      pixelColor *= pixelSamplesScale;
