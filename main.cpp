@@ -1745,6 +1745,32 @@ int main()
 //  for (std::thread& t : threads) { t.join(); }
 //  for (std::thread& t : threads) { t.join(); }
 
+//  DENOISE 001
+//  DENOISE 001
+/*
+    for (int pixelY = 1; pixelY < imgH - 1; ++pixelY)
+    {
+    for (int pixelX = 1; pixelX < imgW - 1; ++pixelX)
+    {
+        size_t indexLT = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t indexJT = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX + 0)) * numberOfChannels;
+        size_t indexRT = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+
+        size_t indexLC = (static_cast<size_t>(pixelY + 0) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t indexCC = (static_cast<size_t>(pixelY + 0) * imgW + static_cast<size_t>(pixelX + 0)) * numberOfChannels;
+        size_t indexRC = (static_cast<size_t>(pixelY + 0) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+
+        size_t indexLB = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t indexJB = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX + 0)) * numberOfChannels;
+        size_t indexRB = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+
+
+        rgbs[indexCC + 0] = int(rgbs[indexLT + 0] * 0.075f + rgbs[indexJT + 0] * 0.124f + rgbs[indexRT + 0] * 0.075f + rgbs[indexLC + 0] * 0.124f + rgbs[indexCC + 0] * 0.204f + rgbs[indexRC + 0] * 0.124f + rgbs[indexLB + 0] * 0.075f + rgbs[indexJB + 0] * 0.124f + rgbs[indexRB + 0] * 0.075f);
+        rgbs[indexCC + 1] = int(rgbs[indexLT + 1] * 0.075f + rgbs[indexJT + 1] * 0.124f + rgbs[indexRT + 1] * 0.075f + rgbs[indexLC + 1] * 0.124f + rgbs[indexCC + 1] * 0.204f + rgbs[indexRC + 1] * 0.124f + rgbs[indexLB + 1] * 0.075f + rgbs[indexJB + 1] * 0.124f + rgbs[indexRB + 1] * 0.075f);
+        rgbs[indexCC + 2] = int(rgbs[indexLT + 2] * 0.075f + rgbs[indexJT + 2] * 0.124f + rgbs[indexRT + 2] * 0.075f + rgbs[indexLC + 2] * 0.124f + rgbs[indexCC + 2] * 0.204f + rgbs[indexRC + 2] * 0.124f + rgbs[indexLB + 2] * 0.075f + rgbs[indexJB + 2] * 0.124f + rgbs[indexRB + 2] * 0.075f);
+    }
+    }
+*/
 
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
@@ -1782,3 +1808,27 @@ int main()
 // @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast /OPT:ICF /OPT:REF /LTCG /INCREMENTAL:NO
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
+
+
+
+
+
+// GAUSSIAN BLUR
+// @START
+// G(x, y) = (1 / (2 * pi * sigma * sigma)) * exp(-(x * x + y * y) / (2 * sigma * sigma)) | sigma up -> blur up
+// G(x, y) = (1 / (2 * pi * sigma * sigma)) * exp(-(x * x + y * y) / (2 * sigma * sigma)) | sigma up -> blur up
+// e.g. 3x3 matrix <--- G(x := 1 -> 3, y := 1 -> 3)
+// e.g. 3x3 matrix <--- G(x := 1 -> 3, y := 1 -> 3)
+// with sigma = 1 then
+// with sigma = 1 then
+// -------------------------
+// | 0.075 | 0.124 | 0.075 |
+// -------------------------
+// | 0.124 | 0.204 | 0.124 |
+// -------------------------
+// | 0.075 | 0.124 | 0.075 |
+// -------------------------
+// ColorChannel[y x] = ColorChannel[y-1   x-1] * G(y-1 , x-1) + ColorChannel[y-1   x] * G(y-1 , x) + ColorChannel[y-1   x+1] * G(y-1 , x+1)
+//                   + ColorChannel[y     x-1] * G(y   , x-1) + ColorChannel[y     x] * G(y   , x) + ColorChannel[y     x+1] * G(y   , x+1)
+//                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x] * G(y+1 , x) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
+// @CEASE
