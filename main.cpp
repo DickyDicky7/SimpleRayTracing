@@ -1814,6 +1814,37 @@ int main()
     }
 */
 
+// CHROMATIC ABERRATION
+// CHROMATIC ABERRATION
+/*
+    std::vector<int> chromaticAberrationRGBs(imgW* imgH* numberOfChannels, 255);
+//  std::vector<int> chromaticAberrationRGBs(imgW* imgH* numberOfChannels, 255);
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        chromaticAberrationRGBs[index + 0] = Sample2LinearInterpolation(rgbs, imgW, imgH, pixelX + 2.0f, pixelY + 2.0f, 0, 3);
+//      chromaticAberrationRGBs[index + 0] = Sample2LinearInterpolation(rgbs, imgW, imgH, pixelX + 2.0f, pixelY + 2.0f, 0, 3);
+//      chromaticAberrationRGBs[index + 0] = rgbs[index + 0];
+        chromaticAberrationRGBs[index + 1] = rgbs[index + 1];
+        chromaticAberrationRGBs[index + 2] = rgbs[index + 2];
+    }
+    }
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = chromaticAberrationRGBs[index + 0];
+        rgbs[index + 1] = chromaticAberrationRGBs[index + 1];
+        rgbs[index + 2] = chromaticAberrationRGBs[index + 2];
+    }
+    }
+*/
+
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
