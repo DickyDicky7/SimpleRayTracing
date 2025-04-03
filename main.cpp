@@ -271,6 +271,82 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 
 
+    enum class textureType : std::int8_t
+//  enum class textureType : std::int8_t
+{
+    SOLID_COLOR = 0,
+//  SOLID_COLOR = 0,
+    CHECKER_TEXTURE = 1,
+//  CHECKER_TEXTURE = 1,
+};
+
+
+    struct texture
+//  struct texture
+{
+    color3 albedo = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  color3 albedo = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+    float scale = 1.0;
+//  float scale = 1.0;
+    int oTileTextureIndex = -1;
+//  int oTileTextureIndex = -1;
+    int eTileTextureIndex = -1;
+//  int eTileTextureIndex = -1;
+    textureType type = textureType::SOLID_COLOR;
+//  textureType type = textureType::SOLID_COLOR;
+};
+
+
+    static inline struct texturesDatabase { std::vector<texture> textures; } texturesDatabase;
+//  static inline struct texturesDatabase { std::vector<texture> textures; } texturesDatabase;
+
+
+    static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
+//  static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
+{
+    const texture& texture = texturesDatabase.textures[textureIndex];
+//  const texture& texture = texturesDatabase.textures[textureIndex];
+    switch (texture.type)
+//  switch (texture.type)
+    {
+        case textureType::SOLID_COLOR:
+//      case textureType::SOLID_COLOR:
+        {
+            return texture.albedo;
+//          return texture.albedo;
+        }
+        break;
+//      break;
+
+
+        default:
+//      default:
+        {
+            float textureInverseScale = 1.0f / texture.scale;
+//          float textureInverseScale = 1.0f / texture.scale;
+            int pointX = static_cast<int>(std::floor(textureInverseScale * point.x));
+            int pointY = static_cast<int>(std::floor(textureInverseScale * point.y));
+            int pointZ = static_cast<int>(std::floor(textureInverseScale * point.z));
+            if ((pointX + pointY + pointZ) % 2 == 0)
+//          if ((pointX + pointY + pointZ) % 2 == 0)
+            {
+                return Value(texture.eTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+//              return Value(texture.eTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+            }
+            else
+            {
+                return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+//              return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+            }
+        }
+        break;
+//      break;
+    }
+    return {};
+//  return {};
+}
+
+
 struct ray
 {
     vec3 ori;
@@ -510,8 +586,8 @@ constexpr inline static float GetRefractionIndex(materialDielectric materialDiel
 
 struct material
 {
-    color3 albedo; float scatteredProbability; float fuzz; float refractionIndex; materialType materialType;
-//  color3 albedo; float scatteredProbability; float fuzz; float refractionIndex; materialType materialType;    
+    /* color3 albedo; */ float scatteredProbability; float fuzz; float refractionIndex; int textureIndex; materialType materialType;
+//  /* color3 albedo; */ float scatteredProbability; float fuzz; float refractionIndex; int textureIndex; materialType materialType;    
 };
 
 struct materialScatteredResult
@@ -610,8 +686,8 @@ inline static void CalculateAABB3D(std::vector<geometry>& geometries, AABB3D& aa
 
 struct rayHitResult
 {
-    material material; point3 at; vec3 normal; float minT; bool hitted; bool isFrontFace;
-//  material material; point3 at; vec3 normal; float minT; bool hitted; bool isFrontFace;
+    material material; point3 at; vec3 normal; float minT; float uSurfaceCoordinate; float vSurfaceCoordinate; bool hitted; bool isFrontFace;
+//  material material; point3 at; vec3 normal; float minT; float uSurfaceCoordinate; float vSurfaceCoordinate; bool hitted; bool isFrontFace;
 
     void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
 //  void SetFaceNormal(const ray& ray, const vec3& outwardNormal)
@@ -660,8 +736,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
             }
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -690,8 +766,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
             }
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -711,8 +787,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -734,8 +810,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
@@ -757,8 +833,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 //          materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
-            materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = rayHitResult.material.albedo / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
