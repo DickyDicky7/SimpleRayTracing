@@ -17,6 +17,48 @@
 #include <vector>
 #include <span>
 
+static inline int Sample1LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+{
+    return 000;
+}
+static inline int Sample2LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+{
+    int pixelX = static_cast<int>(std::floor(x));
+    int pixelY = static_cast<int>(std::floor(y));
+    
+    float deltaX = x - pixelX;
+    float deltaY = y - pixelY;
+
+    int currPixelX = std::clamp(pixelX + 0, 0, imgW - 1);
+    int nextPixelX = std::clamp(pixelX + 1, 0, imgW - 1);
+    int currPixelY = std::clamp(pixelY + 0, 0, imgH - 1);
+    int nextPixelY = std::clamp(pixelY + 1, 0, imgH - 1);
+
+    size_t indexOfTLPixel = (static_cast<size_t>(currPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfTRPixel = (static_cast<size_t>(currPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfBLPixel = (static_cast<size_t>(nextPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfBRPixel = (static_cast<size_t>(nextPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
+
+    float valueAtColorChannelOfTLPixel = static_cast<float>(rgbs[indexOfTLPixel]);
+    float valueAtColorChannelOfTRPixel = static_cast<float>(rgbs[indexOfTRPixel]);
+    float valueAtColorChannelOfBLPixel = static_cast<float>(rgbs[indexOfBLPixel]);
+    float valueAtColorChannelOfBRPixel = static_cast<float>(rgbs[indexOfBRPixel]);
+
+    float valueLerpTop = (1.0f - deltaX) * valueAtColorChannelOfTLPixel + deltaX * valueAtColorChannelOfTRPixel;
+    float valueLerpBot = (1.0f - deltaX) * valueAtColorChannelOfBLPixel + deltaX * valueAtColorChannelOfBRPixel;
+    float valueLerpVer = (1.0f - deltaY) * valueLerpBot
+                       +         deltaY  * valueLerpTop;
+
+    return static_cast<int>(std::round(valueLerpVer));
+//  return static_cast<int>(std::round(valueLerpVer));
+
+    return 000;
+}
+static inline int Sample3LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+{
+    return 000;
+}
+
   static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
 //static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
   static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return gammasSpaceComponent *                          gammasSpaceComponent ;                }
@@ -1828,7 +1870,30 @@ int main()
 // -------------------------
 // | 0.075 | 0.124 | 0.075 |
 // -------------------------
-// ColorChannel[y x] = ColorChannel[y-1   x-1] * G(y-1 , x-1) + ColorChannel[y-1   x] * G(y-1 , x) + ColorChannel[y-1   x+1] * G(y-1 , x+1)
-//                   + ColorChannel[y     x-1] * G(y   , x-1) + ColorChannel[y     x] * G(y   , x) + ColorChannel[y     x+1] * G(y   , x+1)
-//                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x] * G(y+1 , x) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
+// ColorChannel[y x] = ColorChannel[y-1   x-1] * G(y-1 , x-1) + ColorChannel[y-1   x+0] * G(y-1 , x+0) + ColorChannel[y-1   x+1] * G(y-1 , x+1)
+//                   + ColorChannel[y+0   x-1] * G(y+0 , x-1) + ColorChannel[y+0   x+0] * G(y+0 , x+0) + ColorChannel[y+0   x+1] * G(y+0 , x+1)
+//                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x+0] * G(y+1 , x+0) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
 // @CEASE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
