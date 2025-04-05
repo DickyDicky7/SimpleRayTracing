@@ -276,8 +276,10 @@ return vec3 { u.y * v.z - u.z * v.y,
 {
     SOLID_COLOR = 0,
 //  SOLID_COLOR = 0,
-    CHECKER_TEXTURE = 1,
-//  CHECKER_TEXTURE = 1,
+    CHECKER_TEXTURE_1 = 1,
+//  CHECKER_TEXTURE_1 = 1,
+    CHECKER_TEXTURE_2 = 2,
+//  CHECKER_TEXTURE_2 = 2,
 };
 
 
@@ -319,8 +321,8 @@ return vec3 { u.y * v.z - u.z * v.y,
 //      break;
 
 
-        default:
-//      default:
+        case textureType::CHECKER_TEXTURE_1:
+//      case textureType::CHECKER_TEXTURE_1:
         {
             float textureInverseScale = 1.0f / texture.scale;
 //          float textureInverseScale = 1.0f / texture.scale;
@@ -338,6 +340,39 @@ return vec3 { u.y * v.z - u.z * v.y,
                 return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
 //              return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
             }
+        }
+        break;
+//      break;
+
+
+        case textureType::CHECKER_TEXTURE_2:
+//      case textureType::CHECKER_TEXTURE_2:
+        {
+            float textureInverseScale = 1.0f / texture.scale;
+//          float textureInverseScale = 1.0f / texture.scale;
+            int remappedUTextureCoordinate = static_cast<int>(std::floor(textureInverseScale * uTextureCoordinate));
+            int remappedVTextureCoordinate = static_cast<int>(std::floor(textureInverseScale * vTextureCoordinate));
+            if ((remappedUTextureCoordinate + remappedVTextureCoordinate) % 2 == 0)
+//          if ((remappedUTextureCoordinate + remappedVTextureCoordinate) % 2 == 0)
+            {
+                return Value(texture.eTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+//              return Value(texture.eTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+            }
+            else
+            {
+                return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+//              return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
+            }
+        }
+        break;
+//      break;
+
+
+        default:
+//      default:
+        {
+            return {};
+//          return {};
         }
         break;
 //      break;
@@ -708,6 +743,51 @@ struct rayHitResult
 
 
 
+    inline static void GetUVSurfaceCoordinates(const geometry& geo, const point3& normalizedSurfacePoint, float& uSurfaceCoordinate, float& vSurfaceCoordinate)
+//  inline static void GetUVSurfaceCoordinates(const geometry& geo, const point3& normalizedSurfacePoint, float& uSurfaceCoordinate, float& vSurfaceCoordinate)
+{
+    switch (geo.geometryType)
+//  switch (geo.geometryType)
+    {
+        case geometryType::SPHERE:
+//      case geometryType::SPHERE:
+        {
+            // GEOGRAPHIC COORDINATE
+            // GEOGRAPHIC COORDINATE
+            // normalizedSurfacePoint: a given point on the sphere of radius one and centered at the origin <0 0 0>
+            // normalizedSurfacePoint: a given point on the sphere of radius one and centered at the origin <0 0 0>
+            // uSurfaceCoordinate: returned value [0,1] of angle around the Y axis from X=-1
+            // uSurfaceCoordinate: returned value [0,1] of angle around the Y axis from X=-1
+            // vSurfaceCoordinate: returned value [0,1] of angle                   from Y=-1 to Y=+1
+            // vSurfaceCoordinate: returned value [0,1] of angle                   from Y=-1 to Y=+1
+            // <+1 +0 +0> yields <+0.50 +0.50> | <-1 +0 +0> yields <0.00 0.50>
+            // <+0 +1 +0> yields <+0.50 +1.00> | <+0 -1 +0> yields <0.50 0.00>
+            // <+0 +0 +1> yields <+0.25 +0.50> | <+0 +0 -1> yields <0.75 0.50>
+
+            float theta = std::acos (-normalizedSurfacePoint.y); // latitude
+//          float theta = std::acos (-normalizedSurfacePoint.y); // latitude
+            float phi   = std::atan2(-normalizedSurfacePoint.z, normalizedSurfacePoint.x) + static_cast<float>(M_PI); // longitude
+//          float phi   = std::atan2(-normalizedSurfacePoint.z, normalizedSurfacePoint.x) + static_cast<float>(M_PI); // longitude
+
+            uSurfaceCoordinate = phi   / (2.0f * static_cast<float>(M_PI));
+//          uSurfaceCoordinate = phi   / (2.0f * static_cast<float>(M_PI));
+            vSurfaceCoordinate = theta /         static_cast<float>(M_PI) ;
+//          vSurfaceCoordinate = theta /         static_cast<float>(M_PI) ;
+        }
+        break;
+//      break;
+
+
+        default:
+//      default:
+        {
+
+        }
+        break;
+//      break;
+    }
+}
+
 inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResult& rayHitResult)
 {
     materialScatteredResult materialScatteredResult {};
@@ -910,8 +990,8 @@ static rayHitResult RayHit(const geometry& geo
     switch (geo.geometryType)
 //  switch (geo.geometryType)
     {
-    case geometryType::SPHERE:
-//  case geometryType::SPHERE:
+        case geometryType::SPHERE:
+//      case geometryType::SPHERE:
         {
             const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
 //          const point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
@@ -972,6 +1052,9 @@ static rayHitResult RayHit(const geometry& geo
 
                 rayHitResult.SetFaceNormal(ray, outwardNormal);
 //              rayHitResult.SetFaceNormal(ray, outwardNormal);
+
+                GetUVSurfaceCoordinates(geo, outwardNormal, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+//              GetUVSurfaceCoordinates(geo, outwardNormal, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
             }
     
             return rayHitResult;
@@ -980,7 +1063,11 @@ static rayHitResult RayHit(const geometry& geo
 
         break;
 //      break;
-    default:
+
+
+
+        default:
+//      default:
         {
             return { .material = geo.material };
 //          return { .material = geo.material };
@@ -1635,8 +1722,14 @@ int main()
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE, });
-//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
 
     ThreadPool* threadPool = new ThreadPool(225);
 //  ThreadPool* threadPool = new ThreadPool(225);
@@ -1664,6 +1757,8 @@ int main()
     bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex = 2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
     bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex = 2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f, .geometryType = geometryType::SPHERE,  });
     bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.5f, 0.5f, 0.5f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 5, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 8, .materialType = materialType::Metal                         },  .center = { .ori = { -001.800f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 9, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -001.800f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
     
 //  for (int i = -5; i < 5; ++i)
 //  for (int j = -5; j < 5; ++j)
