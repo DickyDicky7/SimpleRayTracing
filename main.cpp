@@ -392,6 +392,8 @@ return vec3 { u.y * v.z - u.z * v.y,
 
             interval rgbRange{ 0.0f, 1.0f };
 //          interval rgbRange{ 0.0f, 1.0f };
+//          uTextureCoordinate =        rgbRange.Clamp(std::fmod(uTextureCoordinate + 0.5f, 1.0f));
+//          uTextureCoordinate =        rgbRange.Clamp(std::fmod(uTextureCoordinate + 0.5f, 1.0f));
             uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
 //          uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
             vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
@@ -2174,6 +2176,24 @@ int main()
 
 
 
+//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing.
+//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing.
+
+
+//  BRDF (Bidirectional Reflectance Distribution Function): Describes how light is reflected from a surface. It relates the amount of light coming from an incoming direction (incident light) to the amount of light going out in an outgoing direction (reflected light), considering only light that stays on the same side of the surface it hit. Think of opaque materials: matte surfaces, metals, plastics, etc. Light hits them and bounces off.
+//  BRDF (Bidirectional Reflectance Distribution Function): Describes how light is reflected from a surface. It relates the amount of light coming from an incoming direction (incident light) to the amount of light going out in an outgoing direction (reflected light), considering only light that stays on the same side of the surface it hit. Think of opaque materials: matte surfaces, metals, plastics, etc. Light hits them and bounces off.
+//  BTDF (Bidirectional Transmittance Distribution Function): Describes how light is transmitted through a surface. It relates the amount of light coming from an incoming direction to the amount of light going out in an outgoing direction, considering only light that passes through to the opposite side of the surface. Think of transparent or translucent materials: glass, water, thin plastics. Light hits them and goes through (possibly changing direction, i.e., refracting).
+//  BTDF (Bidirectional Transmittance Distribution Function): Describes how light is transmitted through a surface. It relates the amount of light coming from an incoming direction to the amount of light going out in an outgoing direction, considering only light that passes through to the opposite side of the surface. Think of transparent or translucent materials: glass, water, thin plastics. Light hits them and goes through (possibly changing direction, i.e., refracting).
+//  BSDF (Bidirectional Scattering Distribution Function): This is the general function that describes all the ways light can scatter from a surface interaction point. It encompasses both reflection (BRDF) and transmission (BTDF). BSDF = BRDF + BTDF. It relates the amount of light coming from an incoming direction to the amount of light going out in an outgoing direction, regardless of whether the light stays on the same side (reflects) or passes through to the opposite side (transmits).
+//  BSDF (Bidirectional Scattering Distribution Function): This is the general function that describes all the ways light can scatter from a surface interaction point. It encompasses both reflection (BRDF) and transmission (BTDF). BSDF = BRDF + BTDF. It relates the amount of light coming from an incoming direction to the amount of light going out in an outgoing direction, regardless of whether the light stays on the same side (reflects) or passes through to the opposite side (transmits).
+//  In short: BRDF handles only reflection. BTDF handles only transmission. BSDF handles both reflection and transmission, making it the more comprehensive term.
+//  In short: BRDF handles only reflection. BTDF handles only transmission. BSDF handles both reflection and transmission, making it the more comprehensive term.
+//  In modern computer graphics, the term BSDF is often used more generally, even when discussing materials that are purely opaque (where the BTDF component would be zero), because it represents the complete theoretical framework for light interaction at a surface boundary.
+//  In modern computer graphics, the term BSDF is often used more generally, even when discussing materials that are purely opaque (where the BTDF component would be zero), because it represents the complete theoretical framework for light interaction at a surface boundary.
+
+
+//  Forward vs Forward+ vs Deferred pipeline
+//  Forward vs Forward+ vs Deferred pipeline
 
 
 
