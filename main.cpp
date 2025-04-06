@@ -16,6 +16,9 @@
 #include <random>
 #include <vector>
 #include <span>
+#include "ImagePNG.h"
+#include "ImageJPG.h"
+#include "ImageSVG.h"
 
 static inline int Sample1LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
 {
@@ -160,8 +163,11 @@ struct AABB3D
 };
 
 
-static std::string GetCurrentDateTime() {
-       std::time_t t = std::time(nullptr); std::tm tm = *std::localtime(&t); char buffer[30]; std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S.ppm", &tm); return std::string(buffer);
+    inline static std::string GetCurrentDateTime()
+//  inline static std::string GetCurrentDateTime()
+{
+        std::time_t t = std::time(nullptr); std::tm tm = *std::localtime(&t); char buffer[30]; std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S.ppm", &tm); return std::string(buffer);
+//      std::time_t t = std::time(nullptr); std::tm tm = *std::localtime(&t); char buffer[30]; std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S.ppm", &tm); return std::string(buffer);
 }
 
 
@@ -280,6 +286,12 @@ return vec3 { u.y * v.z - u.z * v.y,
 //  CHECKER_TEXTURE_1 = 1,
     CHECKER_TEXTURE_2 = 2,
 //  CHECKER_TEXTURE_2 = 2,
+    IMAGE_TEXTURE_PNG = 3,
+//  IMAGE_TEXTURE_PNG = 3,
+    IMAGE_TEXTURE_JPG = 4,
+//  IMAGE_TEXTURE_JPG = 4,
+    IMAGE_TEXTURE_SVG = 5,
+//  IMAGE_TEXTURE_SVG = 5,
 };
 
 
@@ -290,6 +302,8 @@ return vec3 { u.y * v.z - u.z * v.y,
 //  color3 albedo = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
     float scale = 1.0;
 //  float scale = 1.0;
+    int imageIndex = -1; // png(s) jpg(s) svg(s)
+//  int imageIndex = -1; // png(s) jpg(s) svg(s)
     int oTileTextureIndex = -1;
 //  int oTileTextureIndex = -1;
     int eTileTextureIndex = -1;
@@ -302,6 +316,8 @@ return vec3 { u.y * v.z - u.z * v.y,
     static inline struct texturesDatabase { std::vector<texture> textures; } texturesDatabase;
 //  static inline struct texturesDatabase { std::vector<texture> textures; } texturesDatabase;
 
+    static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
+//  static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
 
     static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
 //  static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
@@ -363,6 +379,54 @@ return vec3 { u.y * v.z - u.z * v.y,
                 return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
 //              return Value(texture.oTileTextureIndex, uTextureCoordinate, vTextureCoordinate, point);
             }
+        }
+        break;
+//      break;
+
+
+        case textureType::IMAGE_TEXTURE_PNG:
+//      case textureType::IMAGE_TEXTURE_PNG:
+        {
+            const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+//          const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+
+            interval rgbRange{ 0.0f, 1.0f };
+//          interval rgbRange{ 0.0f, 1.0f };
+            uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
+//          uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
+            vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
+//          vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
+
+            std::uint16_t imagePixelX = static_cast<std::uint16_t>(uTextureCoordinate * (imagePNG.w - 1));
+            std::uint16_t imagePixelY = static_cast<std::uint16_t>(vTextureCoordinate * (imagePNG.h - 1));
+
+            size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * imagePNG.w + imagePixelX) * 3 /* number of color channels */;
+//          size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * imagePNG.w + imagePixelX) * 3 /* number of color channels */;
+
+            return color3{ .x = imagePNG.rgbs[imagePixelIndex + 0],
+                           .y = imagePNG.rgbs[imagePixelIndex + 1],
+                           .z = imagePNG.rgbs[imagePixelIndex + 2],
+                         };
+        }
+        break;
+//      break;
+
+
+        case textureType::IMAGE_TEXTURE_JPG:
+//      case textureType::IMAGE_TEXTURE_JPG:
+        {
+            return {};
+//          return {};
+        }
+        break;
+//      break;
+
+
+        case textureType::IMAGE_TEXTURE_SVG:
+//      case textureType::IMAGE_TEXTURE_SVG:
+        {
+            return {};
+//          return {};
         }
         break;
 //      break;
@@ -1716,20 +1780,32 @@ static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDep
 
 int main()
 {
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.8f, 0.8f, 0.8f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    imagesDatabase.pngs.emplace_back("example.png");
+//  imagesDatabase.jpgs.emplace_back("example.jpg");
+//  imagesDatabase.svgs.emplace_back("example.svg");
+
+
+
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.8f, 0.8f, 0.8f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
-//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
+
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_PNG, });
+//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_JPG, });
+//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_SVG, });
+
+
 
     ThreadPool* threadPool = new ThreadPool(225);
 //  ThreadPool* threadPool = new ThreadPool(225);
@@ -1748,18 +1824,23 @@ int main()
 //  std::vector<geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 1.0f, 0.0f, 1.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 1, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex = 2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex = 2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex = 2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.5f, 0.5f, 0.5f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 5, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 8, .materialType = materialType::Metal                         },  .center = { .ori = { -001.800f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex = 9, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -001.800f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 1.0f, 0.0f, 1.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.5f, 0.5f, 0.5f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   5, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   8, .materialType = materialType::Metal                         },  .center = { .ori = { -001.800f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   9, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -001.800f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  10, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  11, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  12, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+
+
+
 //  for (int i = -5; i < 5; ++i)
 //  for (int j = -5; j < 5; ++j)
 //  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .textureIndex = 0, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f, .geometryType = geometryType::SPHERE,  });
@@ -1793,10 +1874,11 @@ int main()
     //return 0;
 
     float aspectRatio = 16.0f / 9.0f;
-    int imgW = 400     ;
-    int imgH = int    (
-        imgW /
-           aspectRatio);
+//  float aspectRatio = 16.0f / 9.0f;
+    int imgW = 400;
+//  int imgW = 400;
+    int imgH = int(imgW / aspectRatio);
+//  int imgH = int(imgW / aspectRatio);
     imgH = std::max(imgH, 1);
 //  imgH = std::max(imgH, 1);
 
@@ -2047,8 +2129,8 @@ int main()
     const std::chrono::microseconds& executionDuration = std::chrono::duration_cast<std::chrono::microseconds>(ceaseTime - startTime);
 //  const std::chrono::microseconds& executionDuration = std::chrono::duration_cast<std::chrono::microseconds>(ceaseTime - startTime);
 
-    std::cout << executionDuration.count() << "ms" << std::endl;
-//  std::cout << executionDuration.count() << "ms" << std::endl;
+    std::cout << executionDuration.count() << " " << "microseconds" << std::endl;
+//  std::cout << executionDuration.count() << " " << "microseconds" << std::endl;
 
     return 0       ;
 //  return 0       ;
@@ -2087,6 +2169,7 @@ int main()
 //                   + ColorChannel[y+0   x-1] * G(y+0 , x-1) + ColorChannel[y+0   x+0] * G(y+0 , x+0) + ColorChannel[y+0   x+1] * G(y+0 , x+1)
 //                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x+0] * G(y+1 , x+0) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
 // @CEASE
+
 
 
 
