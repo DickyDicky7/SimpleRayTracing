@@ -2277,8 +2277,8 @@ int main()
 
 
 
-//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing.
-//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing.
+//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing. Normal Maps. Different types of geometries.
+//  The current ray tracing implementation is a Monte Carlo-based path tracer with multiple samples per pixel (as opposed to Whitted-style ray tracing). Experiment notes: Consider combining Monte Carlo integration with Whitted - style techniques. Don't forget to experiment with Russian Roulette! Also, explore Next Event Estimation, Multiple Importance Sampling, and Hybrid Bidirectional Path Tracing. Normal Maps. Different types of geometries.
 
 
 //  BRDF (Bidirectional Reflectance Distribution Function): Describes how light is reflected from a surface. It relates the amount of light coming from an incoming direction (incident light) to the amount of light going out in an outgoing direction (reflected light), considering only light that stays on the same side of the surface it hit. Think of opaque materials: matte surfaces, metals, plastics, etc. Light hits them and bounces off.
