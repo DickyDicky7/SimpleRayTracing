@@ -279,10 +279,10 @@ return vec3 { u.y * v.z - u.z * v.y,
 
   struct noisePerlinOrigin
   {
-	  std::array<float, 256> randomFloats ;
-	  std::array<int  , 256> permutationsX;
-	  std::array<int  , 256> permutationsY;
-	  std::array<int  , 256> permutationsZ;
+      std::array<float, 256> randomFloats ;
+      std::array<int  , 256> permutationsX;
+      std::array<int  , 256> permutationsY;
+      std::array<int  , 256> permutationsZ;
   };
 
   struct noisePerlinSmooth
@@ -291,26 +291,26 @@ return vec3 { u.y * v.z - u.z * v.y,
 
   inline static void Generate(noisePerlinOrigin& npo)
   {
-	  for (float& randomFloat :
+      for (float& randomFloat :
               npo.randomFloats)
-	  {
-		          randomFloat = Random();
-	  }
-	  for (int i = 000; i < 256; ++i)
-	  {
-		  npo.permutationsX[i] = i;
-		  npo.permutationsY[i] = i;
-		  npo.permutationsZ[i] = i;
-	  }
-	  for (int i = 255; i > 000; --i)
-	  {
-		  int targetX = RandomInt(0, i);
-		  int targetY = RandomInt(0, i);
-		  int targetZ = RandomInt(0, i);
-		  std::swap(npo.permutationsX[i], npo.permutationsX[targetX]);
-		  std::swap(npo.permutationsY[i], npo.permutationsY[targetY]);
-		  std::swap(npo.permutationsZ[i], npo.permutationsZ[targetZ]);
-	  }
+      {
+                  randomFloat = Random();
+      }
+      for (int i = 000; i < 256; ++i)
+      {
+          npo.permutationsX[i] = i;
+          npo.permutationsY[i] = i;
+          npo.permutationsZ[i] = i;
+      }
+      for (int i = 255; i > 000; --i)
+      {
+          int targetX = RandomInt(0, i);
+          int targetY = RandomInt(0, i);
+          int targetZ = RandomInt(0, i);
+          std::swap(npo.permutationsX[i], npo.permutationsX[targetX]);
+          std::swap(npo.permutationsY[i], npo.permutationsY[targetY]);
+          std::swap(npo.permutationsZ[i], npo.permutationsZ[targetZ]);
+      }
   }
 
   inline static void Generate(noisePerlinSmooth& nps)
@@ -319,12 +319,12 @@ return vec3 { u.y * v.z - u.z * v.y,
 
   inline static float GetNoiseValue(const noisePerlinOrigin& npo, const point3& p)
   {
-	  int i = static_cast<int>(4 * p.x) & 255;
-	  int j = static_cast<int>(4 * p.y) & 255;
-	  int k = static_cast<int>(4 * p.z) & 255;
-	  return npo.randomFloats[npo.permutationsX[i] ^
-		                      npo.permutationsY[j] ^
-		                      npo.permutationsZ[k]];
+      int i = static_cast<int>(4 * p.x) & 255;
+      int j = static_cast<int>(4 * p.y) & 255;
+      int k = static_cast<int>(4 * p.z) & 255;
+      return npo.randomFloats[npo.permutationsX[i] ^
+                              npo.permutationsY[j] ^
+                              npo.permutationsZ[k]];
   }
 
 
@@ -731,7 +731,8 @@ return vec3 {
 }
 
 
-enum class materialType : std::uint8_t
+    enum class materialType       : std::uint8_t
+//  enum class materialType       : std::uint8_t
 {
     LambertianDiffuseReflectance1 = 0,
 //  LambertianDiffuseReflectance1 = 0,
@@ -748,7 +749,8 @@ enum class materialType : std::uint8_t
 };
 
 
-enum class materialDielectric : std::int8_t
+    enum class materialDielectric : std::uint8_t
+//  enum class materialDielectric : std::uint8_t
 {
     GLASS = 0,
 //  GLASS = 0,
@@ -765,13 +767,18 @@ enum class materialDielectric : std::int8_t
 
 constexpr inline static float GetRefractionIndex(materialDielectric materialDielectric)
 {
-    switch (materialDielectric)
+    switch ( materialDielectric )
     {
-    case materialDielectric::GLASS  : return 1.500000f; break;
-    case materialDielectric::WATER  : return 1.333000f; break;
-    case materialDielectric::AIR    : return 1.000293f; break;
-    case materialDielectric::DIAMOND: return 2.400000f; break;
-                             default: return 0.000000f; break;
+        case materialDielectric::GLASS  : return 1.500000f; break;
+//      case materialDielectric::GLASS  : return 1.500000f; break;
+        case materialDielectric::WATER  : return 1.333000f; break;
+//      case materialDielectric::WATER  : return 1.333000f; break;
+        case materialDielectric::AIR    : return 1.000293f; break;
+//      case materialDielectric::AIR    : return 1.000293f; break;
+        case materialDielectric::DIAMOND: return 2.400000f; break;
+//      case materialDielectric::DIAMOND: return 2.400000f; break;
+                                 default: return 0.000000f; break;
+//                               default: return 0.000000f; break;
     }
 }
 
