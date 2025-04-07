@@ -277,6 +277,63 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 
 
+  struct noisePerlinOrigin
+  {
+	  std::array<float, 256> randomFloats ;
+	  std::array<int  , 256> permutationsX;
+	  std::array<int  , 256> permutationsY;
+	  std::array<int  , 256> permutationsZ;
+  };
+
+  struct noisePerlinSmooth
+  {
+  };
+
+  inline static void Generate(noisePerlinOrigin& npo)
+  {
+	  for (float& randomFloat :
+              npo.randomFloats)
+	  {
+		          randomFloat = Random();
+	  }
+	  for (int i = 000; i < 256; ++i)
+	  {
+		  npo.permutationsX[i] = i;
+		  npo.permutationsY[i] = i;
+		  npo.permutationsZ[i] = i;
+	  }
+	  for (int i = 255; i > 000; --i)
+	  {
+		  int targetX = RandomInt(0, i);
+		  int targetY = RandomInt(0, i);
+		  int targetZ = RandomInt(0, i);
+		  std::swap(npo.permutationsX[i], npo.permutationsX[targetX]);
+		  std::swap(npo.permutationsY[i], npo.permutationsY[targetY]);
+		  std::swap(npo.permutationsZ[i], npo.permutationsZ[targetZ]);
+	  }
+  }
+
+  inline static void Generate(noisePerlinSmooth& nps)
+  {
+  }
+
+  inline static float GetNoiseValue(const noisePerlinOrigin& npo, const point3& p)
+  {
+	  int i = static_cast<int>(4 * p.x) & 255;
+	  int j = static_cast<int>(4 * p.y) & 255;
+	  int k = static_cast<int>(4 * p.z) & 255;
+	  return npo.randomFloats[npo.permutationsX[i] ^
+		                      npo.permutationsY[j] ^
+		                      npo.permutationsZ[k]];
+  }
+
+
+  inline static float GetNoiseValue(const noisePerlinSmooth& nps, const point3& p)
+  {
+      return 0.0f;
+  }
+
+
     enum class textureType : std::int8_t
 //  enum class textureType : std::int8_t
 {
@@ -292,6 +349,10 @@ return vec3 { u.y * v.z - u.z * v.y,
 //  IMAGE_TEXTURE_JPG = 4,
     IMAGE_TEXTURE_SVG = 5,
 //  IMAGE_TEXTURE_SVG = 5,
+    NOISE_PERLIN_ORIGIN = 6,
+//  NOISE_PERLIN_ORIGIN = 6,
+    NOISE_PERLIN_SMOOTH = 7,
+//  NOISE_PERLIN_SMOOTH = 7,
 };
 
 
@@ -304,6 +365,8 @@ return vec3 { u.y * v.z - u.z * v.y,
 //  float scale = 1.0;
     int imageIndex = -1; // png(s) jpg(s) svg(s)
 //  int imageIndex = -1; // png(s) jpg(s) svg(s)
+    int noiseIndex = -1; // perlin origin(s) perlin smooth(s)
+//  int noiseIndex = -1; // perlin origin(s) perlin smooth(s)
     int oTileTextureIndex = -1;
 //  int oTileTextureIndex = -1;
     int eTileTextureIndex = -1;
@@ -318,6 +381,10 @@ return vec3 { u.y * v.z - u.z * v.y,
 
     static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
 //  static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
+
+    static inline struct noisesDatabase { std::vector<noisePerlinOrigin> noisePerlinOrigins; std::vector<noisePerlinSmooth> noisePerlinSmooths; } noisesDatabase;
+//  static inline struct noisesDatabase { std::vector<noisePerlinOrigin> noisePerlinOrigins; std::vector<noisePerlinSmooth> noisePerlinSmooths; } noisesDatabase;
+
 
     static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
 //  static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
@@ -429,6 +496,30 @@ return vec3 { u.y * v.z - u.z * v.y,
         {
             return {};
 //          return {};
+        }
+        break;
+//      break;
+
+
+        case textureType::NOISE_PERLIN_ORIGIN:
+//      case textureType::NOISE_PERLIN_ORIGIN:
+        {
+            const noisePerlinOrigin& npo = noisesDatabase.noisePerlinOrigins[texture.noiseIndex];
+//          const noisePerlinOrigin& npo = noisesDatabase.noisePerlinOrigins[texture.noiseIndex];
+            return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(npo, point);
+//          return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(npo, point);
+        }
+        break;
+//      break;
+
+
+        case textureType::NOISE_PERLIN_SMOOTH:
+//      case textureType::NOISE_PERLIN_SMOOTH:
+        {
+            const noisePerlinSmooth& nps = noisesDatabase.noisePerlinSmooths[texture.noiseIndex];
+//          const noisePerlinSmooth& nps = noisesDatabase.noisePerlinSmooths[texture.noiseIndex];
+            return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(nps, point);
+//          return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(nps, point);
         }
         break;
 //      break;
@@ -991,8 +1082,8 @@ inline static materialScatteredResult Scatter(const ray& rayIn, const rayHitResu
 
     case materialType::Dielectric:
         {
-            materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
-//          materialScatteredResult.attenuation = color3 { 1.0f, 1.0f, 1.0f };
+            materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
 //          float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
             if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
@@ -1782,30 +1873,40 @@ static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDep
 
 int main()
 {
+    noisesDatabase.noisePerlinOrigins.emplace_back();
+    noisesDatabase.noisePerlinSmooths.emplace_back();
+    for (noisePerlinOrigin& npo : noisesDatabase.noisePerlinOrigins) Generate(npo);
+    for (noisePerlinSmooth& nps : noisesDatabase.noisePerlinSmooths) Generate(nps);
+
+
+
     imagesDatabase.pngs.emplace_back("example.png");
 //  imagesDatabase.jpgs.emplace_back("example.jpg");
 //  imagesDatabase.svgs.emplace_back("example.svg");
 
 
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.8f, 0.8f, 0.8f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.8f, 0.8f, 0.8f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
-//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
+//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_JPG, });
-//  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_SVG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_JPG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_SVG, });
+
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN_ORIGIN, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN_SMOOTH, });
 
 
 
