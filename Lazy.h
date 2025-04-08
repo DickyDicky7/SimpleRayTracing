@@ -278,22 +278,155 @@ namespace lazy
     thread_local static inline const constexpr float G_7X7_S3_6_4 = 0.033f;
     thread_local static inline const constexpr float G_7X7_S3_6_5 = 0.031f;
     thread_local static inline const constexpr float G_7X7_S3_6_6 = 0.028f;
+
+
+
+
+
+
+    constexpr std::array<float, 4> GenerateBayer2x2()
+//  constexpr std::array<float, 4> GenerateBayer2x2()
+    {
+        return std::array<float, 4>
+//      return std::array<float, 4>
+        {
+            0.0f / 4.0f, 2.0f / 4.0f, // Row 0
+//          0.0f / 4.0f, 2.0f / 4.0f, // Row 0
+            3.0f / 4.0f, 1.0f / 4.0f, // Row 1
+//          3.0f / 4.0f, 1.0f / 4.0f, // Row 1
+        };
+    }
+
+    constexpr std::array<float, 16> GenerateBayer4x4()
+//  constexpr std::array<float, 16> GenerateBayer4x4()
+    {
+        std::array<float, 16> result{};
+//      std::array<float, 16> result{};
+        constexpr std::array<float, 4> b2 = GenerateBayer2x2();
+//      constexpr std::array<float, 4> b2 = GenerateBayer2x2();
+        constexpr std::size_t n = 4;
+//      constexpr std::size_t n = 4;
+        for (std::size_t y = 0; y < n; ++y)
+//      for (std::size_t y = 0; y < n; ++y)
+        {
+            for (std::size_t x = 0; x < n; ++x)
+//          for (std::size_t x = 0; x < n; ++x)
+            {
+                std::size_t idx = x + y * n;
+//              std::size_t idx = x + y * n;
+                // Scale 2x2 matrix by 4 and add offset based on position
+//              // Scale 2x2 matrix by 4 and add offset based on position
+                float base = b2[(x / 2) + (y / 2) * 2] * 4.0f;
+//              float base = b2[(x / 2) + (y / 2) * 2] * 4.0f;
+                float offset = static_cast<float>((x % 2) + (y % 2) * 2); // Pattern: 0, 1, 2, 3
+//              float offset = static_cast<float>((x % 2) + (y % 2) * 2); // Pattern: 0, 1, 2, 3
+                result[idx] = (base + offset) / 16.0f;
+//              result[idx] = (base + offset) / 16.0f;
+            }
+        }
+        return result;
+//      return result;
+    }
+
+    constexpr std::array<float, 64> GenerateBayer8x8()
+//  constexpr std::array<float, 64> GenerateBayer8x8()
+    {
+        std::array<float, 64> result{};
+//      std::array<float, 64> result{};
+        constexpr std::array<float, 16> b4 = GenerateBayer4x4();
+//      constexpr std::array<float, 16> b4 = GenerateBayer4x4();
+        constexpr std::size_t n = 8;
+//      constexpr std::size_t n = 8;
+        for (std::size_t y = 0; y < n; ++y)
+//      for (std::size_t y = 0; y < n; ++y)
+        {
+            for (std::size_t x = 0; x < n; ++x)
+//          for (std::size_t x = 0; x < n; ++x)
+            {
+                std::size_t idx = x + y * n;
+//              std::size_t idx = x + y * n;
+                // Scale 4x4 matrix by 4 and add offset based on position
+//              // Scale 4x4 matrix by 4 and add offset based on position
+                float base = b4[(x / 2) + (y / 2) * 4] * 4.0f;
+//              float base = b4[(x / 2) + (y / 2) * 4] * 4.0f;
+                float offset = static_cast<float>((x % 2) + (y % 2) * 2);
+//              float offset = static_cast<float>((x % 2) + (y % 2) * 2);
+                result[idx] = (base + offset) / 64.0f;
+//              result[idx] = (base + offset) / 64.0f;
+            }
+        }
+        return result;
+//      return result;
+    }
+
+    constexpr std::array<float, 256> GenerateBayer16x16()
+//  constexpr std::array<float, 256> GenerateBayer16x16()
+    {
+        std::array<float, 256> result{};
+//      std::array<float, 256> result{};
+        constexpr std::array<float, 64> b8 = GenerateBayer8x8();
+//      constexpr std::array<float, 64> b8 = GenerateBayer8x8();
+        constexpr std::size_t n = 16;
+//      constexpr std::size_t n = 16;
+        for (std::size_t y = 0; y < n; ++y)
+//      for (std::size_t y = 0; y < n; ++y)
+        {
+            for (std::size_t x = 0; x < n; ++x)
+//          for (std::size_t x = 0; x < n; ++x)
+            {
+                std::size_t idx = x + y * n;
+//              std::size_t idx = x + y * n;
+                // Scale 8x8 matrix by 4 and add offset based on position
+//              // Scale 8x8 matrix by 4 and add offset based on position
+                float base = b8[(x / 2) + (y / 2) * 8] * 4.0f;
+//              float base = b8[(x / 2) + (y / 2) * 8] * 4.0f;
+                float offset = static_cast<float>((x % 2) + (y % 2) * 2);
+//              float offset = static_cast<float>((x % 2) + (y % 2) * 2);
+                result[idx] = (base + offset) / 256.0f;
+//              result[idx] = (base + offset) / 256.0f;
+            }
+        }
+        return result;
+//      return result;
+    }
+
+    static inline const constexpr std::array<float, 4> bayer2x2 = GenerateBayer2x2();
+//  static inline const constexpr std::array<float, 4> bayer2x2 = GenerateBayer2x2();
+    static inline const constexpr std::array<float, 16> bayer4x4 = GenerateBayer4x4();
+//  static inline const constexpr std::array<float, 16> bayer4x4 = GenerateBayer4x4();
+    static inline const constexpr std::array<float, 64> bayer8x8 = GenerateBayer8x8();
+//  static inline const constexpr std::array<float, 64> bayer8x8 = GenerateBayer8x8();
+    static inline const constexpr std::array<float, 256> bayer16x16 = GenerateBayer16x16();
+//  static inline const constexpr std::array<float, 256> bayer16x16 = GenerateBayer16x16();
+
+    static inline const constexpr float GetValueFromBayer2x2(std::size_t x, std::size_t y)
+//  static inline const constexpr float GetValueFromBayer2x2(std::size_t x, std::size_t y)
+    {
+        return bayer2x2[x % 2 + y % 2 * 2];
+//      return bayer2x2[x % 2 + y % 2 * 2];
+    }
+
+    static inline const constexpr float GetValueFromBayer4x4(std::size_t x, std::size_t y)
+//  static inline const constexpr float GetValueFromBayer4x4(std::size_t x, std::size_t y)
+    {
+        return bayer4x4[x % 4 + y % 4 * 4];
+//      return bayer4x4[x % 4 + y % 4 * 4];
+    }
+
+    static inline const constexpr float GetValueFromBayer8x8(std::size_t x, std::size_t y)
+//  static inline const constexpr float GetValueFromBayer8x8(std::size_t x, std::size_t y)
+    {
+        return bayer8x8[x % 8 + y % 8 * 8];
+//      return bayer8x8[x % 8 + y % 8 * 8];
+    }
+
+    static inline const constexpr float GetValueFromBayer16x16(std::size_t x, std::size_t y)
+//  static inline const constexpr float GetValueFromBayer16x16(std::size_t x, std::size_t y)
+    {
+        return bayer16x16[x % 16 + y % 16 * 16];
+//      return bayer16x16[x % 16 + y % 16 * 16];
+    }
 }
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

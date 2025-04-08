@@ -274,6 +274,63 @@ return vec3 { u.y * v.z - u.z * v.y,
 
 
 
+static inline vec3 SampleRGB1LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
+{
+    return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+}
+static inline vec3 SampleRGB2LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
+{
+    int pixelX = static_cast<int>(std::floor(x));
+    int pixelY = static_cast<int>(std::floor(y));
+    
+    float deltaX = x - pixelX;
+    float deltaY = y - pixelY;
+
+    int currPixelX = std::clamp(pixelX + 0, 0, imgW - 1);
+    int nextPixelX = std::clamp(pixelX + 1, 0, imgW - 1);
+    int currPixelY = std::clamp(pixelY + 0, 0, imgH - 1);
+    int nextPixelY = std::clamp(pixelY + 1, 0, imgH - 1);
+
+    size_t indexOfTLPixel = (static_cast<size_t>(currPixelY) * imgW + currPixelX) * 3;
+    size_t indexOfTRPixel = (static_cast<size_t>(currPixelY) * imgW + nextPixelX) * 3;
+    size_t indexOfBLPixel = (static_cast<size_t>(nextPixelY) * imgW + currPixelX) * 3;
+    size_t indexOfBRPixel = (static_cast<size_t>(nextPixelY) * imgW + nextPixelX) * 3;
+
+    float valueLerpTopR = (1.0f - deltaX) * rgbs[indexOfTLPixel + 0] + deltaX * rgbs[indexOfTRPixel + 0];
+    float valueLerpBotR = (1.0f - deltaX) * rgbs[indexOfBLPixel + 0] + deltaX * rgbs[indexOfBRPixel + 0];
+    float valueLerpVerR = (1.0f - deltaY) * valueLerpBotR
+                        +         deltaY  * valueLerpTopR
+                        ;
+
+    float valueLerpTopG = (1.0f - deltaX) * rgbs[indexOfTLPixel + 1] + deltaX * rgbs[indexOfTRPixel + 1];
+    float valueLerpBotG = (1.0f - deltaX) * rgbs[indexOfBLPixel + 1] + deltaX * rgbs[indexOfBRPixel + 1];
+    float valueLerpVerG = (1.0f - deltaY) * valueLerpBotG
+                        +         deltaY  * valueLerpTopG
+                        ;
+
+    float valueLerpTopB = (1.0f - deltaX) * rgbs[indexOfTLPixel + 2] + deltaX * rgbs[indexOfTRPixel + 2];
+    float valueLerpBotB = (1.0f - deltaX) * rgbs[indexOfBLPixel + 2] + deltaX * rgbs[indexOfBRPixel + 2];
+    float valueLerpVerB = (1.0f - deltaY) * valueLerpBotB
+                        +         deltaY  * valueLerpTopB
+                        ;
+
+    return vec3{ .x = valueLerpVerR, .y = valueLerpVerG, .z = valueLerpVerB };
+//  return vec3{ .x = valueLerpVerR, .y = valueLerpVerG, .z = valueLerpVerB };
+
+    return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+}
+static inline vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
+{
+    return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+}
+
+
+
+
+
   struct noisePerlinOrigin
   {
       std::array<float, 256> randomFloats ;
@@ -1914,8 +1971,10 @@ int main()
 
 
 
-    ThreadPool* threadPool = new ThreadPool(225);
-//  ThreadPool* threadPool = new ThreadPool(225);
+    ThreadPool* threadPool = new ThreadPool();
+//  ThreadPool* threadPool = new ThreadPool();
+    threadPool->WarmUp(255);
+//  threadPool->WarmUp(255);
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
@@ -2143,10 +2202,8 @@ int main()
     });
     }
 
-    delete threadPool;
-//  delete threadPool;
-//  threadPool = nullptr;
-//  threadPool = nullptr;
+    threadPool->WaitForAllTasksToBeDone();
+//  threadPool->WaitForAllTasksToBeDone();
 
 //  for (std::thread& t : threads) { t.join(); }
 //  for (std::thread& t : threads) { t.join(); }
@@ -2225,6 +2282,53 @@ int main()
 */
 
 
+//  BAYER MATRIX DITHERING
+//  BAYER MATRIX DITHERING
+/*
+    std::vector<float> bayerMatrixDitheringRGBs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> bayerMatrixDitheringRGBs(imgW * imgH * numberOfChannels, 1.0f);
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        float intensity = 0.30f * rgbs[index + 0] + 0.59f * rgbs[index + 1] + 0.11f * rgbs[index + 2];
+//      float intensity = 0.30f * rgbs[index + 0] + 0.59f * rgbs[index + 1] + 0.11f * rgbs[index + 2];
+        float threshold = lazy::GetValueFromBayer16x16(pixelX, pixelY);
+//      float threshold = lazy::GetValueFromBayer16x16(pixelX, pixelY);
+        float ditheringOutput;
+//      float ditheringOutput;
+        if (intensity >= threshold)
+//      if (intensity >= threshold)
+        {
+            ditheringOutput = 1.0f;
+//          ditheringOutput = 1.0f;
+        }
+        else
+        {
+            ditheringOutput = 0.0f;
+//          ditheringOutput = 0.0f;
+        }
+        bayerMatrixDitheringRGBs[index + 0] = rgbs[index + 0] * ditheringOutput;
+        bayerMatrixDitheringRGBs[index + 1] = rgbs[index + 1] * ditheringOutput;
+        bayerMatrixDitheringRGBs[index + 2] = rgbs[index + 2] * ditheringOutput;
+    }
+    }
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = bayerMatrixDitheringRGBs[index + 0];
+        rgbs[index + 1] = bayerMatrixDitheringRGBs[index + 1];
+        rgbs[index + 2] = bayerMatrixDitheringRGBs[index + 2];
+    }
+    }
+*/
+
+
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
@@ -2241,9 +2345,11 @@ int main()
         PPMFile << std::setw(3) << ib << " ";
     }
         PPMFile << "\n";
+//      PPMFile << "\n";
     }
 
     PPMFile.close();
+//  PPMFile.close();
 
     const std::chrono::steady_clock::time_point& ceaseTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& ceaseTime = std::chrono::high_resolution_clock::now();
@@ -2253,8 +2359,15 @@ int main()
     std::cout << executionDuration.count() << " " << "microseconds" << std::endl;
 //  std::cout << executionDuration.count() << " " << "microseconds" << std::endl;
 
-    return 0       ;
-//  return 0       ;
+    threadPool->Stop();
+//  threadPool->Stop();
+    delete threadPool;
+//  delete threadPool;
+    threadPool = nullptr;
+//  threadPool = nullptr;
+
+    return 0;
+//  return 0;
 }
 
 
@@ -2421,44 +2534,3 @@ int main()
 
 //  Forward vs Forward+ vs Deferred pipeline
 //  Forward vs Forward+ vs Deferred pipeline
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
