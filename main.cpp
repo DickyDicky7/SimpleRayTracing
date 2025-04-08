@@ -15,16 +15,17 @@
 #include <chrono>
 #include <random>
 #include <vector>
+#include "Lazy.h"
 #include <span>
 #include "ImagePNG.h"
 #include "ImageJPG.h"
 #include "ImageSVG.h"
 
-static inline int Sample1LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+static inline float Sample1LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
 {
-    return 000;
+    return 0.0f;
 }
-static inline int Sample2LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+static inline float Sample2LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
 {
     int pixelX = static_cast<int>(std::floor(x));
     int pixelY = static_cast<int>(std::floor(y));
@@ -37,29 +38,25 @@ static inline int Sample2LinearInterpolation(const std::vector<int>& rgbs, int i
     int currPixelY = std::clamp(pixelY + 0, 0, imgH - 1);
     int nextPixelY = std::clamp(pixelY + 1, 0, imgH - 1);
 
-    size_t indexOfTLPixel = (static_cast<size_t>(currPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
-    size_t indexOfTRPixel = (static_cast<size_t>(currPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
-    size_t indexOfBLPixel = (static_cast<size_t>(nextPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
-    size_t indexOfBRPixel = (static_cast<size_t>(nextPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfTLPixelWithValueAtColorChannel = (static_cast<size_t>(currPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfTRPixelWithValueAtColorChannel = (static_cast<size_t>(currPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfBLPixelWithValueAtColorChannel = (static_cast<size_t>(nextPixelY) * imgW + currPixelX) * numberOfColorChannels + colorChannel;
+    size_t indexOfBRPixelWithValueAtColorChannel = (static_cast<size_t>(nextPixelY) * imgW + nextPixelX) * numberOfColorChannels + colorChannel;
 
-    float valueAtColorChannelOfTLPixel = static_cast<float>(rgbs[indexOfTLPixel]);
-    float valueAtColorChannelOfTRPixel = static_cast<float>(rgbs[indexOfTRPixel]);
-    float valueAtColorChannelOfBLPixel = static_cast<float>(rgbs[indexOfBLPixel]);
-    float valueAtColorChannelOfBRPixel = static_cast<float>(rgbs[indexOfBRPixel]);
-
-    float valueLerpTop = (1.0f - deltaX) * valueAtColorChannelOfTLPixel + deltaX * valueAtColorChannelOfTRPixel;
-    float valueLerpBot = (1.0f - deltaX) * valueAtColorChannelOfBLPixel + deltaX * valueAtColorChannelOfBRPixel;
+    float valueLerpTop = (1.0f - deltaX) * rgbs[indexOfTLPixelWithValueAtColorChannel] + deltaX * rgbs[indexOfTRPixelWithValueAtColorChannel];
+    float valueLerpBot = (1.0f - deltaX) * rgbs[indexOfBLPixelWithValueAtColorChannel] + deltaX * rgbs[indexOfBRPixelWithValueAtColorChannel];
     float valueLerpVer = (1.0f - deltaY) * valueLerpBot
-                       +         deltaY  * valueLerpTop;
+                       +         deltaY  * valueLerpTop
+                       ;
 
-    return static_cast<int>(std::round(valueLerpVer));
-//  return static_cast<int>(std::round(valueLerpVer));
+    return valueLerpVer;
+//  return valueLerpVer;
 
-    return 000;
+    return 0.0f;
 }
-static inline int Sample3LinearInterpolation(const std::vector<int>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
+static inline float Sample3LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
 {
-    return 000;
+    return 0.0f;
 }
 
   static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
@@ -2068,8 +2065,8 @@ int main()
 
     constexpr int numberOfChannels = 3; // R G B
 //  constexpr int numberOfChannels = 3; // R G B
-    std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
-//  std::vector<int> rgbs(imgW * imgH * numberOfChannels, 255);
+    std::vector<float> rgbs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> rgbs(imgW * imgH * numberOfChannels, 1.0f);
 
 //  std::vector<std::thread> threads;
 //  std::vector<std::thread> threads;
@@ -2137,18 +2134,11 @@ int main()
         }
         pixelColor *= pixelSamplesScale;
 //      pixelColor *= pixelSamplesScale;
-
-        static const interval intensity { 0.000f , 0.999f };
-//      static const interval intensity { 0.000f , 0.999f };
-        int ir = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.x)));
-        int ig = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.y)));
-        int ib = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(pixelColor.z)));
-
         size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
 //      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
-        rgbs[index + 0] = ir;
-        rgbs[index + 1] = ig;
-        rgbs[index + 2] = ib;
+        rgbs[index + 0] = pixelColor.x;
+        rgbs[index + 1] = pixelColor.y;
+        rgbs[index + 2] = pixelColor.z;
     }
     });
     }
@@ -2161,9 +2151,12 @@ int main()
 //  for (std::thread& t : threads) { t.join(); }
 //  for (std::thread& t : threads) { t.join(); }
 
+
 //  DENOISE 001
 //  DENOISE 001
 /*
+    std::vector<float> gaussianBlurRGBs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> gaussianBlurRGBs(imgW * imgH * numberOfChannels, 1.0f);
     for (int pixelY = 1; pixelY < imgH - 1; ++pixelY)
     {
     for (int pixelX = 1; pixelX < imgW - 1; ++pixelX)
@@ -2181,18 +2174,30 @@ int main()
         size_t indexRB = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
 
 
-        rgbs[indexCC + 0] = int(rgbs[indexLT + 0] * 0.075f + rgbs[indexJT + 0] * 0.124f + rgbs[indexRT + 0] * 0.075f + rgbs[indexLC + 0] * 0.124f + rgbs[indexCC + 0] * 0.204f + rgbs[indexRC + 0] * 0.124f + rgbs[indexLB + 0] * 0.075f + rgbs[indexJB + 0] * 0.124f + rgbs[indexRB + 0] * 0.075f);
-        rgbs[indexCC + 1] = int(rgbs[indexLT + 1] * 0.075f + rgbs[indexJT + 1] * 0.124f + rgbs[indexRT + 1] * 0.075f + rgbs[indexLC + 1] * 0.124f + rgbs[indexCC + 1] * 0.204f + rgbs[indexRC + 1] * 0.124f + rgbs[indexLB + 1] * 0.075f + rgbs[indexJB + 1] * 0.124f + rgbs[indexRB + 1] * 0.075f);
-        rgbs[indexCC + 2] = int(rgbs[indexLT + 2] * 0.075f + rgbs[indexJT + 2] * 0.124f + rgbs[indexRT + 2] * 0.075f + rgbs[indexLC + 2] * 0.124f + rgbs[indexCC + 2] * 0.204f + rgbs[indexRC + 2] * 0.124f + rgbs[indexLB + 2] * 0.075f + rgbs[indexJB + 2] * 0.124f + rgbs[indexRB + 2] * 0.075f);
+        gaussianBlurRGBs[indexCC + 0] = rgbs[indexLT + 0] * 0.075f + rgbs[indexJT + 0] * 0.124f + rgbs[indexRT + 0] * 0.075f + rgbs[indexLC + 0] * 0.124f + rgbs[indexCC + 0] * 0.204f + rgbs[indexRC + 0] * 0.124f + rgbs[indexLB + 0] * 0.075f + rgbs[indexJB + 0] * 0.124f + rgbs[indexRB + 0] * 0.075f;
+        gaussianBlurRGBs[indexCC + 1] = rgbs[indexLT + 1] * 0.075f + rgbs[indexJT + 1] * 0.124f + rgbs[indexRT + 1] * 0.075f + rgbs[indexLC + 1] * 0.124f + rgbs[indexCC + 1] * 0.204f + rgbs[indexRC + 1] * 0.124f + rgbs[indexLB + 1] * 0.075f + rgbs[indexJB + 1] * 0.124f + rgbs[indexRB + 1] * 0.075f;
+        gaussianBlurRGBs[indexCC + 2] = rgbs[indexLT + 2] * 0.075f + rgbs[indexJT + 2] * 0.124f + rgbs[indexRT + 2] * 0.075f + rgbs[indexLC + 2] * 0.124f + rgbs[indexCC + 2] * 0.204f + rgbs[indexRC + 2] * 0.124f + rgbs[indexLB + 2] * 0.075f + rgbs[indexJB + 2] * 0.124f + rgbs[indexRB + 2] * 0.075f;
+    }
+    }
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = gaussianBlurRGBs[index + 0];
+        rgbs[index + 1] = gaussianBlurRGBs[index + 1];
+        rgbs[index + 2] = gaussianBlurRGBs[index + 2];
     }
     }
 */
 
+
 // CHROMATIC ABERRATION
 // CHROMATIC ABERRATION
 /*
-    std::vector<int> chromaticAberrationRGBs(imgW* imgH* numberOfChannels, 255);
-//  std::vector<int> chromaticAberrationRGBs(imgW* imgH* numberOfChannels, 255);
+    std::vector<float> chromaticAberrationRGBs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> chromaticAberrationRGBs(imgW * imgH * numberOfChannels, 1.0f);
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
@@ -2219,15 +2224,21 @@ int main()
     }
 */
 
+
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
     {
         size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
 //      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
-        PPMFile << std::setw(3) << rgbs[index + 0] << " ";
-        PPMFile << std::setw(3) << rgbs[index + 1] << " ";
-        PPMFile << std::setw(3) << rgbs[index + 2] << " ";
+        thread_local static const interval intensity { 0.000f , 0.999f };
+//      thread_local static const interval intensity { 0.000f , 0.999f };
+        int ir = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 0])));
+        int ig = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 1])));
+        int ib = int(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 2])));
+        PPMFile << std::setw(3) << ir << " ";
+        PPMFile << std::setw(3) << ig << " ";
+        PPMFile << std::setw(3) << ib << " ";
     }
         PPMFile << "\n";
     }
@@ -2268,6 +2279,7 @@ int main()
 // e.g. 3x3 matrix <--- G(x := 1 -> 3, y := 1 -> 3)
 // with sigma = 1 then
 // with sigma = 1 then
+// 
 // -------------------------
 // | 0.075 | 0.124 | 0.075 |
 // -------------------------
@@ -2275,6 +2287,113 @@ int main()
 // -------------------------
 // | 0.075 | 0.124 | 0.075 |
 // -------------------------
+// 
+// -----------------------------------------
+// | 0.005 | 0.021 | 0.034 | 0.021 | 0.005 |
+// -----------------------------------------
+// | 0.021 | 0.087 | 0.151 | 0.087 | 0.021 |
+// -----------------------------------------
+// | 0.034 | 0.151 | 0.250 | 0.151 | 0.034 |
+// -----------------------------------------
+// | 0.021 | 0.087 | 0.151 | 0.087 | 0.021 |
+// -----------------------------------------
+// | 0.005 | 0.021 | 0.034 | 0.021 | 0.005 |
+// -----------------------------------------
+// 
+// ---------------------------------------------------------
+// | 0.000 | 0.002 | 0.008 | 0.013 | 0.008 | 0.002 | 0.000 |
+// ---------------------------------------------------------
+// | 0.002 | 0.013 | 0.054 | 0.089 | 0.054 | 0.013 | 0.002 |
+// ---------------------------------------------------------
+// | 0.008 | 0.054 | 0.149 | 0.234 | 0.149 | 0.054 | 0.008 |
+// ---------------------------------------------------------
+// | 0.013 | 0.089 | 0.234 | 0.367 | 0.234 | 0.089 | 0.013 |
+// ---------------------------------------------------------
+// | 0.008 | 0.054 | 0.149 | 0.234 | 0.149 | 0.054 | 0.008 |
+// ---------------------------------------------------------
+// | 0.002 | 0.013 | 0.054 | 0.089 | 0.054 | 0.013 | 0.002 |
+// ---------------------------------------------------------
+// | 0.000 | 0.002 | 0.008 | 0.013 | 0.008 | 0.002 | 0.000 |
+// ---------------------------------------------------------
+// 
+// with sigma = 2 then
+// with sigma = 2 then
+// 
+// -------------------------
+// | 0.102 | 0.115 | 0.102 |
+// -------------------------
+// | 0.115 | 0.131 | 0.115 |
+// -------------------------
+// | 0.102 | 0.115 | 0.102 |
+// -------------------------
+// 
+// -----------------------------------------
+// | 0.041 | 0.052 | 0.059 | 0.052 | 0.041 |
+// -----------------------------------------
+// | 0.052 | 0.066 | 0.075 | 0.066 | 0.052 |
+// -----------------------------------------
+// | 0.059 | 0.075 | 0.086 | 0.075 | 0.059 |
+// -----------------------------------------
+// | 0.052 | 0.066 | 0.075 | 0.066 | 0.052 |
+// -----------------------------------------
+// | 0.041 | 0.052 | 0.059 | 0.052 | 0.041 |
+// -----------------------------------------
+// 
+// ---------------------------------------------------------
+// | 0.013 | 0.017 | 0.021 | 0.023 | 0.021 | 0.017 | 0.013 |
+// ---------------------------------------------------------
+// | 0.017 | 0.021 | 0.026 | 0.029 | 0.026 | 0.021 | 0.017 |
+// ---------------------------------------------------------
+// | 0.021 | 0.026 | 0.033 | 0.036 | 0.033 | 0.026 | 0.021 |
+// ---------------------------------------------------------
+// | 0.023 | 0.029 | 0.036 | 0.040 | 0.036 | 0.029 | 0.023 |
+// ---------------------------------------------------------
+// | 0.021 | 0.026 | 0.033 | 0.036 | 0.033 | 0.026 | 0.021 |
+// ---------------------------------------------------------
+// | 0.017 | 0.021 | 0.026 | 0.029 | 0.026 | 0.021 | 0.017 |
+// ---------------------------------------------------------
+// | 0.013 | 0.017 | 0.021 | 0.023 | 0.021 | 0.017 | 0.013 |
+// ---------------------------------------------------------
+// 
+// with sigma = 3 then
+// with sigma = 3 then
+// 
+// -------------------------
+// | 0.106 | 0.112 | 0.106 |
+// -------------------------
+// | 0.112 | 0.118 | 0.112 |
+// -------------------------
+// | 0.106 | 0.112 | 0.106 |
+// -------------------------
+// 
+// -----------------------------------------
+// | 0.054 | 0.059 | 0.061 | 0.059 | 0.054 |
+// -----------------------------------------
+// | 0.059 | 0.064 | 0.067 | 0.064 | 0.059 |
+// -----------------------------------------
+// | 0.061 | 0.067 | 0.070 | 0.067 | 0.061 |
+// -----------------------------------------
+// | 0.059 | 0.064 | 0.067 | 0.064 | 0.059 |
+// -----------------------------------------
+// | 0.054 | 0.059 | 0.061 | 0.059 | 0.054 |
+// -----------------------------------------
+// 
+// ---------------------------------------------------------
+// | 0.028 | 0.031 | 0.033 | 0.034 | 0.033 | 0.031 | 0.028 |
+// ---------------------------------------------------------
+// | 0.031 | 0.034 | 0.036 | 0.037 | 0.036 | 0.034 | 0.031 |
+// ---------------------------------------------------------
+// | 0.033 | 0.036 | 0.039 | 0.040 | 0.039 | 0.036 | 0.033 |
+// ---------------------------------------------------------
+// | 0.034 | 0.037 | 0.040 | 0.041 | 0.040 | 0.037 | 0.034 |
+// ---------------------------------------------------------
+// | 0.033 | 0.036 | 0.039 | 0.040 | 0.039 | 0.036 | 0.033 |
+// ---------------------------------------------------------
+// | 0.031 | 0.034 | 0.036 | 0.037 | 0.036 | 0.034 | 0.031 |
+// ---------------------------------------------------------
+// | 0.028 | 0.031 | 0.033 | 0.034 | 0.033 | 0.031 | 0.028 |
+// ---------------------------------------------------------
+// 
 // ColorChannel[y x] = ColorChannel[y-1   x-1] * G(y-1 , x-1) + ColorChannel[y-1   x+0] * G(y-1 , x+0) + ColorChannel[y-1   x+1] * G(y-1 , x+1)
 //                   + ColorChannel[y+0   x-1] * G(y+0 , x-1) + ColorChannel[y+0   x+0] * G(y+0 , x+0) + ColorChannel[y+0   x+1] * G(y+0 , x+1)
 //                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x+0] * G(y+1 , x+0) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
@@ -2302,6 +2421,15 @@ int main()
 
 //  Forward vs Forward+ vs Deferred pipeline
 //  Forward vs Forward+ vs Deferred pipeline
+
+
+
+
+
+
+
+
+
 
 
 
