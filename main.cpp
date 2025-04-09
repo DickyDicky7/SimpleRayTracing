@@ -2250,6 +2250,79 @@ int main()
 */
 
 
+//  DENOISE 002
+//  DENOISE 002
+/*
+    std::vector<float> gaussianBlurRGBs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> gaussianBlurRGBs(imgW * imgH * numberOfChannels, 1.0f);
+    for (int pixelY = 2; pixelY < imgH - 2; ++pixelY)
+    {
+    for (int pixelX = 2; pixelX < imgW - 2; ++pixelX)
+    {
+        size_t index00 = (static_cast<size_t>(pixelY - 2) * imgW + static_cast<size_t>(pixelX - 2)) * numberOfChannels;
+        size_t index01 = (static_cast<size_t>(pixelY - 2) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t index02 = (static_cast<size_t>(pixelY - 2) * imgW + static_cast<size_t>(pixelX    )) * numberOfChannels;
+        size_t index03 = (static_cast<size_t>(pixelY - 2) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+        size_t index04 = (static_cast<size_t>(pixelY - 2) * imgW + static_cast<size_t>(pixelX + 2)) * numberOfChannels;
+
+        size_t index10 = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX - 2)) * numberOfChannels;
+        size_t index11 = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t index12 = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX    )) * numberOfChannels;
+        size_t index13 = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+        size_t index14 = (static_cast<size_t>(pixelY - 1) * imgW + static_cast<size_t>(pixelX + 2)) * numberOfChannels;
+
+        size_t index20 = (static_cast<size_t>(pixelY    ) * imgW + static_cast<size_t>(pixelX - 2)) * numberOfChannels;
+        size_t index21 = (static_cast<size_t>(pixelY    ) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t index22 = (static_cast<size_t>(pixelY    ) * imgW + static_cast<size_t>(pixelX    )) * numberOfChannels;
+        size_t index23 = (static_cast<size_t>(pixelY    ) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+        size_t index24 = (static_cast<size_t>(pixelY    ) * imgW + static_cast<size_t>(pixelX + 2)) * numberOfChannels;
+
+        size_t index30 = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX - 2)) * numberOfChannels;
+        size_t index31 = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t index32 = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX    )) * numberOfChannels;
+        size_t index33 = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+        size_t index34 = (static_cast<size_t>(pixelY + 1) * imgW + static_cast<size_t>(pixelX + 2)) * numberOfChannels;
+
+        size_t index40 = (static_cast<size_t>(pixelY + 2) * imgW + static_cast<size_t>(pixelX - 2)) * numberOfChannels;
+        size_t index41 = (static_cast<size_t>(pixelY + 2) * imgW + static_cast<size_t>(pixelX - 1)) * numberOfChannels;
+        size_t index42 = (static_cast<size_t>(pixelY + 2) * imgW + static_cast<size_t>(pixelX    )) * numberOfChannels;
+        size_t index43 = (static_cast<size_t>(pixelY + 2) * imgW + static_cast<size_t>(pixelX + 1)) * numberOfChannels;
+        size_t index44 = (static_cast<size_t>(pixelY + 2) * imgW + static_cast<size_t>(pixelX + 2)) * numberOfChannels;
+
+        gaussianBlurRGBs[index22 + 0] = rgbs[index00 + 0] * lazy::G_5X5_S3_0_0 + rgbs[index01 + 0] * lazy::G_5X5_S3_1_0 + rgbs[index02 + 0] * lazy::G_5X5_S3_0_2 + rgbs[index03 + 0] * lazy::G_5X5_S3_0_3 + rgbs[index04 + 0] * lazy::G_5X5_S3_0_4
+                                      + rgbs[index10 + 0] * lazy::G_5X5_S3_1_0 + rgbs[index11 + 0] * lazy::G_5X5_S3_1_1 + rgbs[index12 + 0] * lazy::G_5X5_S3_1_2 + rgbs[index13 + 0] * lazy::G_5X5_S3_1_3 + rgbs[index14 + 0] * lazy::G_5X5_S3_1_4
+                                      + rgbs[index20 + 0] * lazy::G_5X5_S3_2_0 + rgbs[index21 + 0] * lazy::G_5X5_S3_1_2 + rgbs[index22 + 0] * lazy::G_5X5_S3_2_2 + rgbs[index23 + 0] * lazy::G_5X5_S3_2_3 + rgbs[index24 + 0] * lazy::G_5X5_S3_2_4
+                                      + rgbs[index30 + 0] * lazy::G_5X5_S3_3_0 + rgbs[index31 + 0] * lazy::G_5X5_S3_1_3 + rgbs[index32 + 0] * lazy::G_5X5_S3_3_2 + rgbs[index33 + 0] * lazy::G_5X5_S3_3_3 + rgbs[index34 + 0] * lazy::G_5X5_S3_3_4
+                                      + rgbs[index40 + 0] * lazy::G_5X5_S3_4_0 + rgbs[index41 + 0] * lazy::G_5X5_S3_1_4 + rgbs[index42 + 0] * lazy::G_5X5_S3_4_2 + rgbs[index43 + 0] * lazy::G_5X5_S3_4_3 + rgbs[index44 + 0] * lazy::G_5X5_S3_4_4
+                                      ;
+        gaussianBlurRGBs[index22 + 1] = rgbs[index00 + 1] * lazy::G_5X5_S3_0_0 + rgbs[index01 + 1] * lazy::G_5X5_S3_1_0 + rgbs[index02 + 1] * lazy::G_5X5_S3_0_2 + rgbs[index03 + 1] * lazy::G_5X5_S3_0_3 + rgbs[index04 + 1] * lazy::G_5X5_S3_0_4
+                                      + rgbs[index10 + 1] * lazy::G_5X5_S3_1_0 + rgbs[index11 + 1] * lazy::G_5X5_S3_1_1 + rgbs[index12 + 1] * lazy::G_5X5_S3_1_2 + rgbs[index13 + 1] * lazy::G_5X5_S3_1_3 + rgbs[index14 + 1] * lazy::G_5X5_S3_1_4
+                                      + rgbs[index20 + 1] * lazy::G_5X5_S3_2_0 + rgbs[index21 + 1] * lazy::G_5X5_S3_1_2 + rgbs[index22 + 1] * lazy::G_5X5_S3_2_2 + rgbs[index23 + 1] * lazy::G_5X5_S3_2_3 + rgbs[index24 + 1] * lazy::G_5X5_S3_2_4
+                                      + rgbs[index30 + 1] * lazy::G_5X5_S3_3_0 + rgbs[index31 + 1] * lazy::G_5X5_S3_1_3 + rgbs[index32 + 1] * lazy::G_5X5_S3_3_2 + rgbs[index33 + 1] * lazy::G_5X5_S3_3_3 + rgbs[index34 + 1] * lazy::G_5X5_S3_3_4
+                                      + rgbs[index40 + 1] * lazy::G_5X5_S3_4_0 + rgbs[index41 + 1] * lazy::G_5X5_S3_1_4 + rgbs[index42 + 1] * lazy::G_5X5_S3_4_2 + rgbs[index43 + 1] * lazy::G_5X5_S3_4_3 + rgbs[index44 + 1] * lazy::G_5X5_S3_4_4
+                                      ;
+        gaussianBlurRGBs[index22 + 2] = rgbs[index00 + 2] * lazy::G_5X5_S3_0_0 + rgbs[index01 + 2] * lazy::G_5X5_S3_1_0 + rgbs[index02 + 2] * lazy::G_5X5_S3_0_2 + rgbs[index03 + 2] * lazy::G_5X5_S3_0_3 + rgbs[index04 + 2] * lazy::G_5X5_S3_0_4
+                                      + rgbs[index10 + 2] * lazy::G_5X5_S3_1_0 + rgbs[index11 + 2] * lazy::G_5X5_S3_1_1 + rgbs[index12 + 2] * lazy::G_5X5_S3_1_2 + rgbs[index13 + 2] * lazy::G_5X5_S3_1_3 + rgbs[index14 + 2] * lazy::G_5X5_S3_1_4
+                                      + rgbs[index20 + 2] * lazy::G_5X5_S3_2_0 + rgbs[index21 + 2] * lazy::G_5X5_S3_1_2 + rgbs[index22 + 2] * lazy::G_5X5_S3_2_2 + rgbs[index23 + 2] * lazy::G_5X5_S3_2_3 + rgbs[index24 + 2] * lazy::G_5X5_S3_2_4
+                                      + rgbs[index30 + 2] * lazy::G_5X5_S3_3_0 + rgbs[index31 + 2] * lazy::G_5X5_S3_1_3 + rgbs[index32 + 2] * lazy::G_5X5_S3_3_2 + rgbs[index33 + 2] * lazy::G_5X5_S3_3_3 + rgbs[index34 + 2] * lazy::G_5X5_S3_3_4
+                                      + rgbs[index40 + 2] * lazy::G_5X5_S3_4_0 + rgbs[index41 + 2] * lazy::G_5X5_S3_1_4 + rgbs[index42 + 2] * lazy::G_5X5_S3_4_2 + rgbs[index43 + 2] * lazy::G_5X5_S3_4_3 + rgbs[index44 + 2] * lazy::G_5X5_S3_4_4
+                                      ;
+    }
+    }
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = gaussianBlurRGBs[index + 0];
+        rgbs[index + 1] = gaussianBlurRGBs[index + 1];
+        rgbs[index + 2] = gaussianBlurRGBs[index + 2];
+    }
+    }
+*/
+
+
 // CHROMATIC ABERRATION
 // CHROMATIC ABERRATION
 /*
