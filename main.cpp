@@ -2402,6 +2402,104 @@ int main()
 */
 
 
+//  BILATERAL FILTERING
+//  BILATERAL FILTERING
+/*
+    constexpr int kernelRadius = 5; // odds
+//  constexpr int kernelRadius = 5; // odds
+    constexpr float sigmaSpatial = 2.5f;
+    constexpr float sigmaRanging = 0.1f;
+    constexpr float twoSigmaSpatialSquared = 2.0f * sigmaSpatial * sigmaSpatial;
+    constexpr float twoSigmaRangingSquared = 2.0f * sigmaRanging * sigmaRanging;
+    std::vector<float> bilateralFilteringRGBs(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> bilateralFilteringRGBs(imgW * imgH * numberOfChannels, 1.0f);
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        float totalWeight  = 0.0f;
+//      float totalWeight  = 0.0f;
+        float weightedSumR = 0.0f;
+        float weightedSumG = 0.0f;
+        float weightedSumB = 0.0f;
+
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        float centerR = rgbs[index + 0];
+        float centerG = rgbs[index + 1];
+        float centerB = rgbs[index + 2];
+
+        for (int deltaY = -kernelRadius; deltaY <= +kernelRadius; ++deltaY)
+        {
+        for (int deltaX = -kernelRadius; deltaX <= +kernelRadius; ++deltaX)
+        {
+            int neighborPixelX = pixelX + deltaX;
+            int neighborPixelY = pixelY + deltaY;
+
+            if (neighborPixelX >= 0
+            &&  neighborPixelX < imgW
+            &&  neighborPixelY >= 0
+            &&  neighborPixelY < imgH)
+            {
+                size_t neighborIndex = (static_cast<size_t>(neighborPixelY) * imgW + neighborPixelX) * numberOfChannels;
+//              size_t neighborIndex = (static_cast<size_t>(neighborPixelY) * imgW + neighborPixelX) * numberOfChannels;
+                float neighborR = rgbs[neighborIndex + 0];
+                float neighborG = rgbs[neighborIndex + 1];
+                float neighborB = rgbs[neighborIndex + 2];
+
+                float distanceSquaredSpatial = static_cast<float>(deltaX * deltaX + deltaY * deltaY);
+//              float distanceSquaredSpatial = static_cast<float>(deltaX * deltaX + deltaY * deltaY);
+                float weightedSpatial = std::exp(-distanceSquaredSpatial / twoSigmaSpatialSquared);
+//              float weightedSpatial = std::exp(-distanceSquaredSpatial / twoSigmaSpatialSquared);
+
+                float diffR = neighborR - centerR;
+                float diffG = neighborG - centerG;
+                float diffB = neighborB - centerB;
+                float distanceSquaredRanging = diffR * diffR + diffG * diffG + diffB * diffB;
+//              float distanceSquaredRanging = diffR * diffR + diffG * diffG + diffB * diffB;
+                float weightedRanging = std::exp(-distanceSquaredRanging / twoSigmaRangingSquared);
+//              float weightedRanging = std::exp(-distanceSquaredRanging / twoSigmaRangingSquared);
+
+                float weightedCombined = weightedSpatial * weightedRanging;
+//              float weightedCombined = weightedSpatial * weightedRanging;
+
+                totalWeight  += weightedCombined;
+//              totalWeight  += weightedCombined;
+                weightedSumR += weightedCombined * neighborR;
+                weightedSumG += weightedCombined * neighborG;
+                weightedSumB += weightedCombined * neighborB;
+            }
+        }
+        }
+        float filteredR = centerR;
+        float filteredG = centerG;
+        float filteredB = centerB;
+        if (totalWeight > 0.0f)
+//      if (totalWeight > 0.0f)
+        {
+            filteredR = weightedSumR / totalWeight;
+            filteredG = weightedSumG / totalWeight;
+            filteredB = weightedSumB / totalWeight;
+        }
+        bilateralFilteringRGBs[index + 0] = filteredR;
+        bilateralFilteringRGBs[index + 1] = filteredG;
+        bilateralFilteringRGBs[index + 2] = filteredB;
+    }
+    }
+    for (int pixelY = 0; pixelY < imgH; ++pixelY)
+    {
+    for (int pixelX = 0; pixelX < imgW; ++pixelX)
+    {
+        size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+//      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
+        rgbs[index + 0] = bilateralFilteringRGBs[index + 0];
+        rgbs[index + 1] = bilateralFilteringRGBs[index + 1];
+        rgbs[index + 2] = bilateralFilteringRGBs[index + 2];
+    }
+    }
+*/
+
+
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
