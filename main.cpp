@@ -331,60 +331,347 @@ static inline vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 
 
 
-  struct noisePerlinOrigin
+  enum class noisePerlinType : std::uint8_t
+//enum class noisePerlinType : std::uint8_t
   {
-      std::array<float, 256> randomFloats ;
-      std::array<int  , 256> permutationsX;
-      std::array<int  , 256> permutationsY;
-      std::array<int  , 256> permutationsZ;
+      BLOCKY = 0,
+//    BLOCKY = 0,
+      SMOOTH = 1,
+//    SMOOTH = 1,
+      SMOOTH_HERMITIAN = 2,
+//    SMOOTH_HERMITIAN = 2,
+      SMOOTH_SHIFT_OFF = 3,
+//    SMOOTH_SHIFT_OFF = 3,
   };
 
-  struct noisePerlinSmooth
+
+  enum class noisePerlinProcedureType : std::uint8_t
+//enum class noisePerlinProcedureType : std::uint8_t
   {
+      NOISE_BASIC = 0,
+//    NOISE_BASIC = 0,
+      NOISE_NORMALIZED = 1,
+//    NOISE_NORMALIZED = 1,
+      TURBULENCE_1 = 2,
+//    TURBULENCE_1 = 2,
+      TURBULENCE_2 = 3,
+//    TURBULENCE_2 = 3,
   };
 
-  inline static void Generate(noisePerlinOrigin& npo)
+
+  struct noisePerlin
+//struct noisePerlin
   {
-      for (float& randomFloat :
-              npo.randomFloats)
+      std::array<vec3, 256> randomFloat3s;
+//    std::array<vec3, 256> randomFloat3s;
+      std::array<int , 256> permutationsX;
+//    std::array<int , 256> permutationsX;
+      std::array<int , 256> permutationsY;
+//    std::array<int , 256> permutationsY;
+      std::array<int , 256> permutationsZ;
+//    std::array<int , 256> permutationsZ;
+      noisePerlinType noisePerlinType;
+//    noisePerlinType noisePerlinType;
+      noisePerlinProcedureType noisePerlinProcedureType;
+//    noisePerlinProcedureType noisePerlinProcedureType;
+  };
+
+
+  inline static void Generate(noisePerlin& np)
+//inline static void Generate(noisePerlin& np)
+  {
+      switch (np.noisePerlinType)
+//    switch (np.noisePerlinType)
       {
-                  randomFloat = Random();
-      }
-      for (int i = 000; i < 256; ++i)
-      {
-          npo.permutationsX[i] = i;
-          npo.permutationsY[i] = i;
-          npo.permutationsZ[i] = i;
-      }
-      for (int i = 255; i > 000; --i)
-      {
-          int targetX = RandomInt(0, i);
-          int targetY = RandomInt(0, i);
-          int targetZ = RandomInt(0, i);
-          std::swap(npo.permutationsX[i], npo.permutationsX[targetX]);
-          std::swap(npo.permutationsY[i], npo.permutationsY[targetY]);
-          std::swap(npo.permutationsZ[i], npo.permutationsZ[targetZ]);
+          case noisePerlinType::BLOCKY:
+//        case noisePerlinType::BLOCKY:
+          case noisePerlinType::SMOOTH:
+//        case noisePerlinType::SMOOTH:
+          case noisePerlinType::SMOOTH_HERMITIAN:
+//        case noisePerlinType::SMOOTH_HERMITIAN:
+          {
+              for (vec3& randomFloat3 : np.randomFloat3s)
+//            for (vec3& randomFloat3 : np.randomFloat3s)
+              {
+                  randomFloat3.x = Random();
+//                randomFloat3.x = Random();
+              }
+              for (int i = 000; i < 256; ++i)
+              {
+                  np.permutationsX[i] = i;
+                  np.permutationsY[i] = i;
+                  np.permutationsZ[i] = i;
+              }
+              for (int i = 255; i > 000; --i)
+              {
+                  int targetX = RandomInt(0, i);
+                  int targetY = RandomInt(0, i);
+                  int targetZ = RandomInt(0, i);
+                  std::swap(np.permutationsX[i], np.permutationsX[targetX]);
+                  std::swap(np.permutationsY[i], np.permutationsY[targetY]);
+                  std::swap(np.permutationsZ[i], np.permutationsZ[targetZ]);
+              }
+          }
+          break;
+//        break;
+
+
+          case noisePerlinType::SMOOTH_SHIFT_OFF:
+//        case noisePerlinType::SMOOTH_SHIFT_OFF:
+          {
+              for (vec3& randomFloat3 : np.randomFloat3s)
+//            for (vec3& randomFloat3 : np.randomFloat3s)
+              {
+                  randomFloat3 = normalize(vec3{ .x = Random(-1.0f, +1.0f), .y = Random(-1.0f, +1.0f), .z = Random(-1.0f, +1.0f) });
+//                randomFloat3 = normalize(vec3{ .x = Random(-1.0f, +1.0f), .y = Random(-1.0f, +1.0f), .z = Random(-1.0f, +1.0f) });
+              }
+              for (int i = 000; i < 256; ++i)
+              {
+                  np.permutationsX[i] = i;
+                  np.permutationsY[i] = i;
+                  np.permutationsZ[i] = i;
+              }
+              for (int i = 255; i > 000; --i)
+              {
+                  int targetX = RandomInt(0, i);
+                  int targetY = RandomInt(0, i);
+                  int targetZ = RandomInt(0, i);
+                  std::swap(np.permutationsX[i], np.permutationsX[targetX]);
+                  std::swap(np.permutationsY[i], np.permutationsY[targetY]);
+                  std::swap(np.permutationsZ[i], np.permutationsZ[targetZ]);
+              }
+          }
+          break;
+//        break;
+
+
+          default:
+//        default:
+          {
+
+          }
+          break;
+//        break;
       }
   }
 
-  inline static void Generate(noisePerlinSmooth& nps)
+
+  inline static float GetNoiseValue(const noisePerlin& np, const point3& p)
+//inline static float GetNoiseValue(const noisePerlin& np, const point3& p)
   {
+      float noisePerlinResult = 0.0f;
+//    float noisePerlinResult = 0.0f;
+
+      switch (np.noisePerlinType)
+//    switch (np.noisePerlinType)
+      {
+          case noisePerlinType::BLOCKY:
+//        case noisePerlinType::BLOCKY:
+          {
+              int i = static_cast<int>(4 * p.x) & 255;
+              int j = static_cast<int>(4 * p.y) & 255;
+              int k = static_cast<int>(4 * p.z) & 255;
+              noisePerlinResult = np.randomFloat3s[np.permutationsX[i] ^
+                                                   np.permutationsY[j] ^
+                                                   np.permutationsZ[k]].x;
+          }
+          break;
+//        break;
+
+
+          case noisePerlinType::SMOOTH:
+//        case noisePerlinType::SMOOTH:
+          {
+              float u = p.x - std::floor(p.x);
+              float v = p.y - std::floor(p.y);
+              float w = p.z - std::floor(p.z);
+
+              int i = static_cast<int>(std::floor(p.x));
+              int j = static_cast<int>(std::floor(p.y));
+              int k = static_cast<int>(std::floor(p.z));
+
+              float c[2][2][2]{};
+//            float c[2][2][2]{};
+
+              for (int di = 0; di < 2; ++di)
+              for (int dj = 0; dj < 2; ++dj)
+              for (int dk = 0; dk < 2; ++dk)
+                  c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+                                                   np.permutationsY[(j + dj) & 255] ^
+                                                   np.permutationsZ[(k + dk) & 255]].x;
+//                c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+//                                                 np.permutationsY[(j + dj) & 255] ^
+//                                                 np.permutationsZ[(k + dk) & 255]].x;
+
+//            trilinear interpolation
+//            trilinear interpolation
+              float accum = 0.0f;
+//            float accum = 0.0f;
+              for (int ii = 0; ii < 2; ++ii)
+              for (int jj = 0; jj < 2; ++jj)
+              for (int kk = 0; kk < 2; ++kk)
+                    accum+= ((ii * u) + (1 - ii) * (1 - u))
+                          * ((jj * v) + (1 - jj) * (1 - v))
+                          * ((kk * w) + (1 - kk) * (1 - w))
+                          * c[ii][jj][kk];
+//                  accum+= ((ii * u) + (1 - ii) * (1 - u))
+//                        * ((jj * v) + (1 - jj) * (1 - v))
+//                        * ((kk * w) + (1 - kk) * (1 - w))
+//                        * c[ii][jj][kk];
+              noisePerlinResult = accum;
+//            noisePerlinResult = accum;
+//            trilinear interpolation
+//            trilinear interpolation
+          }
+          break;
+//        break;
+
+
+          case noisePerlinType::SMOOTH_HERMITIAN:
+//        case noisePerlinType::SMOOTH_HERMITIAN:
+          {
+              float u = p.x - std::floor(p.x);
+              float v = p.y - std::floor(p.y);
+              float w = p.z - std::floor(p.z);
+//            A standard trick is to use a Hermite cubic to round off the interpolation (Improvement with Hermitian Smoothing)
+//            A standard trick is to use a Hermite cubic to round off the interpolation (Improvement with Hermitian Smoothing)
+              u = u * u * (3.0f - 2.0f * u);
+              v = v * v * (3.0f - 2.0f * v);
+              w = w * w * (3.0f - 2.0f * w);
+//            A standard trick is to use a Hermite cubic to round off the interpolation (Improvement with Hermitian Smoothing)
+//            A standard trick is to use a Hermite cubic to round off the interpolation (Improvement with Hermitian Smoothing)
+
+              int i = static_cast<int>(std::floor(p.x));
+              int j = static_cast<int>(std::floor(p.y));
+              int k = static_cast<int>(std::floor(p.z));
+
+              float c[2][2][2]{};
+//            float c[2][2][2]{};
+
+              for (int di = 0; di < 2; ++di)
+              for (int dj = 0; dj < 2; ++dj)
+              for (int dk = 0; dk < 2; ++dk)
+                  c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+                                                   np.permutationsY[(j + dj) & 255] ^
+                                                   np.permutationsZ[(k + dk) & 255]].x;
+//                c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+//                                                 np.permutationsY[(j + dj) & 255] ^
+//                                                 np.permutationsZ[(k + dk) & 255]].x;
+
+//            trilinear interpolation
+//            trilinear interpolation
+              float accum = 0.0f;
+//            float accum = 0.0f;
+              for (int ii = 0; ii < 2; ++ii)
+              for (int jj = 0; jj < 2; ++jj)
+              for (int kk = 0; kk < 2; ++kk)
+                    accum+= ((ii * u) + (1 - ii) * (1 - u))
+                          * ((jj * v) + (1 - jj) * (1 - v))
+                          * ((kk * w) + (1 - kk) * (1 - w))
+                          * c[ii][jj][kk];
+//                  accum+= ((ii * u) + (1 - ii) * (1 - u))
+//                        * ((jj * v) + (1 - jj) * (1 - v))
+//                        * ((kk * w) + (1 - kk) * (1 - w))
+//                        * c[ii][jj][kk];
+              noisePerlinResult = accum;
+//            noisePerlinResult = accum;
+//            trilinear interpolation
+//            trilinear interpolation
+          }
+          break;
+//        break;
+
+
+          case noisePerlinType::SMOOTH_SHIFT_OFF:
+//        case noisePerlinType::SMOOTH_SHIFT_OFF:
+          {
+              float u = p.x - std::floor(p.x);
+              float v = p.y - std::floor(p.y);
+              float w = p.z - std::floor(p.z);
+
+              int i = static_cast<int>(std::floor(p.x));
+              int j = static_cast<int>(std::floor(p.y));
+              int k = static_cast<int>(std::floor(p.z));
+
+              vec3 c[2][2][2]{};
+//            vec3 c[2][2][2]{};
+
+              for (int di = 0; di < 2; ++di)
+              for (int dj = 0; dj < 2; ++dj)
+              for (int dk = 0; dk < 2; ++dk)
+                  c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+                                                   np.permutationsY[(j + dj) & 255] ^
+                                                   np.permutationsZ[(k + dk) & 255]];
+//                c[di][dj][dk] = np.randomFloat3s[np.permutationsX[(i + di) & 255] ^
+//                                                 np.permutationsY[(j + dj) & 255] ^
+//                                                 np.permutationsZ[(k + dk) & 255]];
+
+//            perlin interpolation
+//            perlin interpolation
+              float uu = u * u * (3.0f - 2.0f * u);
+              float vv = v * v * (3.0f - 2.0f * v);
+              float ww = w * w * (3.0f - 2.0f * w);
+              float accum = 0.0f;
+//            float accum = 0.0f;
+              for (int ii = 0; ii < 2; ++ii)
+              for (int jj = 0; jj < 2; ++jj)
+              for (int kk = 0; kk < 2; ++kk)
+              {
+                  vec3 weightV{ .x = u - ii, .y = v - jj, .z = w - kk };
+//                vec3 weightV{ .x = u - ii, .y = v - jj, .z = w - kk };
+                    accum+= ((ii * uu) + (1 - ii) * (1 - uu))
+                          * ((jj * vv) + (1 - jj) * (1 - vv))
+                          * ((kk * ww) + (1 - kk) * (1 - ww))
+                          * dot(c[ii][jj][kk], weightV);
+//                  accum+= ((ii * uu) + (1 - ii) * (1 - uu))
+//                        * ((jj * vv) + (1 - jj) * (1 - vv))
+//                        * ((kk * ww) + (1 - kk) * (1 - ww))
+//                        * dot(c[ii][jj][kk], weightV);
+              }
+              noisePerlinResult = accum;
+//            noisePerlinResult = accum;
+//            perlin interpolation
+//            perlin interpolation
+          }
+          break;
+//        break;
+
+
+          default:
+//        default:
+          {
+
+          }
+          break;
+//        break;
+      }
+
+      return noisePerlinResult;
+//    return noisePerlinResult;
   }
 
-  inline static float GetNoiseValue(const noisePerlinOrigin& npo, const point3& p)
-  {
-      int i = static_cast<int>(4 * p.x) & 255;
-      int j = static_cast<int>(4 * p.y) & 255;
-      int k = static_cast<int>(4 * p.z) & 255;
-      return npo.randomFloats[npo.permutationsX[i] ^
-                              npo.permutationsY[j] ^
-                              npo.permutationsZ[k]];
-  }
 
-
-  inline static float GetNoiseValue(const noisePerlinSmooth& nps, const point3& p)
+  inline static float GetTurbulenceValue(const noisePerlin& np, const point3& p, std::uint8_t depth)
+//inline static float GetTurbulenceValue(const noisePerlin& np, const point3& p, std::uint8_t depth)
   {
-      return 0.0f;
+      float  accum = 0.0f;
+//    float  accum = 0.0f;
+      point3 tempP = p;
+//    point3 tempP = p;
+      float weight = 1.0f;
+//    float weight = 1.0f;
+      for (std::uint8_t i = 0; i < depth; ++i)
+//    for (std::uint8_t i = 0; i < depth; ++i)
+      {
+          accum  += weight * GetNoiseValue(np, tempP);
+//        accum  += weight * GetNoiseValue(np, tempP);
+          weight *= 0.5f;
+//        weight *= 0.5f;
+          tempP  *= 2.0f;
+//        tempP  *= 2.0f;
+      }
+      return std::fabs(accum);
+//    return std::fabs(accum);
   }
 
 
@@ -403,10 +690,8 @@ static inline vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 //  IMAGE_TEXTURE_JPG = 4,
     IMAGE_TEXTURE_SVG = 5,
 //  IMAGE_TEXTURE_SVG = 5,
-    NOISE_PERLIN_ORIGIN = 6,
-//  NOISE_PERLIN_ORIGIN = 6,
-    NOISE_PERLIN_SMOOTH = 7,
-//  NOISE_PERLIN_SMOOTH = 7,
+    NOISE_PERLIN = 6,
+//  NOISE_PERLIN = 6,
 };
 
 
@@ -436,8 +721,74 @@ static inline vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
     static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
 //  static inline struct imagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
 
-    static inline struct noisesDatabase { std::vector<noisePerlinOrigin> noisePerlinOrigins; std::vector<noisePerlinSmooth> noisePerlinSmooths; } noisesDatabase;
-//  static inline struct noisesDatabase { std::vector<noisePerlinOrigin> noisePerlinOrigins; std::vector<noisePerlinSmooth> noisePerlinSmooths; } noisesDatabase;
+    static inline struct noisesDatabase { std::vector<noisePerlin> noisePerlins; } noisesDatabase;
+//  static inline struct noisesDatabase { std::vector<noisePerlin> noisePerlins; } noisesDatabase;
+
+
+
+    static inline color3 ExecuteNoisePerlinProcedure(const texture& texture, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
+//  static inline color3 ExecuteNoisePerlinProcedure(const texture& texture, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
+    {
+        const noisePerlin& noisePerlin = noisesDatabase.noisePerlins[texture.noiseIndex];
+//      const noisePerlin& noisePerlin = noisesDatabase.noisePerlins[texture.noiseIndex];
+        color3 noisePerlinProcedureResult;
+//      color3 noisePerlinProcedureResult;
+        switch (noisePerlin.noisePerlinProcedureType)
+//      switch (noisePerlin.noisePerlinProcedureType)
+        {
+            case noisePerlinProcedureType::NOISE_BASIC:
+//          case noisePerlinProcedureType::NOISE_BASIC:
+            {
+                noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(noisePerlin, point * texture.scale);
+//              noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(noisePerlin, point * texture.scale);
+            }
+            break;
+//          break;
+
+
+            case noisePerlinProcedureType::NOISE_NORMALIZED:
+//          case noisePerlinProcedureType::NOISE_NORMALIZED:
+            {
+                noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * (1.0f + GetNoiseValue(noisePerlin, point * texture.scale)) * 0.5f;
+//              noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * (1.0f + GetNoiseValue(noisePerlin, point * texture.scale)) * 0.5f;
+            }
+            break;
+//          break;
+
+
+            case noisePerlinProcedureType::TURBULENCE_1:
+//          case noisePerlinProcedureType::TURBULENCE_1:
+            {
+                noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetTurbulenceValue(noisePerlin, point * texture.scale, 7);
+//              noisePerlinProcedureResult = color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetTurbulenceValue(noisePerlin, point * texture.scale, 7);
+            }
+            break;
+//          break;
+
+
+            case noisePerlinProcedureType::TURBULENCE_2:
+//          case noisePerlinProcedureType::TURBULENCE_2:
+            {
+                noisePerlinProcedureResult = color3{ .x = 0.5f, .y = 0.5f, .z = 0.5f } * (1.0f + std::sin(texture.scale * point.z + 10.0f * GetTurbulenceValue(noisePerlin, point * texture.scale, 7)));
+//              noisePerlinProcedureResult = color3{ .x = 0.5f, .y = 0.5f, .z = 0.5f } * (1.0f + std::sin(texture.scale * point.z + 10.0f * GetTurbulenceValue(noisePerlin, point * texture.scale, 7)));
+            }
+            break;
+//          break;
+
+
+            default:
+//          default:
+            {
+                noisePerlinProcedureResult = {};
+//              noisePerlinProcedureResult = {};
+            }
+            break;
+//          break;
+        }
+        return noisePerlinProcedureResult;
+//      return noisePerlinProcedureResult;
+    }
+
 
 
     static inline color3 Value(int textureIndex, float uTextureCoordinate, float vTextureCoordinate, const point3& point)
@@ -555,25 +906,11 @@ static inline vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 //      break;
 
 
-        case textureType::NOISE_PERLIN_ORIGIN:
-//      case textureType::NOISE_PERLIN_ORIGIN:
+        case textureType::NOISE_PERLIN:
+//      case textureType::NOISE_PERLIN:
         {
-            const noisePerlinOrigin& npo = noisesDatabase.noisePerlinOrigins[texture.noiseIndex];
-//          const noisePerlinOrigin& npo = noisesDatabase.noisePerlinOrigins[texture.noiseIndex];
-            return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(npo, point);
-//          return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(npo, point);
-        }
-        break;
-//      break;
-
-
-        case textureType::NOISE_PERLIN_SMOOTH:
-//      case textureType::NOISE_PERLIN_SMOOTH:
-        {
-            const noisePerlinSmooth& nps = noisesDatabase.noisePerlinSmooths[texture.noiseIndex];
-//          const noisePerlinSmooth& nps = noisesDatabase.noisePerlinSmooths[texture.noiseIndex];
-            return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(nps, point);
-//          return color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f } * GetNoiseValue(nps, point);
+            return ExecuteNoisePerlinProcedure(texture, uTextureCoordinate, vTextureCoordinate, point);
+//          return ExecuteNoisePerlinProcedure(texture, uTextureCoordinate, vTextureCoordinate, point);
         }
         break;
 //      break;
@@ -839,8 +1176,8 @@ constexpr inline static float GetRefractionIndex(materialDielectric materialDiel
 
 struct material
 {
-    /* color3 albedo; */ float scatteredProbability; float fuzz; float refractionIndex; int textureIndex; materialType materialType;
-//  /* color3 albedo; */ float scatteredProbability; float fuzz; float refractionIndex; int textureIndex; materialType materialType;    
+    float scatteredProbability; float fuzz; float refractionIndex; std::uint8_t textureIndex; materialType materialType;
+//  float scatteredProbability; float fuzz; float refractionIndex; std::uint8_t textureIndex; materialType materialType;
 };
 
 struct materialScatteredResult
@@ -1530,6 +1867,7 @@ inline static rayHitResult RayHit(const BVHTree& bvhTree, int bvhNodeIndex, cons
         return rayHitResultL;
     }
     else
+//  if (rayHitResultR.hitted)
     {
         return rayHitResultR;
     }
@@ -1934,22 +2272,29 @@ static color3 RayColor(const ray& initialRay, const BVHTree& bvhTree, int maxDep
 
 int main()
 {
-    noisesDatabase.noisePerlinOrigins.emplace_back();
-    noisesDatabase.noisePerlinSmooths.emplace_back();
-    for (noisePerlinOrigin& npo : noisesDatabase.noisePerlinOrigins) Generate(npo);
-    for (noisePerlinSmooth& nps : noisesDatabase.noisePerlinSmooths) Generate(nps);
+    noisesDatabase.noisePerlins.emplace_back(noisePerlin{ .noisePerlinType = noisePerlinType::BLOCKY          , .noisePerlinProcedureType = noisePerlinProcedureType::NOISE_NORMALIZED });
+    noisesDatabase.noisePerlins.emplace_back(noisePerlin{ .noisePerlinType = noisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = noisePerlinProcedureType::NOISE_NORMALIZED });
+    noisesDatabase.noisePerlins.emplace_back(noisePerlin{ .noisePerlinType = noisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = noisePerlinProcedureType::TURBULENCE_1     });
+    noisesDatabase.noisePerlins.emplace_back(noisePerlin{ .noisePerlinType = noisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = noisePerlinProcedureType::TURBULENCE_2     });
+    for (noisePerlin& np : noisesDatabase.noisePerlins) Generate(np);
+//  for (noisePerlin& np : noisesDatabase.noisePerlins) Generate(np);
 
 
 
-    imagesDatabase.pngs.emplace_back("example.png");
-//  imagesDatabase.jpgs.emplace_back("example.jpg");
-//  imagesDatabase.svgs.emplace_back("example.svg");
+    imagesDatabase.pngs.emplace_back("smile-face-001.png");
+    imagesDatabase.pngs.emplace_back("smile-face-002.png");
+//  imagesDatabase.pngs.emplace_back("example-001.png");
+//  imagesDatabase.pngs.emplace_back("example-002.png");
+//  imagesDatabase.jpgs.emplace_back("example-001.jpg");
+//  imagesDatabase.jpgs.emplace_back("example-002.jpg");
+//  imagesDatabase.svgs.emplace_back("example-001.svg");
+//  imagesDatabase.svgs.emplace_back("example-002.svg");
 
 
 
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.8f, 0.8f, 0.8f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.2f, 0.2f, 0.2f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
     
@@ -1957,17 +2302,22 @@ int main()
 //  texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.5f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +3, .eTileTextureIndex = +4, .type = textureType::CHECKER_TEXTURE_1, });
 
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.5f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 0.5f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::SOLID_COLOR, });
 
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_1, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = textureType::CHECKER_TEXTURE_2, });
 
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_PNG, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_JPG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_JPG, });
     texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_SVG, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::IMAGE_TEXTURE_SVG, });
 
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN_ORIGIN, });
-    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN_SMOOTH, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 5.0f, .imageIndex = -1, .noiseIndex = +0, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 5.0f, .imageIndex = -1, .noiseIndex = +1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 5.0f, .imageIndex = -1, .noiseIndex = +2, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN, });
+    texturesDatabase.textures.emplace_back(texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 5.0f, .imageIndex = -1, .noiseIndex = +3, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = textureType::NOISE_PERLIN, });
 
 
 
@@ -1990,27 +2340,23 @@ int main()
 //  std::vector<geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = { +000.600f,  000.000f, +001.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 1.0f, 0.0f, 1.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -000.600f,  000.000f, -002.500f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 1.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   2, .materialType = materialType::Metal                         },  .center = { .ori = { +000.600f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.8f, 0.8f, 0.8f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = { -000.600f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.400f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.5f, 0.5f, 0.5f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   5, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  000.000f, -100.500f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 100.000f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   8, .materialType = materialType::Metal                         },  .center = { .ori = { -001.800f,  000.000f, -003.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   9, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -001.800f,  000.000f, -001.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  10, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  11, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { 0.0f, 0.0f, 0.0f }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  12, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +001.800f,  000.000f, -002.000f }, .dir = {  000.000f,  000.000f,  000.000f }, .time = 0.0f, }, .radius = 000.500f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   5, .materialType = materialType::Metal                         },  .center = { .ori = {  0000.0000f, -1000.5000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 1000.0000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =   2, .materialType = materialType::Dielectric                    },  .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.4000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0001.2000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  10, .materialType = materialType::Metal                         },  .center = { .ori = { -0002.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =  11, .materialType = materialType::Metal                         },  .center = { .ori = { -0002.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   8, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   9, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0003.6000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = materialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0006.0000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex =  10, .materialType = materialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =  10, .materialType = materialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(materialDielectric::GLASS), .textureIndex =  11, .materialType = materialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = geometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(materialDielectric::AIR    ) / GetRefractionIndex(materialDielectric::GLASS), .textureIndex =  11, .materialType = materialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, .geometryType = geometryType::SPHERE,  });
 
 
-
-//  for (int i = -5; i < 5; ++i)
-//  for (int j = -5; j < 5; ++j)
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .textureIndex = 0, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f, .geometryType = geometryType::SPHERE,  });
-//  bvhTree.geometries.emplace_back(geometry{  .material = { /* .albedo = { Random(0.0f, 1.0f), Random(0.0f, 1.0f), Random(0.0f, 1.0f) }, */ .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = 0.0f, .textureIndex = 0, .materialType = materialType::LambertianDiffuseReflectance1 }, .center = { .ori = { float(i) * 0.5f, -0.4f, float(j) * 0.5f - 1.0f }, .dir = { 0.0f, 0.0f, 0.0f }, .time = 0.0f }, .radius = 0.1f, .geometryType = geometryType::SPHERE,  });
 
     for (geometry& geo : bvhTree.geometries) CalculateAABB3D(geo);
 //  for (geometry& geo : bvhTree.geometries) CalculateAABB3D(geo);
@@ -2048,9 +2394,8 @@ int main()
     imgH = std::max(imgH, 1);
 //  imgH = std::max(imgH, 1);
 
-    const point3 lookFrom { .x = -2.0f, .y = +2.0f, .z = +1.0f };
-    const point3 lookAt   { .x = -0.6f, .y = +0.0f, .z = -1.0f };
-//  const point3 lookAt   { .x = +0.0f, .y = +0.0f, .z = -1.0f };
+    const point3 lookFrom { .x = +2.0f, .y = +2.0f, .z = -2.0f };
+    const point3 lookAt   { .x = +0.0f, .y = +0.0f, .z = +0.0f };
     const point3 viewUp   { .x = +0.0f, .y = +1.0f, .z = +0.0f };
 
     vec3 cameraU; // x
@@ -2065,8 +2410,8 @@ int main()
     vec3 defocusDiskRadiusV;
 
 
-    float vFOV = M_PI / 4.0f;
-    float hFOV = M_PI / 2.0f;
+    float vFOV = M_PI / 3.0f;
+    float hFOV = M_PI / 3.0f;
     float h = std::tanf(vFOV / 2.0f);
     float w = std::tanf(hFOV / 2.0f);
 
