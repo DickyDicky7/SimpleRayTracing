@@ -268,7 +268,7 @@ return Vec3 { u.y * v.z - u.z * v.y,
 }
 
   inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
-//inline static vec3 Normalize(const Vec3& v) { return v / v.length(); }
+//inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
 
 
 
@@ -277,7 +277,7 @@ return Vec3 { u.y * v.z - u.z * v.y,
 static inline Vec3 SampleRGB1LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
 {
     return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
-//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
 }
 static inline Vec3 SampleRGB2LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
 {
@@ -316,15 +316,15 @@ static inline Vec3 SampleRGB2LinearInterpolation(const std::vector<float>& rgbs,
                         ;
 
     return Vec3{ .x = valueLerpVerR, .y = valueLerpVerG, .z = valueLerpVerB };
-//  return vec3{ .x = valueLerpVerR, .y = valueLerpVerG, .z = valueLerpVerB };
+//  return Vec3{ .x = valueLerpVerR, .y = valueLerpVerG, .z = valueLerpVerB };
 
     return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
-//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
 }
 static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y)
 {
     return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
-//  return vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//  return Vec3{ .x = 0.0f, .y = 0.0f, .z = 0.0f };
 }
 
 
