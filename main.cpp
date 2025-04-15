@@ -2233,8 +2233,8 @@ static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDep
             const MaterialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
 //          const MaterialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
 
-            if (!materialScatteredResult.isScattered) _UNLIKELY
-//          if (!materialScatteredResult.isScattered) _UNLIKELY
+            if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
+//          if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
             {
                 return Color3{};  // Return black if scattering fails
 //              return Color3{};  // Return black if scattering fails
