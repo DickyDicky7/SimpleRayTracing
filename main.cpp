@@ -2236,8 +2236,8 @@ static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDep
             if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
 //          if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
             {
-                return Color3{};  // Return black if scattering fails
-//              return Color3{};  // Return black if scattering fails
+                return Color3{};  // Return black if scattering fails // material(s) that absorbs light energy ~ material(s) that emits light energy
+//              return Color3{};  // Return black if scattering fails // material(s) that absorbs light energy ~ material(s) that emits light energy
             }
 
             // Multiply the current color by the attenuation
