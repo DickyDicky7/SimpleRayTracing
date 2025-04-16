@@ -1196,12 +1196,14 @@ enum class GeometryType : std::int8_t
 //  SPHERE = 0,
     QUADRILATERAL = 1,
 //  QUADRILATERAL = 1,
+    TRIANGLE = 2,
+//  TRIANGLE = 2,
 };
 
 struct Geometry
 {
-    union { struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
-//  union { struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
+    union { struct Triangle { Vec3 pointA; Vec3 pointB; Vec3 pointC; } triangle; struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
+//  union { struct Triangle { Vec3 pointA; Vec3 pointB; Vec3 pointC; } triangle; struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
 
 };
 
@@ -1225,6 +1227,16 @@ struct Geometry
 
         case GeometryType::QUADRILATERAL:
 //      case GeometryType::QUADRILATERAL:
+        {
+            return true;
+//          return true;
+        }
+        break;
+//      break;
+
+
+        case GeometryType::TRIANGLE:
+//      case GeometryType::TRIANGLE:
         {
             return true;
 //          return true;
@@ -1271,6 +1283,20 @@ struct Geometry
             }
             break;
 //          break;
+        case GeometryType::TRIANGLE:
+//      case GeometryType::TRIANGLE:
+            {
+                constexpr float padding = 0.01f; // or 1e-3f
+//              constexpr float padding = 0.01f; // or 1e-3f
+                g.aabb3d.intervalAxisX.min = std::fminf(g.triangle.pointA.x, std::fminf(g.triangle.pointB.x, g.triangle.pointC.x)) - padding;
+                g.aabb3d.intervalAxisY.min = std::fminf(g.triangle.pointA.y, std::fminf(g.triangle.pointB.y, g.triangle.pointC.y)) - padding;
+                g.aabb3d.intervalAxisZ.min = std::fminf(g.triangle.pointA.z, std::fminf(g.triangle.pointB.z, g.triangle.pointC.z)) - padding;
+                g.aabb3d.intervalAxisX.max = std::fmaxf(g.triangle.pointA.x, std::fmaxf(g.triangle.pointB.x, g.triangle.pointC.x)) + padding;
+                g.aabb3d.intervalAxisY.max = std::fmaxf(g.triangle.pointA.y, std::fmaxf(g.triangle.pointB.y, g.triangle.pointC.y)) + padding;
+                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.triangle.pointA.z, std::fmaxf(g.triangle.pointB.z, g.triangle.pointC.z)) + padding;
+            }
+            break;
+//          break;
         default:
 //      default:
             break;
@@ -1298,6 +1324,12 @@ struct Geometry
 //          break;
         case GeometryType::QUADRILATERAL:
 //      case GeometryType::QUADRILATERAL:
+            {
+            }
+            break;
+//          break;
+        case GeometryType::TRIANGLE:
+//      case GeometryType::TRIANGLE:
             {
             }
             break;
@@ -1335,13 +1367,18 @@ struct RayHitResult
 //  void SetFaceNormal(const Ray& ray, const Vec3& outwardNormal)
     {
             isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
+//          isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
         if (isFrontFace)
+//      if (isFrontFace)
         {
             normal =  outwardNormal;
+//          normal =  outwardNormal;
         }
         else
+//      else
         {
             normal = -outwardNormal;
+//          normal = -outwardNormal;
         }
     }
 };
@@ -1387,6 +1424,14 @@ struct RayHitResult
 
         case GeometryType::QUADRILATERAL:
 //      case GeometryType::QUADRILATERAL:
+        {
+        }
+        break;
+//      break;
+
+
+        case GeometryType::TRIANGLE:
+//      case GeometryType::TRIANGLE:
         {
         }
         break;
@@ -1740,6 +1785,120 @@ static RayHitResult RayHit(const Geometry& geo
         {
             return { .material = geo.material };
 //          return { .material = geo.material };
+        }
+
+
+        case GeometryType::TRIANGLE:
+//      case GeometryType::TRIANGLE:
+        {
+            // Möller–Trumbore Algorithm
+//          // Möller–Trumbore Algorithm
+
+            RayHitResult rayHitResult{ .material = geo.material };
+//          RayHitResult rayHitResult{ .material = geo.material };
+
+            // Small epsilon to handle floating-point inaccuracies
+//          // Small epsilon to handle floating-point inaccuracies
+            constexpr float EPSILON = 1e-8f;
+//          constexpr float EPSILON = 1e-8f;
+
+            // Calculate two edges of the triangle from its vertices
+//          // Calculate two edges of the triangle from its vertices
+            Vec3 triangleEdge1 = geo.triangle.pointB - geo.triangle.pointA;
+//          Vec3 triangleEdge1 = geo.triangle.pointB - geo.triangle.pointA;
+            Vec3 triangleEdge2 = geo.triangle.pointC - geo.triangle.pointA;
+//          Vec3 triangleEdge2 = geo.triangle.pointC - geo.triangle.pointA;
+
+            // Compute the determinant (used for intersection and barycentric coordinates)
+//          // Compute the determinant (used for intersection and barycentric coordinates)
+            Vec3 directionCrossTriangleEdge2 = Cross(ray.dir, triangleEdge2);
+//          Vec3 directionCrossTriangleEdge2 = Cross(ray.dir, triangleEdge2);
+            float determinant = Dot(triangleEdge1, directionCrossTriangleEdge2);
+//          float determinant = Dot(triangleEdge1, directionCrossTriangleEdge2);
+
+            // If determinant is near zero, the ray is parallel to the triangle plane (no intersection)
+//          // If determinant is near zero, the ray is parallel to the triangle plane (no intersection)
+            if (abs(determinant) < EPSILON)
+//          if (abs(determinant) < EPSILON)
+            {
+                rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
+                return rayHitResult;
+//              return rayHitResult;
+            }
+
+            float inverseDeterminant = 1.0f / determinant;
+//          float inverseDeterminant = 1.0f / determinant;
+            Vec3 vectorFromVertexToOrigin = ray.ori - geo.triangle.pointA;
+//          Vec3 vectorFromVertexToOrigin = ray.ori - geo.triangle.pointA;
+
+            // Compute the u barycentric coordinate
+//          // Compute the u barycentric coordinate
+            float uBarycentric = inverseDeterminant * Dot(vectorFromVertexToOrigin, directionCrossTriangleEdge2);
+//          float uBarycentric = inverseDeterminant * Dot(vectorFromVertexToOrigin, directionCrossTriangleEdge2);
+            if  ( uBarycentric < 0.0f
+            ||    uBarycentric > 1.0f )
+            {
+                rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
+                return rayHitResult; // Intersection lies outside the triangle
+//              return rayHitResult; // Intersection lies outside the triangle
+            }
+
+            // Compute the v barycentric coordinate
+//          // Compute the v barycentric coordinate
+            Vec3 originCrossTriangleEdge1 = Cross(vectorFromVertexToOrigin, triangleEdge1);
+//          Vec3 originCrossTriangleEdge1 = Cross(vectorFromVertexToOrigin, triangleEdge1);
+            float vBarycentric = inverseDeterminant * Dot(ray.dir, originCrossTriangleEdge1);
+//          float vBarycentric = inverseDeterminant * Dot(ray.dir, originCrossTriangleEdge1);
+            if  ( vBarycentric < 0.0f
+            ||    uBarycentric +
+                  vBarycentric > 1.0f )
+            {
+                rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
+                return rayHitResult; // Intersection lies outside the triangle
+//              return rayHitResult; // Intersection lies outside the triangle
+            }
+
+            // Compute the distance from ray origin to intersection point (t)
+//          // Compute the distance from ray origin to intersection point (t)
+            rayHitResult.minT = inverseDeterminant * Dot(triangleEdge2, originCrossTriangleEdge1);
+//          rayHitResult.minT = inverseDeterminant * Dot(triangleEdge2, originCrossTriangleEdge1);
+
+            // Valid intersection if t > EPSILON (ignore hits behind the ray origin)
+//          // Valid intersection if t > EPSILON (ignore hits behind the ray origin)
+            if (rayHitResult.minT > EPSILON)
+//          if (rayHitResult.minT > EPSILON)
+            {
+                rayHitResult.at = ray.Marching(rayHitResult.minT); // Compute the exact intersection point
+//              rayHitResult.at = ray.Marching(rayHitResult.minT); // Compute the exact intersection point
+                rayHitResult.normal = Normalize(Cross(triangleEdge1, triangleEdge2)); // Compute and normalize the face normal
+//              rayHitResult.normal = Normalize(Cross(triangleEdge1, triangleEdge2)); // Compute and normalize the face normal
+                rayHitResult.uSurfaceCoordinate = uBarycentric; // Store barycentric u for shading/UVs
+//              rayHitResult.uSurfaceCoordinate = uBarycentric; // Store barycentric u for shading/UVs
+                rayHitResult.vSurfaceCoordinate = vBarycentric; // Store barycentric v for shading/UVs
+//              rayHitResult.vSurfaceCoordinate = vBarycentric; // Store barycentric v for shading/UVs
+
+                // Flip normal if it's facing the same direction as the ray (ensure front face)
+//              // Flip normal if it's facing the same direction as the ray (ensure front face)
+                rayHitResult.isFrontFace = true;
+//              rayHitResult.isFrontFace = true;
+                if (Dot(rayHitResult.normal, ray.dir) > 0) rayHitResult.normal = -rayHitResult.normal;
+//              if (Dot(rayHitResult.normal, ray.dir) > 0) rayHitResult.normal = -rayHitResult.normal;
+
+                rayHitResult.hitted = true;
+//              rayHitResult.hitted = true;
+                return rayHitResult;
+//              return rayHitResult;
+            }
+            else
+            {
+                rayHitResult.hitted = false;
+//              rayHitResult.hitted = false;
+                return rayHitResult; // Intersection is behind the ray's origin
+//              return rayHitResult; // Intersection is behind the ray's origin
+            }
         }
 
 
