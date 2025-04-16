@@ -1137,6 +1137,10 @@ return Vec3 {
 //  MetalFuzzy2 = 4,
     Dielectric  = 5,
 //  Dielectric  = 5,
+    LightDiffuse = 6,
+//  LightDiffuse = 6,
+    LightMetalic = 7,
+//  LightMetalic = 7,
 };
 
 
@@ -1182,8 +1186,8 @@ struct Material
 
 struct MaterialScatteredResult
 {
-    Ray scatteredRay; Color3 attenuation; bool isScattered;
-//  Ray scatteredRay; Color3 attenuation; bool isScattered;
+    Ray scatteredRay; Color3 attenuation; Color3 emission; bool isScattered;
+//  Ray scatteredRay; Color3 attenuation; Color3 emission; bool isScattered;
 };
 
 enum class GeometryType : std::int8_t
@@ -1196,18 +1200,52 @@ enum class GeometryType : std::int8_t
 
 struct Geometry
 {
-    Material material; /* Point3 */ Ray center; AABB3D aabb3d; float radius; GeometryType geometryType;
-//  Material material; /* Point3 */ Ray center; AABB3D aabb3d; float radius; GeometryType geometryType;
+    union { struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
+//  union { struct Sphere { /* Point3 */ Ray center; float radius; } sphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
 
 };
 
 
-inline static bool IsStationary   (Geometry& g) { return g.center.dir.x == 0.0f
-                                                      && g.center.dir.y == 0.0f
-                                                      && g.center.dir.z == 0.0f;
-                                                }
+    inline static bool IsStationary(Geometry& g)
+//  inline static bool IsStationary(Geometry& g)
+{
+    switch (g.geometryType)
+//  switch (g.geometryType)
+    {
+        case GeometryType::SPHERE:
+//      case GeometryType::SPHERE:
+        {
+            return g.sphere.center.dir.x == 0.0f
+                && g.sphere.center.dir.y == 0.0f
+                && g.sphere.center.dir.z == 0.0f;
+        }
+        break;
+//      break;
 
-inline static void CalculateAABB3D(Geometry& g)
+
+        case GeometryType::QUADRILATERAL:
+//      case GeometryType::QUADRILATERAL:
+        {
+            return true;
+//          return true;
+        }
+        break;
+//      break;
+
+
+        default:
+//      default:
+        {
+            return true;
+//          return true;
+        }
+        break;
+//      break;
+    }
+}
+
+    inline static void CalculateAABB3D(Geometry& g)
+//  inline static void CalculateAABB3D(Geometry& g)
 {
     if (IsStationary(g))
 //  if (IsStationary(g))
@@ -1218,12 +1256,18 @@ inline static void CalculateAABB3D(Geometry& g)
         case GeometryType::SPHERE:
 //      case GeometryType::SPHERE:
             {
-                g.aabb3d.intervalAxisX.min = g.center.ori.x - g.radius;
-                g.aabb3d.intervalAxisX.max = g.center.ori.x + g.radius;
-                g.aabb3d.intervalAxisY.min = g.center.ori.y - g.radius;
-                g.aabb3d.intervalAxisY.max = g.center.ori.y + g.radius;
-                g.aabb3d.intervalAxisZ.min = g.center.ori.z - g.radius;
-                g.aabb3d.intervalAxisZ.max = g.center.ori.z + g.radius;
+                g.aabb3d.intervalAxisX.min = g.sphere.center.ori.x - g.sphere.radius;
+                g.aabb3d.intervalAxisX.max = g.sphere.center.ori.x + g.sphere.radius;
+                g.aabb3d.intervalAxisY.min = g.sphere.center.ori.y - g.sphere.radius;
+                g.aabb3d.intervalAxisY.max = g.sphere.center.ori.y + g.sphere.radius;
+                g.aabb3d.intervalAxisZ.min = g.sphere.center.ori.z - g.sphere.radius;
+                g.aabb3d.intervalAxisZ.max = g.sphere.center.ori.z + g.sphere.radius;
+            }
+            break;
+//          break;
+        case GeometryType::QUADRILATERAL:
+//      case GeometryType::QUADRILATERAL:
+            {
             }
             break;
 //          break;
@@ -1241,14 +1285,20 @@ inline static void CalculateAABB3D(Geometry& g)
         case GeometryType::SPHERE:
 //      case GeometryType::SPHERE:
             {
-                const Point3& destinationPoint3 = g.center.Marching(1.0f);
-//              const Point3& destinationPoint3 = g.center.Marching(1.0f);
-                g.aabb3d.intervalAxisX.min = std::fminf(g.center.ori.x, destinationPoint3.x) - g.radius;
-                g.aabb3d.intervalAxisX.max = std::fmaxf(g.center.ori.x, destinationPoint3.x) + g.radius;
-                g.aabb3d.intervalAxisY.min = std::fminf(g.center.ori.y, destinationPoint3.y) - g.radius;
-                g.aabb3d.intervalAxisY.max = std::fmaxf(g.center.ori.y, destinationPoint3.y) + g.radius;
-                g.aabb3d.intervalAxisZ.min = std::fminf(g.center.ori.z, destinationPoint3.z) - g.radius;
-                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.center.ori.z, destinationPoint3.z) + g.radius;
+                const Point3& destinationPoint3 = g.sphere.center.Marching(1.0f);
+//              const Point3& destinationPoint3 = g.sphere.center.Marching(1.0f);
+                g.aabb3d.intervalAxisX.min = std::fminf(g.sphere.center.ori.x, destinationPoint3.x) - g.sphere.radius;
+                g.aabb3d.intervalAxisX.max = std::fmaxf(g.sphere.center.ori.x, destinationPoint3.x) + g.sphere.radius;
+                g.aabb3d.intervalAxisY.min = std::fminf(g.sphere.center.ori.y, destinationPoint3.y) - g.sphere.radius;
+                g.aabb3d.intervalAxisY.max = std::fmaxf(g.sphere.center.ori.y, destinationPoint3.y) + g.sphere.radius;
+                g.aabb3d.intervalAxisZ.min = std::fminf(g.sphere.center.ori.z, destinationPoint3.z) - g.sphere.radius;
+                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.sphere.center.ori.z, destinationPoint3.z) + g.sphere.radius;
+            }
+            break;
+//          break;
+        case GeometryType::QUADRILATERAL:
+//      case GeometryType::QUADRILATERAL:
+            {
             }
             break;
 //          break;
@@ -1335,6 +1385,14 @@ struct RayHitResult
 //      break;
 
 
+        case GeometryType::QUADRILATERAL:
+//      case GeometryType::QUADRILATERAL:
+        {
+        }
+        break;
+//      break;
+
+
         default:
 //      default:
         {
@@ -1375,6 +1433,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
             materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -1405,6 +1465,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
             materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -1426,6 +1488,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
             materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
         }
@@ -1449,6 +1513,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
             materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };            
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
@@ -1472,6 +1538,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
             materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
 //          materialScatteredResult.attenuation = /* rayHitResult.material.albedo */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
@@ -1483,8 +1551,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
     case MaterialType::Dielectric:
 //  case MaterialType::Dielectric:
         {
-            materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
-//          materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
 //          float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex;
             if (rayHitResult.isFrontFace) _LIKELY { ratioOfEtaiOverEtat = 1.0f / rayHitResult.material.refractionIndex; }
@@ -1518,8 +1584,54 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.scatteredRay.dir = scatteredRayDirection;
             materialScatteredResult.scatteredRay.time = rayIn.time;
 //          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = /* color3 { 1.0f, 1.0f, 1.0f }  */ Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+        }
+        break;
+//      break;
+
+
+
+    case MaterialType::LightDiffuse:
+//  case MaterialType::LightDiffuse:
+        {
+            materialScatteredResult.scatteredRay.ori = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.scatteredRay.ori = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.scatteredRay.dir = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.scatteredRay.dir = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.scatteredRay.time  = 0.0f;
+//          materialScatteredResult.scatteredRay.time  = 0.0f;
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.isScattered = false;
+//          materialScatteredResult.isScattered = false;
+        }
+        break;
+//      break;
+
+
+
+    case MaterialType::LightMetalic:
+//  case MaterialType::LightMetalic:
+        {
+            materialScatteredResult.scatteredRay.ori = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.scatteredRay.ori = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.scatteredRay.dir = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.scatteredRay.dir = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.scatteredRay.time  = 0.0f;
+//          materialScatteredResult.scatteredRay.time  = 0.0f;
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.isScattered = false;
+//          materialScatteredResult.isScattered = false;
         }
         break;
 //      break;
@@ -1551,16 +1663,16 @@ static RayHitResult RayHit(const Geometry& geo
         case GeometryType::SPHERE:
 //      case GeometryType::SPHERE:
         {
-            const Point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
-//          const Point3& currentSphereCenterByIncomingRayTime = geo.center.Marching(ray.time);
+            const Point3& currentSphereCenterByIncomingRayTime = geo.sphere.center.Marching(ray.time);
+//          const Point3& currentSphereCenterByIncomingRayTime = geo.sphere.center.Marching(ray.time);
             const Vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
 //          const Vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
             const float& a = ray.dir.LengthSquared();
 //          const float& a = ray.dir.LengthSquared();
             const float& h = Dot(ray.dir, fromSphereCenterToRayOrigin);
 //          const float& h = Dot(ray.dir, fromSphereCenterToRayOrigin);
-            const float& c = fromSphereCenterToRayOrigin.LengthSquared() - geo.radius * geo.radius;
-//          const float& c = fromSphereCenterToRayOrigin.LengthSquared() - geo.radius * geo.radius;
+            const float& c = fromSphereCenterToRayOrigin.LengthSquared() - geo.sphere.radius * geo.sphere.radius;
+//          const float& c = fromSphereCenterToRayOrigin.LengthSquared() - geo.sphere.radius * geo.sphere.radius;
             const float& discriminant = h * h - a * c;
 //          const float& discriminant = h * h - a * c;
             RayHitResult rayHitResult { .material = geo.material };
@@ -1605,8 +1717,8 @@ static RayHitResult RayHit(const Geometry& geo
                 rayHitResult.at = ray.Marching(rayHitResult.minT);
 //              rayHitResult.at = ray.Marching(rayHitResult.minT);
 
-                const Vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
-//              const Vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.radius;
+                const Vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.sphere.radius;
+//              const Vec3& outwardNormal = (rayHitResult.at - currentSphereCenterByIncomingRayTime) / geo.sphere.radius;
 
                 rayHitResult.SetFaceNormal(ray, outwardNormal);
 //              rayHitResult.SetFaceNormal(ray, outwardNormal);
@@ -1622,6 +1734,13 @@ static RayHitResult RayHit(const Geometry& geo
         break;
 //      break;
 
+
+        case GeometryType::QUADRILATERAL:
+//      case GeometryType::QUADRILATERAL:
+        {
+            return { .material = geo.material };
+//          return { .material = geo.material };
+        }
 
 
         default:
@@ -1666,8 +1785,8 @@ static RayHitResult RayHit(const Geometry& geo
 inline
 static Color3 RayColor(const Ray& ray)
 {
-    Geometry sphere{ .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, .geometryType = GeometryType::SPHERE };
-//  Geometry sphere{ .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, .geometryType = GeometryType::SPHERE };
+    Geometry sphere{ .sphere = { .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, }, .geometryType = GeometryType::SPHERE };
+//  Geometry sphere{ .sphere = { .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, }, .geometryType = GeometryType::SPHERE };
     const RayHitResult& rayHitResult = RayHit(sphere, ray, Interval { .min = -10.0f, .max = +10.0f });
 //  const RayHitResult& rayHitResult = RayHit(sphere, ray, Interval { .min = -10.0f, .max = +10.0f });
     if (rayHitResult.hitted) _UNLIKELY
@@ -2233,17 +2352,21 @@ static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDep
             const MaterialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
 //          const MaterialScatteredResult& materialScatteredResult = Scatter(currentRay, rayHitResult);
 
-            if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
-//          if (!materialScatteredResult.isScattered) _UNLIKELY // material(s) that absorbs light energy
+            if (!materialScatteredResult.isScattered) _UNLIKELY // Notes: Non-scattering materials are mostly emissive
+//          if (!materialScatteredResult.isScattered) _UNLIKELY // Notes: Non-scattering materials are mostly emissive
             {
-                return Color3{};  // Return black if scattering fails // material(s) that absorbs light energy ~ material(s) that emits light energy
-//              return Color3{};  // Return black if scattering fails // material(s) that absorbs light energy ~ material(s) that emits light energy
+                // L_out = emission
+//              // L_out = emission
+                return materialScatteredResult.emission; // Notes: When a light ray hits a non-scattering material - it will be absorbed by the material - meaning the path tracing will end with only the color emitted by the material
+//              return materialScatteredResult.emission; // Notes: When a light ray hits a non-scattering material - it will be absorbed by the material - meaning the path tracing will end with only the color emitted by the material
             }
 
             // Multiply the current color by the attenuation
 //          // Multiply the current color by the attenuation
-            finalColor = finalColor * materialScatteredResult.attenuation;
-//          finalColor = finalColor * materialScatteredResult.attenuation;
+            // L_out = (L_in * attenuation) + emission
+//          // L_out = (L_in * attenuation) + emission
+            finalColor = (finalColor * materialScatteredResult.attenuation) + materialScatteredResult.emission; // Notes: When a light ray hits a scattering material - it will continue bouncing - carrying both its attenuated color and any emission from the material
+//          finalColor = (finalColor * materialScatteredResult.attenuation) + materialScatteredResult.emission; // Notes: When a light ray hits a scattering material - it will continue bouncing - carrying both its attenuated color and any emission from the material
             // Update the ray for the next iteration
 //          // Update the ray for the next iteration
             currentRay = materialScatteredResult.scatteredRay;
@@ -2343,21 +2466,21 @@ int main()
 //  std::vector<Geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   3, .materialType = MaterialType::Metal                         },  .center = { .ori = {  0000.0000f, -5000.5000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 5000.0000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =   2, .materialType = MaterialType::Dielectric                    },  .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =   2, .materialType = MaterialType::Dielectric                    },  .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.4000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0001.2000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =  10, .materialType = MaterialType::Metal                         },  .center = { .ori = { -0002.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =  11, .materialType = MaterialType::Metal                         },  .center = { .ori = { -0002.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   8, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = { -0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   9, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = { +0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0006.0000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .center = { .ori = {  0000.0000f, +0001.0000f, +0003.6000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  10, .materialType = MaterialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  10, .materialType = MaterialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  11, .materialType = MaterialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, .geometryType = GeometryType::SPHERE,  });
-    bvhTree.geometries.emplace_back(Geometry{  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  11, .materialType = MaterialType::Dielectric                    },  .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f, -5000.5000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 5000.0000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   3, .materialType = MaterialType::Metal                         },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =   2, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.4000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =   2, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f, +0001.0000f, +0001.2000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0002.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =  10, .materialType = MaterialType::Metal                         },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0002.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =  11, .materialType = MaterialType::Metal                         },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   8, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { +0002.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   9, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f, +0001.0000f, +0006.0000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   0, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = {  0000.0000f, +0001.0000f, +0003.6000f }, .dir = {  0000.0000f, -0000.5000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex =   1, .materialType = MaterialType::LambertianDiffuseReflectance1 },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  10, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0006.0000f,  0000.0000f, +0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  10, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  11, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
+    bvhTree.geometries.emplace_back(Geometry{  .sphere = { .center = { .ori = { -0006.0000f,  0000.0000f, -0001.2000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.3000f, },  .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex =  11, .materialType = MaterialType::Dielectric                    },  .geometryType = GeometryType::SPHERE,  });
 
 
 
