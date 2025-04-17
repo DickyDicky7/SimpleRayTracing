@@ -1801,8 +1801,8 @@ static RayHitResult RayHit(const Geometry& geo
         case GeometryType::PRIMITIVE_TRILATERAL:
 //      case GeometryType::PRIMITIVE_TRILATERAL:
         {
-            // M�ller�Trumbore Algorithm
-//          // M�ller�Trumbore Algorithm
+            // Moller Trumbore Algorithm
+//          // Moller Trumbore Algorithm
 
             RayHitResult rayHitResult{ .material = geo.material };
 //          RayHitResult rayHitResult{ .material = geo.material };
