@@ -16,7 +16,6 @@
 #include <random>
 #include <vector>
 #include "Lazy.h"
-#include "ufbx.h"
 #include <span>
 #include "ImagePNG.h"
 #include "ImageJPG.h"
@@ -940,6 +939,7 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 }
 
 
+
 struct Ray
 {
     Vec3 ori;
@@ -950,6 +950,11 @@ struct Ray
     Point3 Marching(float t) const { return ori + dir * t; }
 //  point3 Marching(float t) const { return ori + dir * t; }
 };
+
+
+
+    static inline Point3 Marching(Point3 ori, Vec3 dir, float t) { return ori + dir * t; }
+//  static inline Point3 Marching(Point3 ori, Vec3 dir, float t) { return ori + dir * t; }
 
 
 
@@ -1212,8 +1217,8 @@ enum class GeometryType : std::uint8_t
 
 struct Geometry
 {
-    union { struct PrimitiveTrilateral { Vec3 vertex0; Vec3 vertex1; Vec3 vertex2; } primitiveTrilateral; struct PrimitiveSphere { /* Point3 */ Ray center; float radius; } primitiveSphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
-//  union { struct PrimitiveTrilateral { Vec3 vertex0; Vec3 vertex1; Vec3 vertex2; } primitiveTrilateral; struct PrimitiveSphere { /* Point3 */ Ray center; float radius; } primitiveSphere; }; AABB3D aabb3d; Material material; GeometryType geometryType;
+    union { struct PrimitiveTrilateral { Point3 vertex0; Point3 vertex1; Point3 vertex2; } primitiveTrilateral; struct PrimitiveSphere { Point3 center; float radius; } primitiveSphere; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
+//  union { struct PrimitiveTrilateral { Point3 vertex0; Point3 vertex1; Point3 vertex2; } primitiveTrilateral; struct PrimitiveSphere { Point3 center; float radius; } primitiveSphere; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
 
 };
 
@@ -1221,49 +1226,9 @@ struct Geometry
     inline static bool IsStationary(Geometry& g)
 //  inline static bool IsStationary(Geometry& g)
 {
-    switch (g.geometryType)
-//  switch (g.geometryType)
-    {
-        case GeometryType::PRIMITIVE_SPHERE:
-//      case GeometryType::PRIMITIVE_SPHERE:
-        {
-            return g.primitiveSphere.center.dir.x == 0.0f
-                && g.primitiveSphere.center.dir.y == 0.0f
-                && g.primitiveSphere.center.dir.z == 0.0f;
-        }
-        break;
-//      break;
-
-
-        case GeometryType::PRIMITIVE_QUADRILATERAL:
-//      case GeometryType::PRIMITIVE_QUADRILATERAL:
-        {
-            return true;
-//          return true;
-        }
-        break;
-//      break;
-
-
-        case GeometryType::PRIMITIVE_TRILATERAL:
-//      case GeometryType::PRIMITIVE_TRILATERAL:
-        {
-            return true;
-//          return true;
-        }
-        break;
-//      break;
-
-
-        default:
-//      default:
-        {
-            return true;
-//          return true;
-        }
-        break;
-//      break;
-    }
+    return g.movingDirection.x == 0.0f
+        && g.movingDirection.y == 0.0f
+        && g.movingDirection.z == 0.0f;
 }
 
     inline static void CalculateAABB3D(Geometry& g)
@@ -1278,12 +1243,12 @@ struct Geometry
         case GeometryType::PRIMITIVE_SPHERE:
 //      case GeometryType::PRIMITIVE_SPHERE:
             {
-                g.aabb3d.intervalAxisX.min = g.primitiveSphere.center.ori.x - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisX.max = g.primitiveSphere.center.ori.x + g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisY.min = g.primitiveSphere.center.ori.y - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisY.max = g.primitiveSphere.center.ori.y + g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisZ.min = g.primitiveSphere.center.ori.z - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisZ.max = g.primitiveSphere.center.ori.z + g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisX.min = g.primitiveSphere.center.x - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisX.max = g.primitiveSphere.center.x + g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisY.min = g.primitiveSphere.center.y - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisY.max = g.primitiveSphere.center.y + g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisZ.min = g.primitiveSphere.center.z - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisZ.max = g.primitiveSphere.center.z + g.primitiveSphere.radius;
             }
             break;
 //          break;
@@ -1296,8 +1261,8 @@ struct Geometry
         case GeometryType::PRIMITIVE_TRILATERAL:
 //      case GeometryType::PRIMITIVE_TRILATERAL:
             {
-                constexpr float padding = 0.01f; // or 1e-3f
-//              constexpr float padding = 0.01f; // or 1e-3f
+                constexpr float padding = 1e-3f; // or 0.01f
+//              constexpr float padding = 1e-3f; // or 0.01f
                 g.aabb3d.intervalAxisX.min = std::fminf(g.primitiveTrilateral.vertex0.x, std::fminf(g.primitiveTrilateral.vertex1.x, g.primitiveTrilateral.vertex2.x)) - padding;
                 g.aabb3d.intervalAxisY.min = std::fminf(g.primitiveTrilateral.vertex0.y, std::fminf(g.primitiveTrilateral.vertex1.y, g.primitiveTrilateral.vertex2.y)) - padding;
                 g.aabb3d.intervalAxisZ.min = std::fminf(g.primitiveTrilateral.vertex0.z, std::fminf(g.primitiveTrilateral.vertex1.z, g.primitiveTrilateral.vertex2.z)) - padding;
@@ -1321,14 +1286,14 @@ struct Geometry
         case GeometryType::PRIMITIVE_SPHERE:
 //      case GeometryType::PRIMITIVE_SPHERE:
             {
-                const Point3& destinationPoint3 = g.primitiveSphere.center.Marching(1.0f);
-//              const Point3& destinationPoint3 = g.primitiveSphere.center.Marching(1.0f);
-                g.aabb3d.intervalAxisX.min = std::fminf(g.primitiveSphere.center.ori.x, destinationPoint3.x) - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisX.max = std::fmaxf(g.primitiveSphere.center.ori.x, destinationPoint3.x) + g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisY.min = std::fminf(g.primitiveSphere.center.ori.y, destinationPoint3.y) - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisY.max = std::fmaxf(g.primitiveSphere.center.ori.y, destinationPoint3.y) + g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisZ.min = std::fminf(g.primitiveSphere.center.ori.z, destinationPoint3.z) - g.primitiveSphere.radius;
-                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.primitiveSphere.center.ori.z, destinationPoint3.z) + g.primitiveSphere.radius;
+                const Point3& destinationCenter = Marching(g.primitiveSphere.center, g.movingDirection, 1.0f);
+//              const Point3& destinationCenter = Marching(g.primitiveSphere.center, g.movingDirection, 1.0f);
+                g.aabb3d.intervalAxisX.min = std::fminf(g.primitiveSphere.center.x, destinationCenter.x) - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisX.max = std::fmaxf(g.primitiveSphere.center.x, destinationCenter.x) + g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisY.min = std::fminf(g.primitiveSphere.center.y, destinationCenter.y) - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisY.max = std::fmaxf(g.primitiveSphere.center.y, destinationCenter.y) + g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisZ.min = std::fminf(g.primitiveSphere.center.z, destinationCenter.z) - g.primitiveSphere.radius;
+                g.aabb3d.intervalAxisZ.max = std::fmaxf(g.primitiveSphere.center.z, destinationCenter.z) + g.primitiveSphere.radius;
             }
             break;
 //          break;
@@ -1341,6 +1306,29 @@ struct Geometry
         case GeometryType::PRIMITIVE_TRILATERAL:
 //      case GeometryType::PRIMITIVE_TRILATERAL:
             {
+                constexpr float padding = 1e-3f; // or 0.01f
+//              constexpr float padding = 1e-3f; // or 0.01f
+                const Point3& destinationVertex0 = Marching(g.primitiveTrilateral.vertex0, g.movingDirection, 1.0f);
+                const Point3& destinationVertex1 = Marching(g.primitiveTrilateral.vertex1, g.movingDirection, 1.0f);
+                const Point3& destinationVertex2 = Marching(g.primitiveTrilateral.vertex2, g.movingDirection, 1.0f);
+                float minXOri = std::fminf(g.primitiveTrilateral.vertex0.x, std::fminf(g.primitiveTrilateral.vertex1.x, g.primitiveTrilateral.vertex2.x));
+                float minYOri = std::fminf(g.primitiveTrilateral.vertex0.y, std::fminf(g.primitiveTrilateral.vertex1.y, g.primitiveTrilateral.vertex2.y));
+                float minZOri = std::fminf(g.primitiveTrilateral.vertex0.z, std::fminf(g.primitiveTrilateral.vertex1.z, g.primitiveTrilateral.vertex2.z));
+                float maxXOri = std::fmaxf(g.primitiveTrilateral.vertex0.x, std::fmaxf(g.primitiveTrilateral.vertex1.x, g.primitiveTrilateral.vertex2.x));
+                float maxYOri = std::fmaxf(g.primitiveTrilateral.vertex0.y, std::fmaxf(g.primitiveTrilateral.vertex1.y, g.primitiveTrilateral.vertex2.y));
+                float maxZOri = std::fmaxf(g.primitiveTrilateral.vertex0.z, std::fmaxf(g.primitiveTrilateral.vertex1.z, g.primitiveTrilateral.vertex2.z));
+                float minXDes = std::fminf(destinationVertex0.x, std::fminf(destinationVertex1.x, destinationVertex2.x));
+                float minYDes = std::fminf(destinationVertex0.y, std::fminf(destinationVertex1.y, destinationVertex2.y));
+                float minZDes = std::fminf(destinationVertex0.z, std::fminf(destinationVertex1.z, destinationVertex2.z));
+                float maxXDes = std::fmaxf(destinationVertex0.x, std::fmaxf(destinationVertex1.x, destinationVertex2.x));
+                float maxYDes = std::fmaxf(destinationVertex0.y, std::fmaxf(destinationVertex1.y, destinationVertex2.y));
+                float maxZDes = std::fmaxf(destinationVertex0.z, std::fmaxf(destinationVertex1.z, destinationVertex2.z));
+                g.aabb3d.intervalAxisX.min = std::fminf(minXOri, minXDes) - padding;
+                g.aabb3d.intervalAxisX.max = std::fmaxf(maxXOri, maxXDes) + padding;
+                g.aabb3d.intervalAxisY.min = std::fminf(minYOri, minYDes) - padding;
+                g.aabb3d.intervalAxisY.max = std::fmaxf(maxYOri, maxYDes) + padding;
+                g.aabb3d.intervalAxisZ.min = std::fminf(minZOri, minZDes) - padding;
+                g.aabb3d.intervalAxisZ.max = std::fmaxf(maxZOri, maxZDes) + padding;
             }
             break;
 //          break;
@@ -1707,10 +1695,13 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 
 inline
 static RayHitResult RayHit(const Geometry& geo
+//                        (const Geometry& geo
                           ,const Ray     & ray
+//                        ,const Ray     & ray
                           ,const Interval& rayT
 //                        ,const Interval& rayT
                           )
+//                        )
 {
     switch (geo.geometryType)
 //  switch (geo.geometryType)
@@ -1718,8 +1709,8 @@ static RayHitResult RayHit(const Geometry& geo
         case GeometryType::PRIMITIVE_SPHERE:
 //      case GeometryType::PRIMITIVE_SPHERE:
         {
-            const Point3& currentSphereCenterByIncomingRayTime = geo.primitiveSphere.center.Marching(ray.time);
-//          const Point3& currentSphereCenterByIncomingRayTime = geo.primitiveSphere.center.Marching(ray.time);
+            const Point3& currentSphereCenterByIncomingRayTime = Marching(geo.primitiveSphere.center, geo.movingDirection, ray.time);
+//          const Point3& currentSphereCenterByIncomingRayTime = Marching(geo.primitiveSphere.center, geo.movingDirection, ray.time);
             const Vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
 //          const Vec3& fromSphereCenterToRayOrigin = currentSphereCenterByIncomingRayTime - ray.ori;
             const float& a = ray.dir.LengthSquared();
@@ -1785,7 +1776,6 @@ static RayHitResult RayHit(const Geometry& geo
             return rayHitResult;
 //          return rayHitResult;
         }
-
         break;
 //      break;
 
@@ -1796,11 +1786,17 @@ static RayHitResult RayHit(const Geometry& geo
             return { .material = geo.material };
 //          return { .material = geo.material };
         }
+        break;
+//      break;
 
 
         case GeometryType::PRIMITIVE_TRILATERAL:
 //      case GeometryType::PRIMITIVE_TRILATERAL:
         {
+            const Point3& currentTrilateralVertex0ByIncomingRayTime = Marching(geo.primitiveTrilateral.vertex0, geo.movingDirection, ray.time);
+            const Point3& currentTrilateralVertex1ByIncomingRayTime = Marching(geo.primitiveTrilateral.vertex1, geo.movingDirection, ray.time);
+            const Point3& currentTrilateralVertex2ByIncomingRayTime = Marching(geo.primitiveTrilateral.vertex2, geo.movingDirection, ray.time);
+
             // Moller Trumbore Algorithm
 //          // Moller Trumbore Algorithm
 
@@ -1812,22 +1808,22 @@ static RayHitResult RayHit(const Geometry& geo
             constexpr float EPSILON = 1e-8f;
 //          constexpr float EPSILON = 1e-8f;
 
-            // Calculate two edges of the triangle from its vertices
-//          // Calculate two edges of the triangle from its vertices
-            Vec3 triangleEdge1 = geo.primitiveTrilateral.vertex1 - geo.primitiveTrilateral.vertex0;
-//          Vec3 triangleEdge1 = geo.primitiveTrilateral.vertex1 - geo.primitiveTrilateral.vertex0;
-            Vec3 triangleEdge2 = geo.primitiveTrilateral.vertex2 - geo.primitiveTrilateral.vertex0;
-//          Vec3 triangleEdge2 = geo.primitiveTrilateral.vertex2 - geo.primitiveTrilateral.vertex0;
+            // Calculate two edges of the trilateral from its vertices
+//          // Calculate two edges of the trilateral from its vertices
+            Vec3 trilateralEdge1 = currentTrilateralVertex1ByIncomingRayTime - currentTrilateralVertex0ByIncomingRayTime;
+//          Vec3 trilateralEdge1 = currentTrilateralVertex1ByIncomingRayTime - currentTrilateralVertex0ByIncomingRayTime;
+            Vec3 trilateralEdge2 = currentTrilateralVertex2ByIncomingRayTime - currentTrilateralVertex0ByIncomingRayTime;
+//          Vec3 trilateralEdge2 = currentTrilateralVertex2ByIncomingRayTime - currentTrilateralVertex0ByIncomingRayTime;
 
             // Compute the determinant (used for intersection and barycentric coordinates)
 //          // Compute the determinant (used for intersection and barycentric coordinates)
-            Vec3 directionCrossTriangleEdge2 = Cross(ray.dir, triangleEdge2);
-//          Vec3 directionCrossTriangleEdge2 = Cross(ray.dir, triangleEdge2);
-            float determinant = Dot(triangleEdge1, directionCrossTriangleEdge2);
-//          float determinant = Dot(triangleEdge1, directionCrossTriangleEdge2);
+            Vec3 rayDirectionCrossTrilateralEdge2 = Cross(ray.dir, trilateralEdge2);
+//          Vec3 rayDirectionCrossTrilateralEdge2 = Cross(ray.dir, trilateralEdge2);
+            float determinant = Dot(trilateralEdge1, rayDirectionCrossTrilateralEdge2);
+//          float determinant = Dot(trilateralEdge1, rayDirectionCrossTrilateralEdge2);
 
-            // If determinant is near zero, the ray is parallel to the triangle plane (no intersection)
-//          // If determinant is near zero, the ray is parallel to the triangle plane (no intersection)
+            // If determinant is near zero, the ray is parallel to the trilateral plane (no intersection)
+//          // If determinant is near zero, the ray is parallel to the trilateral plane (no intersection)
             if (abs(determinant) < EPSILON)
 //          if (abs(determinant) < EPSILON)
             {
@@ -1839,42 +1835,42 @@ static RayHitResult RayHit(const Geometry& geo
 
             float inverseDeterminant = 1.0f / determinant;
 //          float inverseDeterminant = 1.0f / determinant;
-            Vec3 vectorFromVertexToOrigin = ray.ori - geo.primitiveTrilateral.vertex0;
-//          Vec3 vectorFromVertexToOrigin = ray.ori - geo.primitiveTrilateral.vertex0;
+            Vec3 vectorFromTrilateralVertex0ToRayOrigin = ray.ori - currentTrilateralVertex0ByIncomingRayTime;
+//          Vec3 vectorFromTrilateralVertex0ToRayOrigin = ray.ori - currentTrilateralVertex0ByIncomingRayTime;
 
             // Compute the u barycentric coordinate
 //          // Compute the u barycentric coordinate
-            float uBarycentric = inverseDeterminant * Dot(vectorFromVertexToOrigin, directionCrossTriangleEdge2);
-//          float uBarycentric = inverseDeterminant * Dot(vectorFromVertexToOrigin, directionCrossTriangleEdge2);
+            float uBarycentric = inverseDeterminant * Dot(vectorFromTrilateralVertex0ToRayOrigin, rayDirectionCrossTrilateralEdge2);
+//          float uBarycentric = inverseDeterminant * Dot(vectorFromTrilateralVertex0ToRayOrigin, rayDirectionCrossTrilateralEdge2);
             if  ( uBarycentric < 0.0f
             ||    uBarycentric > 1.0f )
             {
                 rayHitResult.hitted = false;
 //              rayHitResult.hitted = false;
-                return rayHitResult; // Intersection lies outside the triangle
-//              return rayHitResult; // Intersection lies outside the triangle
+                return rayHitResult; // Intersection lies outside the trilateral
+//              return rayHitResult; // Intersection lies outside the trilateral
             }
 
             // Compute the v barycentric coordinate
 //          // Compute the v barycentric coordinate
-            Vec3 originCrossTriangleEdge1 = Cross(vectorFromVertexToOrigin, triangleEdge1);
-//          Vec3 originCrossTriangleEdge1 = Cross(vectorFromVertexToOrigin, triangleEdge1);
-            float vBarycentric = inverseDeterminant * Dot(ray.dir, originCrossTriangleEdge1);
-//          float vBarycentric = inverseDeterminant * Dot(ray.dir, originCrossTriangleEdge1);
+            Vec3 rayOriginCrossTrilateralEdge1 = Cross(vectorFromTrilateralVertex0ToRayOrigin, trilateralEdge1);
+//          Vec3 rayOriginCrossTrilateralEdge1 = Cross(vectorFromTrilateralVertex0ToRayOrigin, trilateralEdge1);
+            float vBarycentric = inverseDeterminant * Dot(ray.dir, rayOriginCrossTrilateralEdge1);
+//          float vBarycentric = inverseDeterminant * Dot(ray.dir, rayOriginCrossTrilateralEdge1);
             if  ( vBarycentric < 0.0f
             ||    uBarycentric +
                   vBarycentric > 1.0f )
             {
                 rayHitResult.hitted = false;
 //              rayHitResult.hitted = false;
-                return rayHitResult; // Intersection lies outside the triangle
-//              return rayHitResult; // Intersection lies outside the triangle
+                return rayHitResult; // Intersection lies outside the trilateral
+//              return rayHitResult; // Intersection lies outside the trilateral
             }
 
             // Compute the distance from ray origin to intersection point (t)
 //          // Compute the distance from ray origin to intersection point (t)
-            rayHitResult.minT = inverseDeterminant * Dot(triangleEdge2, originCrossTriangleEdge1);
-//          rayHitResult.minT = inverseDeterminant * Dot(triangleEdge2, originCrossTriangleEdge1);
+            rayHitResult.minT = inverseDeterminant * Dot(trilateralEdge2, rayOriginCrossTrilateralEdge1);
+//          rayHitResult.minT = inverseDeterminant * Dot(trilateralEdge2, rayOriginCrossTrilateralEdge1);
 
             // Valid intersection if t > EPSILON (ignore hits behind the ray origin)
 //          // Valid intersection if t > EPSILON (ignore hits behind the ray origin)
@@ -1883,8 +1879,8 @@ static RayHitResult RayHit(const Geometry& geo
             {
                 rayHitResult.at = ray.Marching(rayHitResult.minT); // Compute the exact intersection point
 //              rayHitResult.at = ray.Marching(rayHitResult.minT); // Compute the exact intersection point
-                rayHitResult.normal = Normalize(Cross(triangleEdge1, triangleEdge2)); // Compute and normalize the face normal
-//              rayHitResult.normal = Normalize(Cross(triangleEdge1, triangleEdge2)); // Compute and normalize the face normal
+                rayHitResult.normal = Normalize(Cross(trilateralEdge1, trilateralEdge2)); // Compute and normalize the face normal
+//              rayHitResult.normal = Normalize(Cross(trilateralEdge1, trilateralEdge2)); // Compute and normalize the face normal
                 rayHitResult.uSurfaceCoordinate = uBarycentric; // Store barycentric u for shading/UVs
 //              rayHitResult.uSurfaceCoordinate = uBarycentric; // Store barycentric u for shading/UVs
                 rayHitResult.vSurfaceCoordinate = vBarycentric; // Store barycentric v for shading/UVs
@@ -1910,6 +1906,8 @@ static RayHitResult RayHit(const Geometry& geo
 //              return rayHitResult; // Intersection is behind the ray's origin
             }
         }
+        break;
+//      break;
 
 
         default:
@@ -1918,7 +1916,6 @@ static RayHitResult RayHit(const Geometry& geo
             return { .material = geo.material };
 //          return { .material = geo.material };
         }
-
         break;
 //      break;
     }
@@ -1954,8 +1951,8 @@ static RayHitResult RayHit(const Geometry& geo
 inline
 static Color3 RayColor(const Ray& ray)
 {
-    Geometry sphere{ .primitiveSphere = { .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, }, .geometryType = GeometryType::PRIMITIVE_SPHERE };
-//  Geometry sphere{ .primitiveSphere = { .center = { .ori = { 0.0f, 0.0f, -1.0f } }, .radius = 0.5f, }, .geometryType = GeometryType::PRIMITIVE_SPHERE };
+    Geometry sphere{ .primitiveSphere = { .center = { .x = 0.0f, .y = 0.0f, .z = -1.0f }, .radius = 0.5f, }, .geometryType = GeometryType::PRIMITIVE_SPHERE };
+//  Geometry sphere{ .primitiveSphere = { .center = { .x = 0.0f, .y = 0.0f, .z = -1.0f }, .radius = 0.5f, }, .geometryType = GeometryType::PRIMITIVE_SPHERE };
     const RayHitResult& rayHitResult = RayHit(sphere, ray, Interval { .min = -10.0f, .max = +10.0f });
 //  const RayHitResult& rayHitResult = RayHit(sphere, ray, Interval { .min = -10.0f, .max = +10.0f });
     if (rayHitResult.hitted) _UNLIKELY
@@ -2667,31 +2664,31 @@ int main()
 //  std::vector<Geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
-	bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f, -5000.5000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-//  bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f, -5000.5000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-	bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f,  0001.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.5000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-	bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f,  0000.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.4000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .ori = {  0000.0000f,  0001.0000f,  0000.0000f }, .dir = {  0000.0000f,  0000.0000f,  0000.0000f }, .time = 0.0f, }, .radius = 0000.4000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
-	
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y = -5000.5000f, .z =  0000.0000f }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y = -5000.5000f, .z =  0000.0000f }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .radius = 0000.5000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y =  0001.0000f, .z =  0000.0000f }, .radius = 0000.5000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex =                                                   GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .radius = 0000.4000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveSphere = { .center = { .x =  0000.0000f, .y =  0001.0000f, .z =  0000.0000f }, .radius = 0000.4000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 2, .materialType = MaterialType::Dielectric , }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::PRIMITIVE_SPHERE, });
+    
 
 
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +0.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +0.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-	bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +5.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +4.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +5.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +4.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-	bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +0.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +0.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -4.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -5.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
-    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -4.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -5.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +0.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +0.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +1.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +5.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +4.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = +5.0f, .y = -0.5f, .z = +2.0f }, .vertex1 = { .x = +4.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = +3.0f, .y = -0.5f, .z = +2.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +0.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = +1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = +0.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -1.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -2.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -4.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -5.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
+//  bvhTree.geometries.emplace_back(Geometry{ .primitiveTrilateral = { .vertex0 = { .x = -2.0f, .y = -0.5f, .z = -3.0f }, .vertex1 = { .x = -2.0f, .y = +1.0f, .z = -4.0f }, .vertex2 = { .x = -2.0f, .y = -0.5f, .z = -5.0f }, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LightDiffuse, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE_TRILATERAL, });
 
 
 
