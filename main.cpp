@@ -2595,8 +2595,9 @@ enum class Axis : std::uint8_t
       return current;
 //    return current;
 }
-    inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth /* RAYS BOUNCING DEPTH */, BackgroundType backgroundType)
-//  inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth /* RAYS BOUNCING DEPTH */, BackgroundType backgroundType)
+/*
+    inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth, BackgroundType backgroundType) // maxDepth = RAYS BOUNCING DEPTH
+//  inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth, BackgroundType backgroundType) // maxDepth = RAYS BOUNCING DEPTH
 {
     Color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
 //  Color3 finalColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f };  // Initial color multiplier
@@ -2687,6 +2688,93 @@ enum class Axis : std::uint8_t
 //  // If we reach max depth, return black
     return Color3{};
 //  return Color3{};
+}
+*/
+    inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth, BackgroundType backgroundType)
+//  inline static Color3 RayColor(const Ray& initialRay, const BVHTree& bvhTree, int maxDepth, BackgroundType backgroundType)
+{
+        Color3 accumulatedColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
+//      Color3 accumulatedColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
+        Color3 attenuation      = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+//      Color3 attenuation      = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+        Ray currentRay = initialRay;
+//      Ray currentRay = initialRay;
+
+        for (int depth = 0; depth < maxDepth; ++depth)
+//      for (int depth = 0; depth < maxDepth; ++depth)
+        {
+            const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+//          const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+
+            if (!rayHitResult.hitted) _UNLIKELY
+//          if (!rayHitResult.hitted) _UNLIKELY
+            {
+                Color3  backgroundColor;
+//              Color3  backgroundColor;
+                switch (backgroundType)
+//              switch (backgroundType)
+                {
+                    case BackgroundType::BLUE_LERP_WHITE:
+//                  case BackgroundType::BLUE_LERP_WHITE:
+                    {
+						const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
+//                      const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
+						const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//                      const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+						backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
+//                      backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
+                    }
+                    break;
+//                  break;
+
+
+                    case BackgroundType::DARK_ROOM_SPACE:
+//                  case BackgroundType::DARK_ROOM_SPACE:
+                    {
+                        backgroundColor = { .x = 0.05f, .y = 0.05f, .z = 0.05f };
+//                      backgroundColor = { .x = 0.05f, .y = 0.05f, .z = 0.05f };
+                    }
+                    break;
+//                  break;
+
+
+                    default:
+//                  default:
+                    {
+                        backgroundColor = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+//                      backgroundColor = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+                    }
+                    break;
+//                  break;
+                }
+
+                accumulatedColor += attenuation * backgroundColor;
+//              accumulatedColor += attenuation * backgroundColor;
+                break;
+//              break;
+            }
+
+            const MaterialScatteredResult& scatterResult = Scatter(currentRay, rayHitResult);
+//          const MaterialScatteredResult& scatterResult = Scatter(currentRay, rayHitResult);
+
+            accumulatedColor += attenuation * scatterResult.emission;
+//          accumulatedColor += attenuation * scatterResult.emission;
+
+            if (!scatterResult.isScattered) _UNLIKELY
+//          if (!scatterResult.isScattered) _UNLIKELY
+            {
+                break;
+//              break;
+            }
+
+            attenuation *= scatterResult.attenuation ;
+//          attenuation *= scatterResult.attenuation ;
+            currentRay   = scatterResult.scatteredRay;
+//          currentRay   = scatterResult.scatteredRay;
+        }
+
+        return accumulatedColor;
+//      return accumulatedColor;
 }
 
 
