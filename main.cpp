@@ -1,6 +1,5 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
-#define _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES
+#pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 #include <string_view>
 #include <iostream>
@@ -11,6 +10,7 @@
 #include <array>
 #include <iomanip>
 #include <cstdint>
+#include <numbers>
 #include "ThreadPool.h"
 #include <chrono>
 #include <random>
@@ -260,6 +260,34 @@ static inline Vec3 operator/(const Vec3& u, float t) { return Vec3 { u.x / t, u.
 
 static inline Vec3 operator*(float t, const Vec3& u) { return Vec3 { t * u.x, t * u.y, t * u.z }; }
 static inline Vec3 operator/(float t, const Vec3& u) { return Vec3 { t / u.x, t / u.y, t / u.z }; }
+
+
+    // 4x4 matrix: a flat array of 16 floats (row-major order)
+//  // 4x4 matrix: a flat array of 16 floats (row-major order)
+    static inline Vec3 operator*(const float* m, const Vec3& v)
+//  static inline Vec3 operator*(const float* m, const Vec3& v)
+{
+    float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
+//  float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
+    float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
+//  float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
+    float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
+//  float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
+    float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
+//  float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
+
+    if (w != 0.0f
+    &&  w != 1.0f)
+    {
+        float invW = 1.0f / w;
+        x *=  invW           ;
+        y *=  invW           ;
+        z *=  invW           ;
+    }
+
+    return { x, y, z };
+//  return { x, y, z };
+}
 
 
     static inline float Dot(const Vec3& u, const Vec3& v)
@@ -1816,13 +1844,13 @@ static RayHitResult RayHit(const Geometry& geo
 
                 float theta = std::acos (-outwardNormal.y); // latitude
 //              float theta = std::acos (-outwardNormal.y); // latitude
-                float phi   = std::atan2(-outwardNormal.z, outwardNormal.x) + static_cast<float>(M_PI); // longitude
-//              float phi   = std::atan2(-outwardNormal.z, outwardNormal.x) + static_cast<float>(M_PI); // longitude
+                float phi   = std::atan2(-outwardNormal.z, outwardNormal.x) + std::numbers::pi_v<float>; // longitude
+//              float phi   = std::atan2(-outwardNormal.z, outwardNormal.x) + std::numbers::pi_v<float>; // longitude
 
-                rayHitResult.uSurfaceCoordinate = phi   / (2.0f * static_cast<float>(M_PI));
-//              rayHitResult.uSurfaceCoordinate = phi   / (2.0f * static_cast<float>(M_PI));
-                rayHitResult.vSurfaceCoordinate = theta /         static_cast<float>(M_PI) ;
-//              rayHitResult.vSurfaceCoordinate = theta /         static_cast<float>(M_PI) ;
+                rayHitResult.uSurfaceCoordinate = phi   / (2.0f * std::numbers::pi_v<float>);
+//              rayHitResult.uSurfaceCoordinate = phi   / (2.0f * std::numbers::pi_v<float>);
+                rayHitResult.vSurfaceCoordinate = theta /         std::numbers::pi_v<float> ;
+//              rayHitResult.vSurfaceCoordinate = theta /         std::numbers::pi_v<float> ;
             }
     
             return rayHitResult;
@@ -2662,6 +2690,82 @@ enum class Axis : std::uint8_t
 }
 
 
+    static inline void RotateAroundPivotAndAxis(Vec3& point, const Vec3& pivot, const Vec3& axis, float angleRadians)
+//  static inline void RotateAroundPivotAndAxis(Vec3& point, const Vec3& pivot, const Vec3& axis, float angleRadians)
+    {
+        Vec3 p = point - pivot; // to inner space
+//      Vec3 p = point - pivot; // to inner space
+        Vec3 k = Normalize(axis);
+//      Vec3 k = Normalize(axis);
+
+        float cosTheta = std::cos(angleRadians);
+//      float cosTheta = std::cos(angleRadians);
+        float sinTheta = std::sin(angleRadians);
+//      float sinTheta = std::sin(angleRadians);
+
+        // Rodrigues' rotation formula
+//      // Rodrigues' rotation formula
+        Vec3 rotated = p * cosTheta + Cross(k, p) * sinTheta + k * Dot(k, p) * (1.0f - cosTheta);
+//      Vec3 rotated = p * cosTheta + Cross(k, p) * sinTheta + k * Dot(k, p) * (1.0f - cosTheta);
+
+        point = rotated + pivot; // back to outer space
+//      point = rotated + pivot; // back to outer space
+    }
+    static inline void RotateAroundPivotAndAxis(Geometry& geo, const Vec3& pivot, const Vec3& axis, float angleRadians)
+//  static inline void RotateAroundPivotAndAxis(Geometry& geo, const Vec3& pivot, const Vec3& axis, float angleRadians)
+    {
+        switch (geo.geometryType)
+//      switch (geo.geometryType)
+        {
+            case GeometryType::PRIMITIVE:
+//          case GeometryType::PRIMITIVE:
+            {
+                Vec3 p0 = geo.primitive.vertex0 - pivot;
+//              Vec3 p0 = geo.primitive.vertex0 - pivot;
+                Vec3 p1 = geo.primitive.vertex1 - pivot;
+//              Vec3 p1 = geo.primitive.vertex1 - pivot;
+                Vec3 p2 = geo.primitive.vertex2 - pivot;
+//              Vec3 p2 = geo.primitive.vertex2 - pivot;
+
+                Vec3 k = Normalize(axis);
+//              Vec3 k = Normalize(axis);
+
+                float cosTheta = std::cos(angleRadians);
+//              float cosTheta = std::cos(angleRadians);
+                float sinTheta = std::sin(angleRadians);
+//              float sinTheta = std::sin(angleRadians);
+                float oneMinusCosTheta = 1.0f - cosTheta;
+//              float oneMinusCosTheta = 1.0f - cosTheta;
+
+                // Rodrigues' rotation formula
+//              // Rodrigues' rotation formula
+                Vec3 rotated0 = p0 * cosTheta + Cross(k, p0) * sinTheta + k * Dot(k, p0) * oneMinusCosTheta;
+//              Vec3 rotated0 = p0 * cosTheta + Cross(k, p0) * sinTheta + k * Dot(k, p0) * oneMinusCosTheta;
+                Vec3 rotated1 = p1 * cosTheta + Cross(k, p1) * sinTheta + k * Dot(k, p1) * oneMinusCosTheta;
+//              Vec3 rotated1 = p1 * cosTheta + Cross(k, p1) * sinTheta + k * Dot(k, p1) * oneMinusCosTheta;
+                Vec3 rotated2 = p2 * cosTheta + Cross(k, p2) * sinTheta + k * Dot(k, p2) * oneMinusCosTheta;
+//              Vec3 rotated2 = p2 * cosTheta + Cross(k, p2) * sinTheta + k * Dot(k, p2) * oneMinusCosTheta;
+
+                geo.primitive.vertex0 = rotated0 + pivot;
+//              geo.primitive.vertex0 = rotated0 + pivot;
+                geo.primitive.vertex1 = rotated1 + pivot;
+//              geo.primitive.vertex1 = rotated1 + pivot;
+                geo.primitive.vertex2 = rotated2 + pivot;
+//              geo.primitive.vertex2 = rotated2 + pivot;
+            }
+            break;
+//          break;
+
+
+            default:
+//          default:
+            {
+            }
+            break;
+//          break;
+        }
+    }
+
 
 int main()
 {
@@ -2766,6 +2870,10 @@ int main()
 
 
 
+//  RotateAroundPivotAndAxis(bvhTree.geometries[8], { .x = 0.0f, .y = 0.0f, .z = 0.0f }, { .x = 0.0f, .y = 1.0f, .z = 0.0f }, lazy::DegToRad(-45.0f));
+//  RotateAroundPivotAndAxis(bvhTree.geometries[8], { .x = 0.0f, .y = 0.0f, .z = 0.0f }, { .x = 0.0f, .y = 1.0f, .z = 0.0f }, lazy::DegToRad(-45.0f));
+//  RotateAroundPivotAndAxis(bvhTree.geometries[8], { .x = 0.0f, .y = 0.0f, .z = 0.0f }, { .x = 0.0f, .y = 1.0f, .z = 0.0f }, lazy::DegToRad(+45.0f));
+//  RotateAroundPivotAndAxis(bvhTree.geometries[8], { .x = 0.0f, .y = 0.0f, .z = 0.0f }, { .x = 0.0f, .y = 1.0f, .z = 0.0f }, lazy::DegToRad(+45.0f));
 
 
 
@@ -2813,16 +2921,16 @@ int main()
     Vec3 cameraV; // y
     Vec3 cameraW; // z
 
-    float defocusAngle = 0.00f * M_PI; float focusDistance = (lookAt - lookFrom).Length();
-//  float defocusAngle = 0.00f * M_PI; float focusDistance = (lookAt - lookFrom).Length();
-//  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
-//  float defocusAngle = 0.00f * M_PI; float focusDistance = 10.0f;
+    float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
     Vec3 defocusDiskRadiusU;
     Vec3 defocusDiskRadiusV;
 
 
-    float vFOV = M_PI / 3.0f;
-    float hFOV = M_PI / 3.0f;
+    float vFOV = std::numbers::pi_v<float> / 3.0f;
+    float hFOV = std::numbers::pi_v<float> / 3.0f;
     float h = std::tanf(vFOV / 2.0f);
     float w = std::tanf(hFOV / 2.0f);
 

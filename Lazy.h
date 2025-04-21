@@ -3,6 +3,9 @@
 #define LAZY_H
 
 
+#include <numbers>
+
+
 namespace lazy
 {
     thread_local static inline const constexpr float G_3X3_S1_0_0 = 0.075f;
@@ -426,6 +429,17 @@ namespace lazy
         return bayer16x16[x % 16 + y % 16 * 16];
 //      return bayer16x16[x % 16 + y % 16 * 16];
     }
+
+
+
+
+
+
+    static inline const constexpr float DegToRad(float deg) { return deg * std::numbers::pi_v<float> / 180.0f; }
+//  static inline const constexpr float DegToRad(float deg) { return deg * std::numbers::pi_v<float> / 180.0f; }
+
+    static inline const constexpr float RadToDeg(float rad) { return rad * 180.0f / std::numbers::pi_v<float>; }
+//  static inline const constexpr float RadToDeg(float rad) { return rad * 180.0f / std::numbers::pi_v<float>; }
 }
 
 
