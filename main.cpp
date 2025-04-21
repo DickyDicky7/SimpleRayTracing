@@ -2717,11 +2717,11 @@ enum class Axis : std::uint8_t
                     case BackgroundType::BLUE_LERP_WHITE:
 //                  case BackgroundType::BLUE_LERP_WHITE:
                     {
-						const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
+                        const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
 //                      const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
-						const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+                        const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
 //                      const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
-						backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
+                        backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
 //                      backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
                     }
                     break;
