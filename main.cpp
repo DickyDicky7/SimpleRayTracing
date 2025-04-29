@@ -1,6 +1,16 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
+//      #define SCENE_000 
+        #define SCENE_001
+//      #define SCENE_002
+//      #define SCENE_003
+//      #define SCENE_004
+//      #define SCENE_005
+//      #define SCENE_006
+//      #define SCENE_007
+//      #define SCENE_008
+
 #include <string_view>
 #include <iostream>
 #include <fstream>
@@ -20,6 +30,12 @@
 #include "ImagePNG.h"
 #include "ImageJPG.h"
 #include "ImageSVG.h"
+  #include <assimp/Importer.hpp>
+//#include <assimp/Importer.hpp>
+  #include <assimp/scene.h>
+//#include <assimp/scene.h>
+  #include <assimp/postprocess.h>
+//#include <assimp/postprocess.h>
 
     enum class BackgroundType : std::uint8_t
 //  enum class BackgroundType : std::uint8_t
@@ -2732,8 +2748,8 @@ enum class Axis : std::uint8_t
                     case BackgroundType::DARK_ROOM_SPACE:
 //                  case BackgroundType::DARK_ROOM_SPACE:
                     {
-                        backgroundColor = { .x = 0.05f, .y = 0.05f, .z = 0.05f };
-//                      backgroundColor = { .x = 0.05f, .y = 0.05f, .z = 0.05f };
+                        backgroundColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
+//                      backgroundColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
                     }
                     break;
 //                  break;
@@ -2779,6 +2795,41 @@ enum class Axis : std::uint8_t
 }
 
 
+    static inline void Move(Geometry& geo, const Vec3& translation)
+//  static inline void Move(Geometry& geo, const Vec3& translation)
+    {
+        switch (geo.geometryType)
+//      switch (geo.geometryType)
+        {
+            case GeometryType::SPHERE:
+//          case GeometryType::SPHERE:
+            {
+                geo.sphere.center += translation;
+//              geo.sphere.center += translation;
+            }
+            break;
+//          break;
+
+
+            case GeometryType::PRIMITIVE:
+//          case GeometryType::PRIMITIVE:
+            {
+                geo.primitive.vertex0 += translation;
+                geo.primitive.vertex1 += translation;
+                geo.primitive.vertex2 += translation;
+            }
+            break;
+//          break;
+
+
+            default:
+//          default:
+            {
+            }
+            break;
+//          break;
+        }
+    }
     static inline void RotateAroundPivotAndAxis(Vec3& point, const Vec3& pivot, const Vec3& axis, float angleRadians)
 //  static inline void RotateAroundPivotAndAxis(Vec3& point, const Vec3& pivot, const Vec3& axis, float angleRadians)
     {
@@ -2951,15 +3002,34 @@ enum class Axis : std::uint8_t
 
 int main()
 {
+#ifdef SCENE_000
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::BLOCKY          , .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = NoisePerlinProcedureType::TURBULENCE_1     });
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = NoisePerlinProcedureType::TURBULENCE_2     });
     for (NoisePerlin& np : noisesDatabase.noisePerlins) Generate(np);
 //  for (NoisePerlin& np : noisesDatabase.noisePerlins) Generate(np);
+#endif
+#ifdef SCENE_001
+#endif
+#ifdef SCENE_002
+#endif
+#ifdef SCENE_003
+#endif
+#ifdef SCENE_004
+#endif
+#ifdef SCENE_005
+#endif
+#ifdef SCENE_006
+#endif
+#ifdef SCENE_007
+#endif
+#ifdef SCENE_008
+#endif
 
 
 
+#ifdef SCENE_000
     imagesDatabase.pngs.emplace_back("smile-face-001.png");
     imagesDatabase.pngs.emplace_back("smile-face-002.png");
 //  imagesDatabase.pngs.emplace_back("example-001.png");
@@ -2968,9 +3038,29 @@ int main()
 //  imagesDatabase.jpgs.emplace_back("example-002.jpg");
 //  imagesDatabase.svgs.emplace_back("example-001.svg");
 //  imagesDatabase.svgs.emplace_back("example-002.svg");
+#endif
+#ifdef SCENE_001
+    imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C_Rossbaendiger_O.png)");
+//  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C_Rossbaendiger_O.png)");
+#endif
+#ifdef SCENE_002
+#endif
+#ifdef SCENE_003
+#endif
+#ifdef SCENE_004
+#endif
+#ifdef SCENE_005
+#endif
+#ifdef SCENE_006
+#endif
+#ifdef SCENE_007
+#endif
+#ifdef SCENE_008
+#endif
 
 
 
+#ifdef SCENE_000
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 1.0f, 0.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 0.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
@@ -3004,6 +3094,32 @@ int main()
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 0.5f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 1.0f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+#endif
+#ifdef SCENE_001
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 9.9f, 9.9f, 9.9f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+#endif
+#ifdef SCENE_002
+#endif
+#ifdef SCENE_003
+#endif
+#ifdef SCENE_004
+#endif
+#ifdef SCENE_005
+#endif
+#ifdef SCENE_006
+#endif
+#ifdef SCENE_007
+#endif
+#ifdef SCENE_008
+#endif
 
     
 
@@ -3026,6 +3142,7 @@ int main()
 //  std::vector<Geometry> geometries;
     BVHTree bvhTree;
 //  BVHTree bvhTree;
+#ifdef SCENE_000
 /*
     bvhTree.geometries.emplace_back(Geometry{ .sphere = { .center = { .x =  0000.0000f, .y = -5000.5000f, .z =  0000.0000f }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::SPHERE, });
 //  bvhTree.geometries.emplace_back(Geometry{ .sphere = { .center = { .x =  0000.0000f, .y = -5000.5000f, .z =  0000.0000f }, .radius = 5000.0000f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 3, .materialType = MaterialType::MetalFuzzy1, }, .movingDirection = { .x =  0000.0000f, .y =  0000.0000f, .z =  0000.0000f }, .geometryType = GeometryType::SPHERE, });
@@ -3115,6 +3232,138 @@ int main()
     bvhTree.geometries.emplace_back(Geometry{ .sphere = { .center = { .x = -3.0f, .y = -1.5f, .z = +1.5f }, .radius = 0.8f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::AIR    ) / GetRefractionIndex(MaterialDielectric::GLASS), .textureIndex = 20, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::SPHERE, });
     bvhTree.geometries.emplace_back(Geometry{ .sphere = { .center = { .x = +3.0f, .y = +1.5f, .z = -1.5f }, .radius = 1.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 20, .materialType = MaterialType::Metal     , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::SPHERE, });
     bvhTree.geometries.emplace_back(Geometry{ .sphere = { .center = { .x = +3.0f, .y = -1.5f, .z = +1.5f }, .radius = 1.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING)                                                , .textureIndex = 20, .materialType = MaterialType::Metal     , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::SPHERE, });
+#endif
+#ifdef SCENE_001
+
+    //B
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+
+/*
+    //T
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+*/
+
+    //L
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+
+    //R
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+
+/*
+    //B
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+*/
+
+/*
+    //F
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+*/
+
+    //LU
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -10.00f, .y = +19.99f, .z = +10.00f }, .vertex1 = { .x = -10.00f, .y = +19.99f, .z = -10.00f }, .vertex2 = { .x = +10.00f, .y = +19.99f, .z = -10.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LightDiffuse                 , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +10.00f, .y = +19.99f, .z = -10.00f }, .vertex1 = { .x = +10.00f, .y = +19.99f, .z = +10.00f }, .vertex2 = { .x = -10.00f, .y = +19.99f, .z = +10.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LightDiffuse                 , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+
+
+    float minModelX = std::numeric_limits<float>::max();
+    float maxModelX = std::numeric_limits<float>::lowest();
+    float minModelY = std::numeric_limits<float>::max();
+    float maxModelY = std::numeric_limits<float>::lowest();
+    float minModelZ = std::numeric_limits<float>::max();
+    float maxModelZ = std::numeric_limits<float>::lowest();
+
+
+    std::unique_ptr<Assimp::Importer> importer = std::make_unique<Assimp::Importer>();
+//  std::unique_ptr<Assimp::Importer> importer = std::make_unique<Assimp::Importer>();
+    try
+    {
+        aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C.obj)", aiPostProcessSteps::aiProcess_Triangulate);
+//      aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C.obj)", aiPostProcessSteps::aiProcess_Triangulate);
+        if (scene)
+//      if (scene)
+        {
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+//                  const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+                    minModelX = std::fminf(minModelX, vertex.x);
+                    maxModelX = std::fmaxf(maxModelX, vertex.x);
+                    minModelY = std::fminf(minModelY, vertex.y);
+                    maxModelY = std::fmaxf(maxModelY, vertex.y);
+                    minModelZ = std::fminf(minModelZ, vertex.z);
+                    maxModelZ = std::fmaxf(maxModelZ, vertex.z);
+                }
+            }
+            constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+//          constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh* mesh = scene->mMeshes[meshIndex];
+//              aiMesh* mesh = scene->mMeshes[meshIndex];
+                for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+//              for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+                {
+                    const aiFace& face = mesh->mFaces[faceIndex];
+//                  const aiFace& face = mesh->mFaces[faceIndex];
+                    const aiVector3D& vertex0 = mesh->mVertices[face.mIndices[0]];
+                    const aiVector3D& vertex1 = mesh->mVertices[face.mIndices[1]];
+                    const aiVector3D& vertex2 = mesh->mVertices[face.mIndices[2]];
+                    const aiVector3D& vertex0UV = mesh->mTextureCoords[0][face.mIndices[0]];
+                    const aiVector3D& vertex1UV = mesh->mTextureCoords[0][face.mIndices[1]];
+                    const aiVector3D& vertex2UV = mesh->mTextureCoords[0][face.mIndices[2]];
+                    bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +1.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTree.geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, }, .material = { .scatteredProbability = 1.0f, .fuzz = 1.0f, .refractionIndex = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +1.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                
+                    RotateAroundPivotAndAxis(bvhTree.geometries[bvhTree.geometries.size() - 1], { .x = +00.00f ,.y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
+//                  RotateAroundPivotAndAxis(bvhTree.geometries[bvhTree.geometries.size() - 1], { .x = +00.00f ,.y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
+                                        Move(bvhTree.geometries[bvhTree.geometries.size() - 1], { .x = +00.00f ,.y = +00.00f, .z = -10.00f }                                                                         );
+//                                      Move(bvhTree.geometries[bvhTree.geometries.size() - 1], { .x = +00.00f ,.y = +00.00f, .z = -10.00f }                                                                         );
+                }
+            }
+        }
+        else
+        {
+            std::cout << "Assimp error: " << importer->GetErrorString() << std::endl;
+//          std::cout << "Assimp error: " << importer->GetErrorString() << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+//  catch (const std::exception& e)
+    {
+        std::cout << "General error: " << e.what() << std::endl;
+//      std::cout << "General error: " << e.what() << std::endl;
+    }
+
+#endif
+#ifdef SCENE_002
+#endif
+#ifdef SCENE_003
+#endif
+#ifdef SCENE_004
+#endif
+#ifdef SCENE_005
+#endif
+#ifdef SCENE_006
+#endif
+#ifdef SCENE_007
+#endif
+#ifdef SCENE_008
+#endif
 
 
 
@@ -3161,9 +3410,51 @@ int main()
     imgH = std::max(imgH, 1);
 //  imgH = std::max(imgH, 1);
 
-    constexpr Point3 lookFrom { .x = +0.0f, .y = +0.0f, .z = +4.9f };
-    constexpr Point3 lookAt   { .x = +0.0f, .y = +0.0f, .z = +0.0f };
-    constexpr Point3 viewUp   { .x = +0.0f, .y = +1.0f, .z = +0.0f };
+#ifdef SCENE_000
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +04.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_001
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_002
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_003
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_004
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_005
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_006
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_007
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
+#ifdef SCENE_008
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
+    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+#endif
 
     Vec3 cameraU; // x
     Vec3 cameraV; // y
