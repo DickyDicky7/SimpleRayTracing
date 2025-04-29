@@ -3015,8 +3015,8 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 1 ;
-//  int                              samplesPerPixel = 1 ;
+    int                              samplesPerPixel = 2000 ;
+//  int                              samplesPerPixel = 2000 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel        ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel        ;
 
