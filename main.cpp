@@ -2856,6 +2856,99 @@ enum class Axis : std::uint8_t
     }
 
 
+
+    static inline Vec2 Saturate(const Vec2& v)
+//  static inline Vec2 Saturate(const Vec2& v)
+    {
+        return
+        {
+            .x = std::clamp(v.x, 0.0f, 1.0f),
+            .y = std::clamp(v.y, 0.0f, 1.0f),
+        };
+
+    }
+    static inline Vec3 Saturate(const Vec3& v)
+//  static inline Vec3 Saturate(const Vec3& v)
+    {
+        return
+        {
+            .x = std::clamp(v.x, 0.0f, 1.0f),
+            .y = std::clamp(v.y, 0.0f, 1.0f),
+            .z = std::clamp(v.z, 0.0f, 1.0f),
+        };
+    }
+    static inline Vec3 TonemapACES(const Vec3& v)
+//  static inline Vec3 TonemapACES(const Vec3& v)
+    {
+        return Saturate((v * (2.51f * v + Vec3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Vec3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Vec3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
+//      return Saturate((v * (2.51f * v + Vec3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Vec3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Vec3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
+    }
+    static inline Vec3 TonemapFilmic(const Vec3& v)
+//  static inline Vec3 TonemapFilmic(const Vec3& v)
+    {
+        Vec3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
+//      Vec3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
+        return (m * (6.2f * m + Vec3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Vec3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Vec3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
+//      return (m * (6.2f * m + Vec3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Vec3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Vec3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
+    }
+    static inline Vec3 TonemapReinhard(const Vec3& v)
+//  static inline Vec3 TonemapReinhard(const Vec3& v)
+    {
+        return v / (1.0f + Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
+//      return v / (1.0f + Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
+    }
+    static inline Vec3 TonemapReinhardJodie(const Vec3& v)
+//  static inline Vec3 TonemapReinhardJodie(const Vec3& v)
+    {
+        float l = Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Vec3 tc = v / (v + Vec3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
+//      float l = Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Vec3 tc = v / (v + Vec3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
+    }
+    static inline Vec3 TonemapUncharted2(const Vec3& v)
+//  static inline Vec3 TonemapUncharted2(const Vec3& v)
+    {
+        constexpr float A = 0.15f;
+//      constexpr float A = 0.15f;
+        constexpr float B = 0.50f;
+//      constexpr float B = 0.50f;
+        constexpr float C = 0.10f;
+//      constexpr float C = 0.10f;
+        constexpr float D = 0.20f;
+//      constexpr float D = 0.20f;
+        constexpr float E = 0.02f;
+//      constexpr float E = 0.02f;
+        constexpr float F = 0.30f;
+//      constexpr float F = 0.30f;
+        constexpr Vec3 VCB{ .x = C * B, .y = C * B, .z = C * B };
+        constexpr Vec3 VB { .x =     B, .y =     B, .z =     B };
+        constexpr Vec3 VDE{ .x = D * E, .y = D * E, .z = D * E };
+        constexpr Vec3 VDF{ .x = D * F, .y = D * F, .z = D * F };
+        constexpr Vec3 VEF{ .x = E / F, .y = E / F, .z = E / F };
+        return ((v * (A * v + VCB) + VDE) / (v * (A * v + VB) + VDF)) - VEF;
+//      return ((v * (A * v + VCB) + VDE) / (v * (A * v + VB) + VDF)) - VEF;
+    }
+    static inline Vec3 TonemapUncharted1(const Vec3& v)
+//  static inline Vec3 TonemapUncharted1(const Vec3& v)
+    {
+        constexpr float W = 11.2f;
+//      constexpr float W = 11.2f;
+        constexpr float exposureBias = 2.0f;
+//      constexpr float exposureBias = 2.0f;
+        Vec3 curr = TonemapUncharted2(exposureBias * v);
+//      Vec3 curr = TonemapUncharted2(exposureBias * v);
+        Vec3 whiteScale = 1.0f / TonemapUncharted2(Vec3{ .x = W, .y = W, .z = W });
+//      Vec3 whiteScale = 1.0f / TonemapUncharted2(Vec3{ .x = W, .y = W, .z = W });
+        return curr * whiteScale;
+//      return curr * whiteScale;
+    }
+    static inline Vec3 TonemapUnreal(const Vec3& v)
+//  static inline Vec3 TonemapUnreal(const Vec3& v)
+    {
+        return v / (v + Vec3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
+//      return v / (v + Vec3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
+    }
+
+
+
 int main()
 {
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::BLOCKY          , .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
@@ -2922,8 +3015,8 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 2000 ;
-//  int                              samplesPerPixel = 2000 ;
+    int                              samplesPerPixel = 1 ;
+//  int                              samplesPerPixel = 1 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel        ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel        ;
 
