@@ -151,7 +151,7 @@
 
         // Add gamma correction to output linear values
         // Add gamma correction to output linear values
-//      png_set_gamma(png, 1.0, PNG_DEFAULT_sRGB); // Output linear (1.0), assume input is sRGB
+        png_set_gamma(png, 1.0, PNG_DEFAULT_sRGB); // Output linear (1.0), assume input is sRGB
 //      png_set_gamma(png, 1.0, PNG_DEFAULT_sRGB); // Output linear (1.0), assume input is sRGB
         // Note: If the PNG has a gAMA chunk, libpng will use it; otherwise, it assumes sRGB (2.2)
         // Note: If the PNG has a gAMA chunk, libpng will use it; otherwise, it assumes sRGB (2.2)
