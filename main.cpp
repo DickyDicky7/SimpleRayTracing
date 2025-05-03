@@ -2086,46 +2086,6 @@ static Color3 RayColor(const Ray& ray)
 
 
 
-/*
-inline
-static Color3 RayColor(const Ray& ray, const std::vector<Geometry>& geometries, int recursiveDepth = 50)
-{
-    if (recursiveDepth <= 0.0f)
-    {
-        return Color3 {};
-//      return Color3 {};
-    }
-    const RayHitResult& rayHitResult = RayHit(geometries, ray, Interval { .min = 0.001f, .max = positiveInfinity });
-//  const RayHitResult& rayHitResult = RayHit(geometries, ray, Interval { .min = 0.001f, .max = positiveInfinity });
-    if (rayHitResult.hitted)
-//  if (rayHitResult.hitted)
-    {
-        const MaterialScatteredResult& materialScatteredResult = Scatter(ray, rayHitResult);
-//      const MaterialScatteredResult& materialScatteredResult = Scatter(ray, rayHitResult);
-
-        if (!materialScatteredResult.isScattered)
-//      if (!materialScatteredResult.isScattered)
-        {
-            return Color3 {};
-//          return Color3 {};
-        }
-
-        return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, geometries, --recursiveDepth);
-//      return materialScatteredResult.attenuation * RayColor(materialScatteredResult.scatteredRay, geometries, --recursiveDepth);
-//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, geometries, --recursiveDepth);
-//      return 0.5f * RayColor({ rayHitResult.at, rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal), }, geometries, --recursiveDepth);
-//      return Color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
-//      return Color3 { rayHitResult.normal.x + 1.0f, rayHitResult.normal.y + 1.0f, rayHitResult.normal.z + 1.0f, } * 0.5f;
-    }
-
-    const Vec3& normalizedRayDirection = Normalize(ray.dir);
-//  const Vec3& normalizedRayDirection = Normalize(ray.dir);
-    const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
-//  const float& ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
-    return BlendLinear(Color3{ 1.0f, 1.0f, 1.0f, }, Color3{ 0.5f, 0.7f, 1.0f, }, ratio);
-//  return BlendLinear(Color3{ 1.0f, 1.0f, 1.0f, }, Color3{ 0.5f, 0.7f, 1.0f, }, ratio);
-}
-*/
 
 
 
