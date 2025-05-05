@@ -2196,6 +2196,18 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
 
 
 
+    enum class MediumType : std::uint8_t
+//  enum class MediumType : std::uint8_t
+{
+    SURFACE = 0,
+//  SURFACE = 0,
+    PARTICIPATING_WITH_CONSTANT_DENSITY = 1,
+//  PARTICIPATING_WITH_CONSTANT_DENSITY = 1,
+};
+
+
+
+
     struct BVHNode
 //  struct BVHNode
 {
@@ -2211,8 +2223,8 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
     struct BVHTree
 //  struct BVHTree
 {
-    std::vector<BVHNode> bvhNodes; std::vector<Geometry> geometries;
-//  std::vector<BVHNode> bvhNodes; std::vector<Geometry> geometries;
+    std::vector<BVHNode> bvhNodes; std::vector<Geometry> geometries; union { struct MediumSurface {} mediumSurface; struct MediumParticipatingWithConstantDensity { Material material; float negativeInverseDensity = - (1.0f / 1.0f); } mediumParticipatingWithConstantDensity; }; MediumType mediumType = MediumType::SURFACE;
+//  std::vector<BVHNode> bvhNodes; std::vector<Geometry> geometries; union { struct MediumSurface {} mediumSurface; struct MediumParticipatingWithConstantDensity { Material material; float negativeInverseDensity = - (1.0f / 1.0f); } mediumParticipatingWithConstantDensity; }; MediumType mediumType = MediumType::SURFACE;
 };
     struct BVHTreeMain
 //  struct BVHTreeMain
@@ -2304,8 +2316,98 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
     if (bvhNodeMain.bvhTreeIndex != -1)
 //  if (bvhNodeMain.bvhTreeIndex != -1)
     {
-        return RayHit(bvhTreeMain.bvhTrees[bvhNodeMain.bvhTreeIndex], 0, ray, rayT);
-//      return RayHit(bvhTreeMain.bvhTrees[bvhNodeMain.bvhTreeIndex], 0, ray, rayT);
+        const BVHTree& bvhTree = bvhTreeMain.bvhTrees[bvhNodeMain.bvhTreeIndex];
+//      const BVHTree& bvhTree = bvhTreeMain.bvhTrees[bvhNodeMain.bvhTreeIndex];
+        switch (bvhTree.mediumType)
+//      switch (bvhTree.mediumType)
+        {
+            case MediumType::SURFACE:
+//          case MediumType::SURFACE:
+            {
+                return RayHit(bvhTree, 0, ray, rayT);
+//              return RayHit(bvhTree, 0, ray, rayT);
+            }
+            break;
+//          break;
+
+
+            case MediumType::PARTICIPATING_WITH_CONSTANT_DENSITY:
+//          case MediumType::PARTICIPATING_WITH_CONSTANT_DENSITY:
+            {
+                RayHitResult rayHitResultEntry = RayHit(bvhTree, 0, ray, Interval::universe);
+//              RayHitResult rayHitResultEntry = RayHit(bvhTree, 0, ray, Interval::universe);
+                if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
+//              if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
+                RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
+//              RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
+                if (!rayHitResultExits.hitted) { return rayHitResultExits; }
+//              if (!rayHitResultExits.hitted) { return rayHitResultExits; }
+                if (rayHitResultEntry.minT < rayT.min) { rayHitResultEntry.minT = rayT.min; }
+//              if (rayHitResultEntry.minT < rayT.min) { rayHitResultEntry.minT = rayT.min; }
+                if (rayHitResultExits.minT > rayT.max) { rayHitResultExits.minT = rayT.max; }
+//              if (rayHitResultExits.minT > rayT.max) { rayHitResultExits.minT = rayT.max; }
+                RayHitResult rayHitResult{};
+//              RayHitResult rayHitResult{};
+                if (rayHitResultEntry.minT >= rayHitResultExits.minT)
+//              if (rayHitResultEntry.minT >= rayHitResultExits.minT)
+                {
+                    rayHitResult.hitted = false;
+//                  rayHitResult.hitted = false;
+                    return rayHitResult;
+//                  return rayHitResult;
+                }
+                if (rayHitResultEntry.minT < 0)
+//              if (rayHitResultEntry.minT < 0)
+                {
+                    rayHitResultEntry.minT = 0;
+//                  rayHitResultEntry.minT = 0;
+                }
+                float rayUnitLength = ray.dir.Length();
+//              float rayUnitLength = ray.dir.Length();
+                float rayTravelingDistanceInsideObjectNoneParticipating = (rayHitResultExits.minT - rayHitResultEntry.minT) * rayUnitLength;
+//              float rayTravelingDistanceInsideObjectNoneParticipating = (rayHitResultExits.minT - rayHitResultEntry.minT) * rayUnitLength;
+                float rayTravelingDistanceInsideObjectWithParticipating = bvhTree.mediumParticipatingWithConstantDensity.negativeInverseDensity * std::logf(Random());
+//              float rayTravelingDistanceInsideObjectWithParticipating = bvhTree.mediumParticipatingWithConstantDensity.negativeInverseDensity * std::logf(Random());
+                if (rayTravelingDistanceInsideObjectWithParticipating > rayTravelingDistanceInsideObjectNoneParticipating)
+//              if (rayTravelingDistanceInsideObjectWithParticipating > rayTravelingDistanceInsideObjectNoneParticipating)
+                {
+                    rayHitResult.hitted = false;
+//                  rayHitResult.hitted = false;
+                    return rayHitResult;
+//                  return rayHitResult;
+                }
+                rayHitResult.hitted = true;
+//              rayHitResult.hitted = true;
+                rayHitResult.material = bvhTree.mediumParticipatingWithConstantDensity.material;
+//              rayHitResult.material = bvhTree.mediumParticipatingWithConstantDensity.material;
+                rayHitResult.minT = rayHitResultEntry.minT + rayTravelingDistanceInsideObjectWithParticipating / rayUnitLength;
+//              rayHitResult.minT = rayHitResultEntry.minT + rayTravelingDistanceInsideObjectWithParticipating / rayUnitLength;
+                rayHitResult.at = Marching(ray.ori, ray.dir, rayHitResult.minT);
+//              rayHitResult.at = Marching(ray.ori, ray.dir, rayHitResult.minT);
+                rayHitResult.normal = rayHitResultEntry.normal;
+//              rayHitResult.normal = rayHitResultEntry.normal;
+                rayHitResult.isFrontFace = rayHitResultEntry.isFrontFace;
+//              rayHitResult.isFrontFace = rayHitResultEntry.isFrontFace;
+                rayHitResult.uSurfaceCoordinate = rayHitResultEntry.uSurfaceCoordinate;
+//              rayHitResult.uSurfaceCoordinate = rayHitResultEntry.uSurfaceCoordinate;
+                rayHitResult.vSurfaceCoordinate = rayHitResultEntry.vSurfaceCoordinate;
+//              rayHitResult.vSurfaceCoordinate = rayHitResultEntry.vSurfaceCoordinate;
+                return rayHitResult;
+//              return rayHitResult;
+            }
+            break;
+//          break;
+
+
+            default:
+//          default:
+            {
+                return RayHit(bvhTree, 0, ray, rayT);
+//              return RayHit(bvhTree, 0, ray, rayT);
+            }
+            break;
+//          break;
+        }
     }
 
     // Non-leaf node: test AABB first
