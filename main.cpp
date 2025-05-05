@@ -1307,6 +1307,10 @@ return Vec3 {
 //  LightDiffuse = 6,
     LightMetalic = 7,
 //  LightMetalic = 7,
+    Isotropic1 = 8,
+//  Isotropic1 = 8,
+    Isotropic2 = 9,
+//  Isotropic2 = 9,
 };
 
 
@@ -1741,6 +1745,48 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = false;
 //          materialScatteredResult.isScattered = false;
+        }
+        break;
+//      break;
+
+
+
+    case MaterialType::Isotropic1:
+//  case MaterialType::Isotropic1:
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+//          materialScatteredResult.scatteredRay.dir = GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
+        }
+        break;
+//      break;
+
+
+
+    case MaterialType::Isotropic2:
+//  case MaterialType::Isotropic2:
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = GenRandomUnitVector();
+//          materialScatteredResult.scatteredRay.dir = GenRandomUnitVector();
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.isScattered = true;
+//          materialScatteredResult.isScattered = true;
         }
         break;
 //      break;
