@@ -3454,10 +3454,14 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 3600 ;
-//  int                              samplesPerPixel = 3600 ;
-    float pixelSamplesScale = 1.0f / samplesPerPixel        ;
-//  float pixelSamplesScale = 1.0f / samplesPerPixel        ;
+    int                              samplesPerPixel = 2500 ;
+//  int                              samplesPerPixel = 2500 ;
+    float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
+//  float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
+    int stratifiedSamplesPerPixel = static_cast<int>(std::sqrtf(static_cast<float>(samplesPerPixel)));
+//  int stratifiedSamplesPerPixel = static_cast<int>(std::sqrtf(static_cast<float>(samplesPerPixel)));
+    float inverseStratifiedSamplesPerPixel = 1.0f / stratifiedSamplesPerPixel;
+//  float inverseStratifiedSamplesPerPixel = 1.0f / stratifiedSamplesPerPixel;
 
 
 
