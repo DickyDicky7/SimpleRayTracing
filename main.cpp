@@ -4539,8 +4539,8 @@ int main()
 //  threadPool->Enqueue(
 //  threads.emplace_back(
 //  threads.emplace_back(
-    [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries */ &bvhTreeMain, &rgbs
-//  [ pixelY, &imgW, &samplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries */ &bvhTreeMain, &rgbs
+    [ pixelY, &imgW, /* &samplesPerPixel, */ &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries, */ &bvhTreeMain, &rgbs
+//  [ pixelY, &imgW, /* &samplesPerPixel, */ &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, /* &geometries, */ &bvhTreeMain, &rgbs
     ]
     {
 
@@ -4569,10 +4569,12 @@ int main()
 
         Color3 pixelColor{};
 //      Color3 pixelColor{};
-        for (int sample = 0; sample < samplesPerPixel; ++sample)
+        for (int sampleY = 0; sampleY < stratifiedSamplesPerPixel; ++sampleY)
         {
-            Vec3 sampleOffset{ Random() - 0.5f, Random() - 0.5f, 0.0f };
-//          Vec3 sampleOffset{ Random() - 0.5f, Random() - 0.5f, 0.0f };
+        for (int sampleX = 0; sampleX < stratifiedSamplesPerPixel; ++sampleX)
+        {
+            Vec3 sampleOffset{ ((sampleX + Random()) * inverseStratifiedSamplesPerPixel) - 0.5f, ((sampleY + Random()) * inverseStratifiedSamplesPerPixel) - 0.5f, 0.0f };
+//          Vec3 sampleOffset{ ((sampleX + Random()) * inverseStratifiedSamplesPerPixel) - 0.5f, ((sampleY + Random()) * inverseStratifiedSamplesPerPixel) - 0.5f, 0.0f };
             Point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
 //          Point3 pixelSampleCenter = pixel00Coord + fromPixelToPixelDeltaU * (pixelX + sampleOffset.x) + fromPixelToPixelDeltaV * (pixelY + sampleOffset.y);
 //          Vec3 rayDirection = pixelSampleCenter - cameraCenter;
@@ -4589,6 +4591,7 @@ int main()
 //          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
 //          pixelColor += RayColor(ray, geometries);
 //          pixelColor += RayColor(ray, geometries);
+        }
         }
         pixelColor *= pixelSamplesScale;
 //      pixelColor *= pixelSamplesScale;
