@@ -4034,7 +4034,7 @@ int main()
             for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
 //          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
             {
-                aiMesh const* const mesh = scene->mMeshes[meshIndex];
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
 //              aiMesh const * const mesh = scene->mMeshes[meshIndex];
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
@@ -4146,7 +4146,7 @@ int main()
             for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
 //          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
             {
-                aiMesh const* const mesh = scene->mMeshes[meshIndex];
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
 //              aiMesh const * const mesh = scene->mMeshes[meshIndex];
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
