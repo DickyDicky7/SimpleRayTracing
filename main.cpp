@@ -3153,6 +3153,16 @@ enum class Axis : std::uint8_t
         switch (geo.geometryType)
 //      switch (geo.geometryType)
         {
+            case GeometryType::SPHERE:
+//          case GeometryType::SPHERE:
+            {
+                RotateAroundPivotAndAxis(geo.sphere.center, pivot, axis, angleRadians);
+//              RotateAroundPivotAndAxis(geo.sphere.center, pivot, axis, angleRadians);
+            }
+            break;
+//          break;
+
+
             case GeometryType::PRIMITIVE:
 //          case GeometryType::PRIMITIVE:
             {
