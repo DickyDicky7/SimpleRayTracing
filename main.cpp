@@ -1325,16 +1325,18 @@ return Vec3 {
     enum class MaterialDielectric : std::uint8_t
 //  enum class MaterialDielectric : std::uint8_t
 {
-    GLASS = 0,
-//  GLASS = 0,
-    WATER = 1,
-//  WATER = 1,
-    AIR = 2,
-//  AIR = 2,
-    DIAMOND = 3,
-//  DIAMOND = 3,
-    NOTHING = 4,
-//  NOTHING = 4,
+    NOTHING = 0,
+//  NOTHING = 0,
+    AIR = 1,
+//  AIR = 1,
+    WATER = 2,
+//  WATER = 2,
+    GLASS = 3,
+//  GLASS = 3,
+    MARBLE = 4,
+//  MARBLE = 4,
+    DIAMOND = 5,
+//  DIAMOND = 5,
 };
 
 
@@ -1342,12 +1344,16 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 {
     switch ( materialDielectric )
     {
-        case MaterialDielectric::GLASS  : return 1.500000f; break;
-//      case MaterialDielectric::GLASS  : return 1.500000f; break;
-        case MaterialDielectric::WATER  : return 1.333000f; break;
-//      case MaterialDielectric::WATER  : return 1.333000f; break;
+        case MaterialDielectric::NOTHING: return 1.000000f; break;
+//      case MaterialDielectric::NOTHING: return 1.000000f; break;
         case MaterialDielectric::AIR    : return 1.000293f; break;
 //      case MaterialDielectric::AIR    : return 1.000293f; break;
+        case MaterialDielectric::WATER  : return 1.333000f; break;
+//      case MaterialDielectric::WATER  : return 1.333000f; break;
+        case MaterialDielectric::GLASS  : return 1.500000f; break;
+//      case MaterialDielectric::GLASS  : return 1.500000f; break;
+        case MaterialDielectric::MARBLE : return 1.550000f; break;
+//      case MaterialDielectric::MARBLE : return 1.550000f; break;
         case MaterialDielectric::DIAMOND: return 2.400000f; break;
 //      case MaterialDielectric::DIAMOND: return 2.400000f; break;
                                  default: return 0.000000f; break;
