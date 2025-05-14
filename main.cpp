@@ -1311,6 +1311,14 @@ return Vec3 {
 //  Isotropic1 = 8,
     Isotropic2 = 9,
 //  Isotropic2 = 9,
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
 };
 
 
@@ -1351,6 +1359,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     struct Material
 //  struct Material
 {
+//  fuzz: roughness
+//  fuzz: roughness
     float scatteredProbability; float fuzz; float refractionIndex; std::uint8_t textureIndex; MaterialType materialType;
 //  float scatteredProbability; float fuzz; float refractionIndex; std::uint8_t textureIndex; MaterialType materialType;
 };
@@ -1552,6 +1562,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1584,6 +1596,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1607,6 +1621,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1632,6 +1648,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };            
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1657,6 +1675,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1705,6 +1725,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1726,6 +1748,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = false;
 //          materialScatteredResult.isScattered = false;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1747,6 +1771,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = false;
 //          materialScatteredResult.isScattered = false;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1768,6 +1794,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1789,9 +1817,403 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
+            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
+
+
+
+    case MaterialType::FresnelBlendedDielectricGlossyDiffuse1:
+//  case MaterialType::FresnelBlendedDielectricGlossyDiffuse1:
+    {
+        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+
+        Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+//      Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+        float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+//      float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+
+//      incident = outside environment / transmitted = inside environment
+//      incident = outside environment / transmitted = inside environment
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+//          ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+        }
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+        
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+        float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+
+        Vec3 scatteredDirection; Color3 attenuationColor;
+//      Vec3 scatteredDirection; Color3 attenuationColor;
+
+        materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+//      materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+
+//      Specular reflection branch
+//      Specular reflection branch
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+//          Add fuzz/gloss/roughness for polished materials
+//          Add fuzz/gloss/roughness for polished materials
+            scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          Ensure scattered ray is above the surface
+//          Ensure scattered ray is above the surface
+            if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+//          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+            {
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+                materialScatteredResult.isScattered = false;
+//              materialScatteredResult.isScattered = false;
+            }
+            attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+//          attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+        }
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+        else
+        {
+//          Lambertian-like scattering
+//          Lambertian-like scattering
+            scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+            if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
+            {
+                scatteredDirection = rayHitResult.normal;
+//              scatteredDirection = rayHitResult.normal;
+            }
+            attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//          attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+        }
+
+        if (materialScatteredResult.isScattered)
+//      if (materialScatteredResult.isScattered)
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+        }
+        else
+        {
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+        }
+        materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+//      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+    }
+    break;
+//  break;
+
+
+
+    case MaterialType::FresnelBlendedDielectricGlossyDiffuse2:
+//  case MaterialType::FresnelBlendedDielectricGlossyDiffuse2:
+    {
+        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+
+        Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+//      Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+        float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+//      float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+
+//      incident = outside environment / transmitted = inside environment
+//      incident = outside environment / transmitted = inside environment
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+//          ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+        }
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+        
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+        float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+
+        Vec3 scatteredDirection; Color3 attenuationColor;
+//      Vec3 scatteredDirection; Color3 attenuationColor;
+
+        materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+//      materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+
+//      Specular reflection branch
+//      Specular reflection branch
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+//          Add fuzz/gloss/roughness for polished materials
+//          Add fuzz/gloss/roughness for polished materials
+            scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVector());
+//          scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVector());
+//          Ensure scattered ray is above the surface
+//          Ensure scattered ray is above the surface
+            if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+//          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+            {
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+                materialScatteredResult.isScattered = false;
+//              materialScatteredResult.isScattered = false;
+            }
+            attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+//          attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+        }
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+        else
+        {
+//          Lambertian-like scattering
+//          Lambertian-like scattering
+            scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+//          scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+            if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
+            {
+                scatteredDirection = rayHitResult.normal;
+//              scatteredDirection = rayHitResult.normal;
+            }
+            attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//          attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+        }
+
+        if (materialScatteredResult.isScattered)
+//      if (materialScatteredResult.isScattered)
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+        }
+        else
+        {
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+        }
+        materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+//      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+    }
+    break;
+//  break;
+
+
+
+    case MaterialType::FresnelBlendedDielectricGlossyDiffuse3:
+//  case MaterialType::FresnelBlendedDielectricGlossyDiffuse3:
+    {
+        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+
+        Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+//      Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+        float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+//      float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+
+//      incident = outside environment / transmitted = inside environment
+//      incident = outside environment / transmitted = inside environment
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+//          ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+        }
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+        
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+        float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+
+        Vec3 scatteredDirection; Color3 attenuationColor;
+//      Vec3 scatteredDirection; Color3 attenuationColor;
+
+        materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+//      materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+
+//      Specular reflection branch
+//      Specular reflection branch
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+//          Add fuzz/gloss/roughness for polished materials
+//          Add fuzz/gloss/roughness for polished materials
+            scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          Ensure scattered ray is above the surface
+//          Ensure scattered ray is above the surface
+            if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+//          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+            {
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+                materialScatteredResult.isScattered = false;
+//              materialScatteredResult.isScattered = false;
+            }
+            attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+//          attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+        }
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+        else
+        {
+//          Lambertian-like scattering
+//          Lambertian-like scattering
+            scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+//          scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+            if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
+            {
+                scatteredDirection = rayHitResult.normal;
+//              scatteredDirection = rayHitResult.normal;
+            }
+            attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//          attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+        }
+
+        if (materialScatteredResult.isScattered)
+//      if (materialScatteredResult.isScattered)
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+        }
+        else
+        {
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+        }
+        materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+//      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+    }
+    break;
+//  break;
+
+
+
+    case MaterialType::FresnelBlendedDielectricGlossyDiffuse4:
+//  case MaterialType::FresnelBlendedDielectricGlossyDiffuse4:
+    {
+        float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+//      float ratioOfEtaiOverEtat = rayHitResult.material.refractionIndex; // incident = inside environment / transmitted = outside environment
+
+        Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+//      Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+        float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+//      float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+
+//      incident = outside environment / transmitted = inside environment
+//      incident = outside environment / transmitted = inside environment
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+//          ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+        }
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+        
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+        float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+
+        Vec3 scatteredDirection; Color3 attenuationColor;
+//      Vec3 scatteredDirection; Color3 attenuationColor;
+
+        materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+//      materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+
+//      Specular reflection branch
+//      Specular reflection branch
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+//          Add fuzz/gloss/roughness for polished materials
+//          Add fuzz/gloss/roughness for polished materials
+            scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVector());
+//          scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + rayHitResult.material.fuzz * GenRandomUnitVector());
+//          Ensure scattered ray is above the surface
+//          Ensure scattered ray is above the surface
+            if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+//          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+            {
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+                materialScatteredResult.isScattered = false;
+//              materialScatteredResult.isScattered = false;
+            }
+            attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+//          attenuationColor = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+        }
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+        else
+        {
+//          Lambertian-like scattering
+//          Lambertian-like scattering
+            scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+            if (scatteredDirection.NearZero()) _UNLIKELY
+//          if (scatteredDirection.NearZero()) _UNLIKELY
+            {
+                scatteredDirection = rayHitResult.normal;
+//              scatteredDirection = rayHitResult.normal;
+            }
+            attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//          attenuationColor = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+        }
+
+        if (materialScatteredResult.isScattered)
+//      if (materialScatteredResult.isScattered)
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+//          materialScatteredResult.attenuation = attenuationColor / rayHitResult.material.scatteredProbability;
+        }
+        else
+        {
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+        }
+        materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+//      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Polished materials are not emissive
+    }
+    break;
+//  break;
 
 
 
@@ -4615,8 +5037,8 @@ int main()
 //          if (defocusAngle > 0.0f) _UNLIKELY { rayOrigin = DefocusDiskSample(cameraCenter, defocusDiskRadiusU, defocusDiskRadiusV); }
             Vec3 rayDirection = pixelSampleCenter - rayOrigin;
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
-            Ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
-//          Ray  ray{ .ori = rayOrigin, .dir = rayDirection, .time = Random() };
+            Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
+//          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
             pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
 //          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
 //          pixelColor += RayColor(ray, geometries);
