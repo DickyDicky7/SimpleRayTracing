@@ -1301,6 +1301,16 @@ return Vec3 {
 //  MetalFuzzy1 = 3,
     MetalFuzzy2 = 4,
 //  MetalFuzzy2 = 4,
+
+    MetalFuzzy3 = 4,
+//  MetalFuzzy3 = 4,
+    MetalFuzzy4 = 4,
+//  MetalFuzzy4 = 4,
+    MetalFuzzy5 = 4,
+//  MetalFuzzy5 = 4,
+    MetalFuzzy6 = 4,
+//  MetalFuzzy6 = 4,
+
     Dielectric  = 5,
 //  Dielectric  = 5,
     LightDiffuse = 6,
@@ -1319,6 +1329,57 @@ return Vec3 {
 //  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
     FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
 //  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
+    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
+
 };
 
 
