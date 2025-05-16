@@ -1295,32 +1295,22 @@ return Vec3 {
 //  LambertianDiffuseReflectance1 = 0,
     LambertianDiffuseReflectance2 = 1,
 //  LambertianDiffuseReflectance2 = 1,
-    Metal = 2,
-//  Metal = 2,
-    MetalFuzzy1 = 3,
-//  MetalFuzzy1 = 3,
-    MetalFuzzy2 = 4,
-//  MetalFuzzy2 = 4,
-
-    MetalFuzzy3 = 4,
-//  MetalFuzzy3 = 4,
-    MetalFuzzy4 = 4,
-//  MetalFuzzy4 = 4,
-    MetalFuzzy5 = 4,
-//  MetalFuzzy5 = 4,
-    MetalFuzzy6 = 4,
-//  MetalFuzzy6 = 4,
-
-    Dielectric  = 5,
-//  Dielectric  = 5,
-    LightDiffuse = 6,
-//  LightDiffuse = 6,
-    LightMetalic = 7,
-//  LightMetalic = 7,
-    Isotropic1 = 8,
-//  Isotropic1 = 8,
-    Isotropic2 = 9,
-//  Isotropic2 = 9,
+    Metal                         = 2,
+//  Metal                         = 2,
+    MetalFuzzy1                   = 3,
+//  MetalFuzzy1                   = 3,
+    MetalFuzzy2                   = 4,
+//  MetalFuzzy2                   = 4,
+    Dielectric                    = 5,
+//  Dielectric                    = 5,
+    LightDiffuse                  = 6,
+//  LightDiffuse                  = 6,
+    LightMetalic                  = 7,
+//  LightMetalic                  = 7,
+    Isotropic1                    = 8,
+//  Isotropic1                    = 8,
+    Isotropic2                    = 9,
+//  Isotropic2                    = 9,
     FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
 //  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
     FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
@@ -1329,57 +1319,6 @@ return Vec3 {
 //  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
     FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
 //  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse1 = 10, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse2 = 11, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
-    FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse3 = 12, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-    FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-//  FresnelBlendedDielectricGlossyDiffuse4 = 13, // render opaque dielectrics like polished marbles, polished stones, or dense plastics, etc.
-
 };
 
 
@@ -1388,14 +1327,14 @@ return Vec3 {
 {
     NOTHING = 0,
 //  NOTHING = 0,
-    AIR = 1,
-//  AIR = 1,
-    WATER = 2,
-//  WATER = 2,
-    GLASS = 3,
-//  GLASS = 3,
-    MARBLE = 4,
-//  MARBLE = 4,
+    AIR     = 1,
+//  AIR     = 1,
+    WATER   = 2,
+//  WATER   = 2,
+    GLASS   = 3,
+//  GLASS   = 3,
+    MARBLE  = 4,
+//  MARBLE  = 4,
     DIAMOND = 5,
 //  DIAMOND = 5,
 };
@@ -1595,7 +1534,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 
 
 
-inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
+    inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
+//  inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
 {
     MaterialScatteredResult materialScatteredResult {};
 //  MaterialScatteredResult materialScatteredResult {};
@@ -1606,8 +1546,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
     case MaterialType::LambertianDiffuseReflectance1:
 //  case MaterialType::LambertianDiffuseReflectance1:
         {
-            Vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
-//          Vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal);
+            Vec3 scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          Vec3 scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
             materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
             if (scatteredDirection.NearZero()) _UNLIKELY
@@ -1629,8 +1569,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1640,8 +1578,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
     case MaterialType::LambertianDiffuseReflectance2:
 //  case MaterialType::LambertianDiffuseReflectance2:
         {
-            Vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
-//          Vec3 scatteredDirection = rayHitResult.normal + GenRandomUnitVector();
+            Vec3 scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+//          Vec3 scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
             materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
             if (scatteredDirection.NearZero()) _UNLIKELY
@@ -1663,8 +1601,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1688,8 +1624,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1701,8 +1635,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
         {
             Vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
 //          Vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-            reflectionScatteredDirection = Normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
-//          reflectionScatteredDirection = Normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+            reflectionScatteredDirection = Normalize(reflectionScatteredDirection + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
+//          reflectionScatteredDirection = Normalize(reflectionScatteredDirection + rayHitResult.material.fuzz * GenRandomUnitVectorOnHemisphere(rayHitResult.normal));
             materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
             materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
@@ -1715,8 +1649,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };            
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1728,8 +1660,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
         {
             Vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
 //          Vec3 reflectionScatteredDirection = Reflect(rayIn.dir, rayHitResult.normal);
-            reflectionScatteredDirection = Normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
-//          reflectionScatteredDirection = Normalize(reflectionScatteredDirection) + (rayHitResult.material.fuzz * GenRandomUnitVector());
+            reflectionScatteredDirection = Normalize(reflectionScatteredDirection + rayHitResult.material.fuzz * GenRandomUnitVector());
+//          reflectionScatteredDirection = Normalize(reflectionScatteredDirection + rayHitResult.material.fuzz * GenRandomUnitVector());
             materialScatteredResult.scatteredRay.ori = rayHitResult.at;
 //          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
             materialScatteredResult.scatteredRay.dir = reflectionScatteredDirection;
@@ -1742,8 +1674,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1815,8 +1745,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = false;
 //          materialScatteredResult.isScattered = false;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1838,8 +1766,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = Value(rayHitResult.material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) / rayHitResult.material.scatteredProbability;
             materialScatteredResult.isScattered = false;
 //          materialScatteredResult.isScattered = false;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1861,8 +1787,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1884,8 +1808,6 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
 //          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = true;
 //          materialScatteredResult.isScattered = true;
-            materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
-//          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
         }
         break;
 //      break;
@@ -1939,8 +1861,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
             if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
 //          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
             {
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
                 materialScatteredResult.isScattered = false;
 //              materialScatteredResult.isScattered = false;
             }
@@ -2037,8 +1959,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
             if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
 //          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
             {
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
                 materialScatteredResult.isScattered = false;
 //              materialScatteredResult.isScattered = false;
             }
@@ -2135,8 +2057,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
             if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
 //          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
             {
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
                 materialScatteredResult.isScattered = false;
 //              materialScatteredResult.isScattered = false;
             }
@@ -2233,8 +2155,8 @@ inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResu
             if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
 //          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
             {
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
-//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy1 behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
                 materialScatteredResult.isScattered = false;
 //              materialScatteredResult.isScattered = false;
             }
