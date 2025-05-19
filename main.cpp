@@ -1,4 +1,4 @@
-#pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
+﻿#pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 //      #define SCENE_000
@@ -10,6 +10,9 @@
 //      #define SCENE_006
 //      #define SCENE_007
 //      #define SCENE_008
+
+//      #define OLD_PNG_SAMPLING
+        #define NEW_PNG_SAMPLING
 
 #include <string_view>
 #include <iostream>
@@ -1018,6 +1021,7 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
         case TextureType::IMAGE_TEXTURE_PNG:
 //      case TextureType::IMAGE_TEXTURE_PNG:
         {
+#ifdef OLD_PNG_SAMPLING
             const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
 //          const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
 
@@ -1040,6 +1044,26 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
                            .y = imagePNG.rgbs[imagePixelIndex + 1],
                            .z = imagePNG.rgbs[imagePixelIndex + 2],
                          };
+#endif
+#ifdef NEW_PNG_SAMPLING
+            const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+//          const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+
+            Interval rgbRange{ 0.0f, 1.0f };
+//          Interval rgbRange{ 0.0f, 1.0f };
+//          uTextureCoordinate =        rgbRange.Clamp(std::fmod(uTextureCoordinate + 0.5f, 1.0f));
+//          uTextureCoordinate =        rgbRange.Clamp(std::fmod(uTextureCoordinate + 0.5f, 1.0f));
+            uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
+//          uTextureCoordinate =        rgbRange.Clamp(uTextureCoordinate);
+            vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
+//          vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
+
+            float imagePixelX = uTextureCoordinate * (imagePNG.w - 1);
+            float imagePixelY = vTextureCoordinate * (imagePNG.h - 1);
+
+            return SampleRGB2LinearInterpolation(imagePNG.rgbs, imagePNG.w, imagePNG.h, imagePixelX, imagePixelY);
+//          return SampleRGB2LinearInterpolation(imagePNG.rgbs, imagePNG.w, imagePNG.h, imagePixelX, imagePixelY);
+#endif
         }
         break;
 //      break;
