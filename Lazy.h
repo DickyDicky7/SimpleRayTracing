@@ -3,7 +3,12 @@
 #define LAZY_H
 
 
-#include <numbers>
+    #include <numbers>
+//  #include <numbers>
+    #include <vector>
+//  #include <vector>
+    #include <array>
+//  #include <array>
 
 
 namespace lazy
