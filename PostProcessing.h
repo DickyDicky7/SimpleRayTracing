@@ -45,8 +45,8 @@ static inline float Sample2LinearInterpolation(const std::vector<float>& rgbs, i
 
     float valueLerpTop = (1.0f - deltaX) * rgbs[indexOfTLPixelWithValueAtColorChannel] + deltaX * rgbs[indexOfTRPixelWithValueAtColorChannel];
     float valueLerpBot = (1.0f - deltaX) * rgbs[indexOfBLPixelWithValueAtColorChannel] + deltaX * rgbs[indexOfBRPixelWithValueAtColorChannel];
-    float valueLerpVer = (1.0f - deltaY) * valueLerpBot
-                       +         deltaY  * valueLerpTop
+    float valueLerpVer = (1.0f - deltaY) * valueLerpTop
+                       +         deltaY  * valueLerpBot
                        ;
 
     return valueLerpVer;
