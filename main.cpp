@@ -4506,10 +4506,10 @@ int main()
 //  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
 #endif
 #ifdef SCENE_003
-    imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.png)");
-    imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
 #endif
 #ifdef SCENE_004
 #endif
@@ -5194,8 +5194,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerA->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.gltf)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerA->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.gltf)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5207,8 +5207,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 80.0f;
-//                  mesh->mVertices[vertexIndex] *= 80.0f;
+                    mesh->mVertices[vertexIndex] *= 1.0f;
+//                  mesh->mVertices[vertexIndex] *= 1.0f;
                 }
             }
 
@@ -5309,8 +5309,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerB->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.gltf)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerB->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene003\BalusterVase.gltf)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5322,8 +5322,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 80.0f;
-//                  mesh->mVertices[vertexIndex] *= 80.0f;
+                    mesh->mVertices[vertexIndex] *= 1.0f;
+//                  mesh->mVertices[vertexIndex] *= 1.0f;
                 }
             }
 
@@ -5724,8 +5724,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 100, BackgroundType::DARK_ROOM_SPACE);
-//          pixelColor += RayColor(ray, bvhTreeMain, 100, BackgroundType::DARK_ROOM_SPACE);
+            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
+//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
         }
         }
         pixelColor *= pixelSamplesScale;
