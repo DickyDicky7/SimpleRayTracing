@@ -14,6 +14,9 @@
 //      #define OLD_PNG_SAMPLING
         #define NEW_PNG_SAMPLING
 
+//      #define USE_OIDN
+//      #define USE_OIDN
+
 #include <string_view>
 #include <iostream>
 #include <fstream>
@@ -41,6 +44,10 @@
 //#include <assimp/scene.h>
   #include <assimp/postprocess.h>
 //#include <assimp/postprocess.h>
+#ifdef USE_OIDN
+  #include <OpenImageDenoise/oidn.hpp>
+//#include <OpenImageDenoise/oidn.hpp>
+#endif
 
     enum class BackgroundType : std::uint8_t
 //  enum class BackgroundType : std::uint8_t
@@ -5754,6 +5761,49 @@ int main()
 
 
 
+#ifdef USE_OIDN
+    oidn::DeviceRef oidnDevice = oidn::newDevice();
+//  oidn::DeviceRef oidnDevice = oidn::newDevice();
+    oidnDevice.commit();
+//  oidnDevice.commit();
+
+    std::size_t bufferSize = static_cast<std::size_t>(imgW) * imgH * 3 * sizeof(float);
+//  std::size_t bufferSize = static_cast<std::size_t>(imgW) * imgH * 3 * sizeof(float);
+    oidn::BufferRef iBuffer = oidnDevice.newBuffer(bufferSize);
+    oidn::BufferRef oBuffer = oidnDevice.newBuffer(bufferSize);
+    iBuffer.write(0, bufferSize, rgbs.data());
+//  iBuffer.write(0, bufferSize, rgbs.data());
+
+    oidn::FilterRef oidnFilter = oidnDevice.newFilter("RT");
+//  oidn::FilterRef oidnFilter = oidnDevice.newFilter("RT");
+    oidnFilter.setImage("color" , iBuffer, oidn::Format::Float3, imgW, imgH);
+//  oidnFilter.setImage("color" , iBuffer, oidn::Format::Float3, imgW, imgH);
+    oidnFilter.setImage("output", oBuffer, oidn::Format::Float3, imgW, imgH);
+//  oidnFilter.setImage("output", oBuffer, oidn::Format::Float3, imgW, imgH);
+    oidnFilter.set("hdr", true);
+//  oidnFilter.set("hdr", true);
+    oidnFilter.commit();
+//  oidnFilter.commit();
+
+    oidnFilter.execute();
+//  oidnFilter.execute();
+
+    const char* oidnErrorMessage = nullptr;
+//  const char* oidnErrorMessage = nullptr;
+    if (oidnDevice.getError(oidnErrorMessage) != oidn::Error::None)
+//  if (oidnDevice.getError(oidnErrorMessage) != oidn::Error::None)
+    {
+        std::cout << "OIDN Error: " << oidnErrorMessage << std::endl;
+//      std::cout << "OIDN Error: " << oidnErrorMessage << std::endl;
+    }
+    delete [] oidnErrorMessage;
+//  delete [] oidnErrorMessage;
+    oidnErrorMessage = nullptr;
+//  oidnErrorMessage = nullptr;
+
+    oBuffer.read(0, bufferSize, rgbs.data());
+//  oBuffer.read(0, bufferSize, rgbs.data());
+#endif
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
     {
     for (int pixelX = 0; pixelX < imgW; ++pixelX)
@@ -5884,8 +5934,8 @@ int main()
 // defocus blur = depth of field
 
 
-// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast /OPT:ICF /OPT:REF /LTCG /INCREMENTAL:NO
-// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast /OPT:ICF /OPT:REF /LTCG /INCREMENTAL:NO
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast /OPT:ICF /OPT:REF /LTCG /INCREMENTAL:NO /Gy (/Gw /favor:AMD64 /Zc:inline)
+// @ON: /O2 /Ob2 /Oi /Ot /Oy /GT /GL /fp:fast /OPT:ICF /OPT:REF /LTCG /INCREMENTAL:NO /Gy (/Gw /favor:AMD64 /Zc:inline)
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
 // OFF: /Z7 /Zi /Zl /RTC1 /RTCsu /RTCs /RTCu
 
