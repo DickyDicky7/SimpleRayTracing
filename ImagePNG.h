@@ -3,6 +3,7 @@
 #define IMAGE_PNG_H
 
 
+
 // NUGET: <package id="libpng_static" version="1.6.39.1" targetFramework="native" />
 // NUGET: <package id="libpng_static" version="1.6.39.1" targetFramework="native" />
 // NUGET: <package id="  zlib_static" version="1.2.11.9" targetFramework="native" />
@@ -15,11 +16,21 @@
 // project Properties ->              Debug/All Platforms -> Linker -> General -> Additional Library Directories -> D:\Workspace\SimpleRayTracingLocal\packages\libpng_static.1.6.39.1\build\native\lib\x64\v143\Debug  \MultiThreadedDebugDLL;D:\Workspace\SimpleRayTracingLocal\packages\zlib_static.1.2.11.9\build\native\lib\x64\v142\Debug  \MultiThreadedDebugDLL;%(AdditionalLibraryDirectories)
 // project Properties ->            Release/All Platforms -> Linker -> General -> Additional Library Directories -> D:\Workspace\SimpleRayTracingLocal\packages\libpng_static.1.6.39.1\build\native\lib\x64\v143\Release\MultiThreadedDLL     ;D:\Workspace\SimpleRayTracingLocal\packages\zlib_static.1.2.11.9\build\native\lib\x64\v142\Release\MultiThreadedDLL     ;%(AdditionalLibraryDirectories)
 // project Properties ->            Release/All Platforms -> Linker -> General -> Additional Library Directories -> D:\Workspace\SimpleRayTracingLocal\packages\libpng_static.1.6.39.1\build\native\lib\x64\v143\Release\MultiThreadedDLL     ;D:\Workspace\SimpleRayTracingLocal\packages\zlib_static.1.2.11.9\build\native\lib\x64\v142\Release\MultiThreadedDLL     ;%(AdditionalLibraryDirectories)
+
+
+
+#ifdef PNG_Z_DEFAULT_COMPRESSION
+#undef PNG_Z_DEFAULT_COMPRESSION
+#endif
 
 
 
     #include <png.h>
 //  #include <png.h>
+    #include <iostream>
+//  #include <iostream>
+    #include <vector>
+//  #include <vector>
 
 
 
@@ -209,5 +220,7 @@
         }
     }
 };
+
+
 
 #endif
