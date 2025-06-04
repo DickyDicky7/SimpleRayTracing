@@ -2,9 +2,9 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 //      #define SCENE_000
-//      #define SCENE_001
+        #define SCENE_001
 //      #define SCENE_002
-        #define SCENE_003
+//      #define SCENE_003
 //      #define SCENE_004
 //      #define SCENE_005
 //      #define SCENE_006
@@ -36,6 +36,7 @@
 #include "ImagePNG.h"
 #include "ImageJPG.h"
 #include "ImageSVG.h"
+#include "ImageEXR.h"
   #include "PostProcessing.h"
 //#include "PostProcessing.h"
   #include <assimp/Importer.hpp>
@@ -56,6 +57,8 @@
 //  BLUE_LERP_WHITE = 0,
     DARK_ROOM_SPACE = 1,
 //  DARK_ROOM_SPACE = 1,
+    SKY_BOX         = 2,
+//  SKY_BOX         = 2,
 };
 
 static inline float Sample1LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
@@ -889,8 +892,8 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
     static inline struct TexturesDatabase { std::vector<Texture> textures; } texturesDatabase;
 //  static inline struct TexturesDatabase { std::vector<Texture> textures; } texturesDatabase;
 
-    static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
-//  static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; } imagesDatabase;
+    static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; std::vector<ImageEXR> exrs; } imagesDatabase;
+//  static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; std::vector<ImageEXR> exrs; } imagesDatabase;
 
     static inline struct NoisesDatabase { std::vector<NoisePerlin> noisePerlins; } noisesDatabase;
 //  static inline struct NoisesDatabase { std::vector<NoisePerlin> noisePerlins; } noisesDatabase;
@@ -4161,6 +4164,37 @@ enum class Axis : std::uint8_t
 //                  break;
 
 
+                    case BackgroundType::SKY_BOX:
+//                  case BackgroundType::SKY_BOX:
+                    {
+                        float theta = std::acos (-currentRay.dir.y); // latitude
+//                      float theta = std::acos (-currentRay.dir.y); // latitude
+                        float phi   = std::atan2(-currentRay.dir.z, currentRay.dir.x) + std::numbers::pi_v<float>; // longitude
+//                      float phi   = std::atan2(-currentRay.dir.z, currentRay.dir.x) + std::numbers::pi_v<float>; // longitude
+
+                        float u = phi   / (2.0f * std::numbers::pi_v<float>);
+//                      float u = phi   / (2.0f * std::numbers::pi_v<float>);
+                        float v = theta /         std::numbers::pi_v<float> ;
+//                      float v = theta /         std::numbers::pi_v<float> ;
+
+                        const ImageEXR& imageEXR = imagesDatabase.exrs[0];
+//                      const ImageEXR& imageEXR = imagesDatabase.exrs[0];
+
+                        u =        std::clamp(u, 0.0f, 1.0f);
+//                      u =        std::clamp(u, 0.0f, 1.0f);
+                        v = 1.0f - std::clamp(v, 0.0f, 1.0f);
+//                      v = 1.0f - std::clamp(v, 0.0f, 1.0f);
+
+                        float imagePixelX = u * (imageEXR.w - 1);
+                        float imagePixelY = v * (imageEXR.h - 1);
+
+                        backgroundColor = SampleRGB2LinearInterpolation(imageEXR.rgbs, imageEXR.w, imageEXR.h, imagePixelX, imagePixelY);
+//                      backgroundColor = SampleRGB2LinearInterpolation(imageEXR.rgbs, imageEXR.w, imageEXR.h, imagePixelX, imagePixelY);          
+                    }
+                    break;
+//                  break;
+
+
                     default:
 //                  default:
                     {
@@ -4505,8 +4539,10 @@ int main()
 //  imagesDatabase.svgs.emplace_back("example-002.svg");
 #endif
 #ifdef SCENE_001
-    imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C_Rossbaendiger_O.png)");
-//  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C_Rossbaendiger_O.png)");
+    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
+//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 #endif
 #ifdef SCENE_002
     imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
@@ -4569,11 +4605,6 @@ int main()
 #ifdef SCENE_001
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 9.9f, 9.9f, 9.9f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 #endif
@@ -4744,61 +4775,51 @@ int main()
 #ifdef SCENE_001
     bvhTreeMain.bvhTrees.reserve(2);
 //  bvhTreeMain.bvhTrees.reserve(2);
-    for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back();
-//  for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back();
+    for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+//  for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
     bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
 //  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
-    bvhTreeMain.bvhTrees[0].geometries.reserve(14);
-//  bvhTreeMain.bvhTrees[0].geometries.reserve(14);
-    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(14 * 2 - 1));
-//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(14 * 2 - 1));
+    bvhTreeMain.bvhTrees[0].geometries.reserve(2);
+//  bvhTreeMain.bvhTrees[0].geometries.reserve(2);
+    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
+//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
 
-    //B
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    //FLOOR
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
 
-    //T
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-    //L
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-    //R
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-    //B
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = +20.00f, .y = +20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = +20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::Metal                        , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-    //F
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = -20.00f, .y = +20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = +20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-    //LU
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -10.00f, .y = +19.99f, .z = +10.00f }, .vertex1 = { .x = -10.00f, .y = +19.99f, .z = -10.00f }, .vertex2 = { .x = +10.00f, .y = +19.99f, .z = -10.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LightDiffuse                 , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +10.00f, .y = +19.99f, .z = -10.00f }, .vertex1 = { .x = +10.00f, .y = +19.99f, .z = +10.00f }, .vertex2 = { .x = -10.00f, .y = +19.99f, .z = +10.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LightDiffuse                 , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-
-
-    float minModelX = std::numeric_limits<float>::max();
-    float maxModelX = std::numeric_limits<float>::lowest();
-    float minModelY = std::numeric_limits<float>::max();
-    float maxModelY = std::numeric_limits<float>::lowest();
-    float minModelZ = std::numeric_limits<float>::max();
-    float maxModelZ = std::numeric_limits<float>::lowest();
-
-
-    std::unique_ptr<Assimp::Importer> importer = std::make_unique<Assimp::Importer>();
-//  std::unique_ptr<Assimp::Importer> importer = std::make_unique<Assimp::Importer>();
+    //MODEL
+    std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
+//  std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
     try
     {
-        aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene001\rossbandiger\source\Rossbaendiger_C\Rossbaendiger_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        float minModelX = std::numeric_limits<float>::max();
+        float maxModelX = std::numeric_limits<float>::lowest();
+        float minModelY = std::numeric_limits<float>::max();
+        float maxModelY = std::numeric_limits<float>::lowest();
+        float minModelZ = std::numeric_limits<float>::max();
+        float maxModelZ = std::numeric_limits<float>::lowest();
+
+        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/Nackter_Reiter_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/Nackter_Reiter_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    mesh->mVertices[vertexIndex] *= 1.5f;
+//                  mesh->mVertices[vertexIndex] *= 1.5f;
+                }
+            }
+
+
+
             std::size_t geometriesCount = 0;
 //          std::size_t geometriesCount = 0;
             for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
@@ -4856,22 +4877,22 @@ int main()
                     const aiVector3D& vertex0FrontFaceNormal = mesh->mNormals[face.mIndices[0]];
                     const aiVector3D& vertex1FrontFaceNormal = mesh->mNormals[face.mIndices[1]];
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
-                    bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +1.0f }, .geometryType = GeometryType::PRIMITIVE, });
-//                  bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +1.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                    bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
                 
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
-                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f ,.y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
-//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f ,.y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
-                                        Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f ,.y = +00.00f, .z = -10.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f ,.y = +00.00f, .z = -10.00f }                                                                         );
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
+                                        Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +04.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +04.00f, .y = +00.00f, .z = +00.00f }                                                                         );
                 }
             }
         }
         else
         {
-            std::cout << "Assimp error: " << importer->GetErrorString() << std::endl;
-//          std::cout << "Assimp error: " << importer->GetErrorString() << std::endl;
+            std::cout << "Assimp error: " << importerA->GetErrorString() << std::endl;
+//          std::cout << "Assimp error: " << importerA->GetErrorString() << std::endl;
         }
     }
     catch (const std::exception& e)
@@ -5501,17 +5522,17 @@ int main()
 //  imgH = std::max(imgH, 1);
 
 #ifdef SCENE_000
-    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +04.99f };
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +40.00f };
     constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
 #ifdef SCENE_001
-    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = -40.00f };
     constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
 #ifdef SCENE_002
-    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +19.99f };
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +40.00f };
     constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
@@ -5559,10 +5580,10 @@ int main()
     Vec3 defocusDiskRadiusV;
 #endif
 #ifdef SCENE_001
-    float defocusAngle = 0.02f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
-//  float defocusAngle = 0.02f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
-//  float defocusAngle = 0.02f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
-//  float defocusAngle = 0.02f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
+    float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = (lookAt - lookFrom).Length();
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
+//  float defocusAngle = 0.00f * std::numbers::pi_v<float>; float focusDistance = 10.0f;
     Vec3 defocusDiskRadiusU;
     Vec3 defocusDiskRadiusV;
 #endif
@@ -5731,8 +5752,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
-//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
+            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
+//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
         }
         }
         pixelColor *= pixelSamplesScale;
