@@ -1365,8 +1365,17 @@ return Vec3 {
 //  ThinFilmDielectric4                    = 17,
     ThinFilmMetal                          = 18,
 //  ThinFilmMetal                          = 18,
+    PBR                                    = 19,
+//  PBR                                    = 19,
 };
 
+    ImagePNG* base;
+    ImagePNG* emis;
+    ImagePNG* meta;
+    ImagePNG* ao  ;
+    ImagePNG* norm;
+    ImagePNG* roug;
+    ImagePNG* opac;
 
     enum class MaterialDielectric : std::uint8_t
 //  enum class MaterialDielectric : std::uint8_t
@@ -1785,7 +1794,20 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 
 
 
+    inline static Vec3 SamplePNG(ImagePNG* imagePNG, float uTextureCoordinate, float vTextureCoordinate)
+//  inline static Vec3 SamplePNG(ImagePNG* imagePNG, float uTextureCoordinate, float vTextureCoordinate)
+    {
+            uTextureCoordinate =        std::clamp(uTextureCoordinate, 0.0f, 1.0f);
+//          uTextureCoordinate =        std::clamp(uTextureCoordinate, 0.0f, 1.0f);
+            vTextureCoordinate = 1.0f - std::clamp(vTextureCoordinate, 0.0f, 1.0f);
+//          vTextureCoordinate = 1.0f - std::clamp(vTextureCoordinate, 0.0f, 1.0f);
 
+            float imagePixelX = uTextureCoordinate * (imagePNG->w - 1);
+            float imagePixelY = vTextureCoordinate * (imagePNG->h - 1);
+
+            return SampleRGB2LinearInterpolation(imagePNG->rgbs, imagePNG->w, imagePNG->h, imagePixelX, imagePixelY);
+//          return SampleRGB2LinearInterpolation(imagePNG->rgbs, imagePNG->w, imagePNG->h, imagePixelX, imagePixelY);
+    }
     inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
 //  inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
 {
@@ -1794,6 +1816,145 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     switch (rayHitResult.material.materialType)
 //  switch (rayHitResult.material.materialType)
     {
+
+    case MaterialType::PBR:
+//  case MaterialType::PBR:
+        {
+            materialScatteredResult.attenuation = SamplePNG(base, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+//          materialScatteredResult.attenuation = SamplePNG(base, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+            materialScatteredResult.emission = SamplePNG(emis, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+//          materialScatteredResult.emission = SamplePNG(emis, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+            bool isMetal = SamplePNG(meta, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate).x == 1.0f;
+//          bool isMetal = SamplePNG(meta, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate).x == 1.0f;
+            Vec3 r = SamplePNG(roug, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+//          Vec3 r = SamplePNG(roug, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+
+
+
+//            Vec3 ambient = SamplePNG(ao, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+////          Vec3 ambient = SamplePNG(ao, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate);
+////          if (!ambient.NearZero()) materialScatteredResult.attenuation *= ambient;
+////          if (!ambient.NearZero()) materialScatteredResult.attenuation *= ambient;
+//            materialScatteredResult.attenuation *= ambient;
+////          materialScatteredResult.attenuation *= ambient;
+
+
+
+            if (isMetal)
+//          if (isMetal)
+            {
+                materialScatteredResult.isScattered = true;
+//              materialScatteredResult.isScattered = true;
+
+                materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//              materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+
+                materialScatteredResult.scatteredRay.time = rayIn.time;
+//              materialScatteredResult.scatteredRay.time = rayIn.time;
+
+
+                materialScatteredResult.scatteredRay.dir = Normalize(Reflect(rayIn.dir, rayHitResult.normal) + r * GenRandomUnitVector());
+//              materialScatteredResult.scatteredRay.dir = Normalize(Reflect(rayIn.dir, rayHitResult.normal) + r * GenRandomUnitVector());
+            }
+            else
+//          else
+            {
+
+
+
+        float ratioOfEtaiOverEtat = rayHitResult.material.layer1IOR / rayHitResult.material.layer0IOR; // incident = inside environment / transmitted = outside environment
+//      float ratioOfEtaiOverEtat = rayHitResult.material.layer1IOR / rayHitResult.material.layer0IOR; // incident = inside environment / transmitted = outside environment
+
+        Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+//      Vec3 normalizedRayInDirection = Normalize(rayIn.dir);
+        float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+//      float cosThetaIncident = std::fminf(Dot(-normalizedRayInDirection, rayHitResult.normal), 1.0f); // Cosine of angle between view and normal
+
+//      incident = outside environment / transmitted = inside environment
+//      incident = outside environment / transmitted = inside environment
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+//          ratioOfEtaiOverEtat = 1.0f / ratioOfEtaiOverEtat;
+        }
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+//      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
+        
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+//      Calculate Fresnel reflectance probability using Schlick's approximation
+        float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
+
+        Vec3 scatteredDirection;
+//      Vec3 scatteredDirection;
+
+        materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+//      materialScatteredResult.isScattered = true; // Assume scattered unless specular reflection fails
+
+//      Specular reflection branch
+//      Specular reflection branch
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+//          Add fuzz/gloss/roughness for polished materials
+//          Add fuzz/gloss/roughness for polished materials
+            scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + r * GenRandomUnitVector());
+//          scatteredDirection = Normalize(Reflect(normalizedRayInDirection, rayHitResult.normal) + r * GenRandomUnitVector());
+//          Ensure scattered ray is above the surface
+//          Ensure scattered ray is above the surface
+            if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+//          if (Dot(scatteredDirection, rayHitResult.normal) <= 0.0f)
+            {
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+//              Fallback or absorb: For simplicity, make it a perfect reflection if fuzz pushes it below horizon or just let it be absorbed (isScattered = false). Given MetalFuzzy behavior, let's mark as not scattered if it goes wrong.
+                materialScatteredResult.isScattered = false;
+//              materialScatteredResult.isScattered = false;
+            }
+            materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+//          materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular highlights on dielectrics are typically white
+        }
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+//      Diffuse reflection branch (light "entered" coating layer, scattered, and exited)
+        else
+        {
+//          Lambertian-like scattering
+//          Lambertian-like scattering
+            scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+//          scatteredDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+            if (scatteredDirection.NearZero()) [[unlikely]]
+//          if (scatteredDirection.NearZero()) [[unlikely]]
+            {
+                scatteredDirection = rayHitResult.normal;
+//              scatteredDirection = rayHitResult.normal;
+            }
+        }
+
+        if (materialScatteredResult.isScattered)
+//      if (materialScatteredResult.isScattered)
+        {
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = scatteredDirection;
+//          materialScatteredResult.scatteredRay.dir = scatteredDirection;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+        }
+        else
+        {
+            materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+//          materialScatteredResult.attenuation = { .x = 0.0f, .y = 0.0f, .z = 0.0f }; // Absorbed
+        }
+
+
+
+
+            }
+        }
+        break;
+//      break;
+
+
 
     case MaterialType::LambertianDiffuseReflectance1:
 //  case MaterialType::LambertianDiffuseReflectance1:
@@ -4501,6 +4662,22 @@ enum class Axis : std::uint8_t
 
 int main()
 {
+    base = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Base_color.png)");
+//  base = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Base_color.png)");
+    emis = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Emissive.png)");
+//  emis = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Emissive.png)");
+    meta = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Metallic.png)");
+//  meta = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Metallic.png)");
+    ao   = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Mixed_AO.png)");
+//  ao   = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Mixed_AO.png)");
+    norm = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Normal_OpenGL.png)");
+//  norm = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Normal_OpenGL.png)");
+    roug = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Roughness.png)");
+//  roug = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/Honda_cub_Roughness.png)");
+    opac = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/opaa_.png)");
+//  opac = new ImagePNG(R"(./assets/scene001/honda-super-cub/textures/opaa_.png)");
+
+
 #ifdef SCENE_000
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::BLOCKY          , .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
@@ -4539,10 +4716,10 @@ int main()
 //  imagesDatabase.svgs.emplace_back("example-002.svg");
 #endif
 #ifdef SCENE_001
-    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
-//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
+    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/abandoned_garage_16k.exr)");
+//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/abandoned_garage_16k.exr)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene001/HondaCub.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/HondaCub.png)");
 #endif
 #ifdef SCENE_002
     imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
@@ -4800,8 +4977,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/Nackter_Reiter_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/Nackter_Reiter_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/HondaCub.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene001/HondaCub.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -4813,8 +4990,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 1.5f;
-//                  mesh->mVertices[vertexIndex] *= 1.5f;
+                    mesh->mVertices[vertexIndex] *= 20.00f;
+//                  mesh->mVertices[vertexIndex] *= 20.00f;
                 }
             }
 
@@ -4877,15 +5054,15 @@ int main()
                     const aiVector3D& vertex0FrontFaceNormal = mesh->mNormals[face.mIndices[0]];
                     const aiVector3D& vertex1FrontFaceNormal = mesh->mNormals[face.mIndices[1]];
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
-                    bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-//                  bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                    bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::PBR, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::PBR, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
                 
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
-                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
-//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
-                                        Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +04.00f, .y = +00.00f, .z = +00.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +04.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
+                                        Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = -02.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = -02.00f, .y = +00.00f, .z = +00.00f }                                                                         );
                 }
             }
         }
@@ -5527,7 +5704,7 @@ int main()
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
 #ifdef SCENE_001
-    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = -40.00f };
+    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +40.00f };
     constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
@@ -5645,8 +5822,8 @@ int main()
 #endif
 
 
-    float vFOV = std::numbers::pi_v<float> / 2.0f;
-    float hFOV = std::numbers::pi_v<float> / 2.0f;
+    float vFOV = std::numbers::pi_v<float> / 3.0f;
+    float hFOV = std::numbers::pi_v<float> / 3.0f;
     float h = std::tanf(vFOV / 2.0f);
     float w = std::tanf(hFOV / 2.0f);
 
@@ -5945,6 +6122,14 @@ int main()
 //  delete threadPool;
     threadPool = nullptr;
 //  threadPool = nullptr;
+
+    delete base;
+    delete emis;
+    delete meta;
+    delete ao  ;
+    delete norm;
+    delete roug;
+    delete opac;
 
     return 0;
 //  return 0;
