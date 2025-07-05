@@ -2,9 +2,9 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 //      #define SCENE_000
-        #define SCENE_001
+//      #define SCENE_001
 //      #define SCENE_002
-//      #define SCENE_003
+        #define SCENE_003
 //      #define SCENE_004
 //      #define SCENE_005
 //      #define SCENE_006
@@ -17,6 +17,9 @@
 //      #define USE_OIDN
 //      #define USE_OIDN
 
+        #define FOG
+//      #define FOG
+
 #include <string_view>
 #include <iostream>
 #include <fstream>
@@ -24,6 +27,7 @@
 #include <ctime>
 #include <cmath>
 #include <array>
+#include "SDF.h"
 #include <iomanip>
 #include <cstdint>
 #include <numbers>
@@ -32,6 +36,8 @@
 #include <random>
 #include <vector>
 #include "Lazy.h"
+#include "Vec2.h"
+#include "Vec3.h"
 #include <span>
 #include "ImagePNG.h"
 #include "ImageJPG.h"
@@ -48,6 +54,14 @@
 #ifdef USE_OIDN
   #include <OpenImageDenoise/oidn.hpp>
 //#include <OpenImageDenoise/oidn.hpp>
+#endif
+#ifdef FOG
+    constexpr Vec3 _EX_SCATTERING_FOG_DENSITY_{ 0.09f, 0.09f, 0.09f };
+//  constexpr Vec3 _EX_SCATTERING_FOG_DENSITY_{ 0.09f, 0.09f, 0.09f };
+    constexpr Vec3 _IN_SCATTERING_FOG_DENSITY_{ 0.01f, 0.01f, 0.01f };
+//  constexpr Vec3 _IN_SCATTERING_FOG_DENSITY_{ 0.01f, 0.01f, 0.01f };
+    constexpr Vec3 _FOG_COLOR_{ 0.5f, 0.6f, 0.7f };
+//  constexpr Vec3 _FOG_COLOR_{ 0.5f, 0.6f, 0.7f };
 #endif
 
     enum class BackgroundType : std::uint8_t
@@ -208,240 +222,12 @@ struct AABB3D
 }
 
 
-struct Vec3
-{
-    float x;
-    float y;
-    float z;
-
-    Vec3  operator- (              ) const { return Vec3 { -x, -y, -z }; }
-//  Vec3  operator- (              ) const { return Vec3 { -x, -y, -z }; }
-    Vec3& operator+=(const Vec3 & v)
-    {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        return *this;
-    }
-    Vec3& operator-=(const Vec3 & v)
-    {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        return *this;
-    }
-    Vec3& operator*=(const Vec3 & v)
-    {
-        x *= v.x;
-        y *= v.y;
-        z *= v.z;
-        return *this;
-    }
-    Vec3& operator/=(const Vec3 & v)
-    {
-        x /= v.x;
-        y /= v.y;
-        z /= v.z;
-        return *this;
-    }
-    Vec3& operator*=(const float& v)
-    {
-        x *= v;
-        y *= v;
-        z *= v;
-        return *this;
-    }
-    Vec3& operator/=(const float& v)
-    {
-        x /= v;
-        y /= v;
-        z /= v;
-        return *this;
-    }
-
-    float Length       () const { return std::sqrt(LengthSquared()); }
-//  float Length       () const { return std::sqrt(LengthSquared()); }
-    float LengthSquared() const { return x * x
-                                       + y * y
-                                       + z * z                     ; }
-
-    bool NearZero() const
-//  bool NearZero() const
-    {
-        // Return true if the vector is close to zero in all dimensions.
-        // Return true if the vector is close to zero in all dimensions.
-        constexpr float s = 1e-8f;
-//      constexpr float s = 1e-8f;
-        return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
-//      return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
-    }
-};
-
-
-using Point3 = Vec3;
-using Color3 = Vec3;
-
-static inline Vec3 operator+(const Vec3& u, const Vec3& v) { return Vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
-static inline Vec3 operator-(const Vec3& u, const Vec3& v) { return Vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
-static inline Vec3 operator*(const Vec3& u, const Vec3& v) { return Vec3 { u.x * v.x, u.y * v.y, u.z * v.z }; }
-static inline Vec3 operator/(const Vec3& u, const Vec3& v) { return Vec3 { u.x / v.x, u.y / v.y, u.z / v.z }; }
-
-static inline Vec3 operator*(const Vec3& u, float t) { return Vec3 { u.x * t, u.y * t, u.z * t }; }
-static inline Vec3 operator/(const Vec3& u, float t) { return Vec3 { u.x / t, u.y / t, u.z / t }; }
-
-static inline Vec3 operator*(float t, const Vec3& u) { return Vec3 { t * u.x, t * u.y, t * u.z }; }
-static inline Vec3 operator/(float t, const Vec3& u) { return Vec3 { t / u.x, t / u.y, t / u.z }; }
-
-
-    // 4x4 matrix: a flat array of 16 floats (row-major order)
-//  // 4x4 matrix: a flat array of 16 floats (row-major order)
-    static inline Vec3 operator*(const float* m, const Vec3& v)
-//  static inline Vec3 operator*(const float* m, const Vec3& v)
-{
-    float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
-//  float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
-    float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
-//  float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
-    float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
-//  float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
-    float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
-//  float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
-
-    if (w != 0.0f
-    &&  w != 1.0f)
-    {
-        float invW = 1.0f / w;
-        x *=  invW           ;
-        y *=  invW           ;
-        z *=  invW           ;
-    }
-
-    return { x, y, z };
-//  return { x, y, z };
-}
-
-
-    static inline float Dot(const Vec3& u, const Vec3& v)
-//  static inline float Dot(const Vec3& u, const Vec3& v)
-{
-    return u.x * v.x
-         + u.y * v.y
-         + u.z * v.z
-         ;
-}
-
-static
-inline Vec3  Cross(const Vec3& u, const Vec3& v)
-{
-return Vec3 { u.y * v.z - u.z * v.y,
-              u.z * v.x - u.x * v.z,
-              u.x * v.y - u.y * v.x,
-            };
-}
-
-  inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
-//inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
 
 
 
 
 
 
-struct Vec2
-{
-    float x;
-    float y;
-
-    Vec2  operator- (             ) const { return Vec2 { -x, -y }; }
-//  Vec2  operator- (             ) const { return Vec2 { -x, -y }; }
-    Vec2& operator+=(const Vec2 & v)
-    {
-        x += v.x;
-        y += v.y;
-        return *this;
-    }
-    Vec2& operator-=(const Vec2 & v)
-    {
-        x -= v.x;
-        y -= v.y;
-        return *this;
-    }
-    Vec2& operator*=(const Vec2 & v)
-    {
-        x *= v.x;
-        y *= v.y;
-        return *this;
-    }
-    Vec2& operator/=(const Vec2 & v)
-    {
-        x /= v.x;
-        y /= v.y;
-        return *this;
-    }
-    Vec2& operator*=(const float& v)
-    {
-        x *= v;
-        y *= v;
-        return *this;
-    }
-    Vec2& operator/=(const float& v)
-    {
-        x /= v;
-        y /= v;
-        return *this;
-    }
-
-    float Length       () const { return std::sqrt(LengthSquared()); }
-//  float Length       () const { return std::sqrt(LengthSquared()); }
-    float LengthSquared() const { return x * x
-                                       + y * y                     ; }
-
-    bool NearZero() const
-//  bool NearZero() const
-    {
-        // Return true if the vector is close to zero in all dimensions.
-        // Return true if the vector is close to zero in all dimensions.
-        constexpr float s = 1e-8f;
-//      constexpr float s = 1e-8f;
-        return (std::fabs(x) < s) && (std::fabs(y) < s);
-//      return (std::fabs(x) < s) && (std::fabs(y) < s);
-    }
-};
-
-
-using Point2 = Vec2;
-using Color2 = Vec2;
-
-static inline Vec2 operator+(const Vec2& u, const Vec2& v) { return Vec2 { u.x + v.x, u.y + v.y }; }
-static inline Vec2 operator-(const Vec2& u, const Vec2& v) { return Vec2 { u.x - v.x, u.y - v.y }; }
-static inline Vec2 operator*(const Vec2& u, const Vec2& v) { return Vec2 { u.x * v.x, u.y * v.y }; }
-static inline Vec2 operator/(const Vec2& u, const Vec2& v) { return Vec2 { u.x / v.x, u.y / v.y }; }
-
-static inline Vec2 operator*(const Vec2& u, float t) { return Vec2 { u.x * t, u.y * t }; }
-static inline Vec2 operator/(const Vec2& u, float t) { return Vec2 { u.x / t, u.y / t }; }
-
-static inline Vec2 operator*(float t, const Vec2& u) { return Vec2 { t * u.x, t * u.y }; }
-static inline Vec2 operator/(float t, const Vec2& u) { return Vec2 { t / u.x, t / u.y }; }
-
-
-    static inline float Dot(const Vec2& u, const Vec2& v)
-//  static inline float Dot(const Vec2& u, const Vec2& v)
-{
-    return u.x * v.x
-         + u.y * v.y
-         ;
-}
-
-    static inline Vec2 Cross(const Vec2& u, const Vec2& v)
-//  static inline Vec2 Cross(const Vec2& u, const Vec2& v)
-{
-    return Vec2 { u.y * v.x - u.x * v.y,
-                  u.x * v.y - u.y * v.x,
-                };
-}
-
-  inline static Vec2 Normalize(const Vec2& v) { return v / v.Length(); }
-//inline static Vec2 Normalize(const Vec2& v) { return v / v.Length(); }
 
 
 
@@ -1221,10 +1007,11 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //          const Vec3& p = GenRandom(-1.0f, +1.0f);
             const float& pLengthSquared = p.LengthSquared();
 //          const float& pLengthSquared = p.LengthSquared();
-            if (pLengthSquared <= 1.0000f
-            &&  pLengthSquared >  1e-160f)
+            if (pLengthSquared <= 1.0000f && pLengthSquared > 1e-4f)
+//          if (pLengthSquared <= 1.0000f && pLengthSquared > 1e-4f)
             {
                 return p / std::sqrt(pLengthSquared);
+//              return p / std::sqrt(pLengthSquared);
             }
         }
     }
@@ -1298,30 +1085,6 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //      return r0 + (1.0f - r0) * std::powf((1.0f - cosine), 5.0f);
     }
 
-inline
-static float  BlendLinear(      float startValue,       float ceaseValue,       float ratio)
-{
-return (1.0f - ratio) * startValue
-             + ratio  * ceaseValue;
-}
-inline
-static Vec3   BlendLinear(const Vec3& startValue, const Vec3& ceaseValue,       float ratio)
-{
-return Vec3 {
-              BlendLinear(startValue.x, ceaseValue.x, ratio),
-              BlendLinear(startValue.y, ceaseValue.y, ratio),
-              BlendLinear(startValue.z, ceaseValue.z, ratio),
-            };
-}
-inline
-static Vec3   BlendLinear(const Vec3& startValue, const Vec3& ceaseValue, const Vec3& ratio)
-{
-return Vec3 {
-              BlendLinear(startValue.x, ceaseValue.x, ratio.x),
-              BlendLinear(startValue.y, ceaseValue.y, ratio.y),
-              BlendLinear(startValue.z, ceaseValue.z, ratio.z),
-            };
-}
 
 
     enum class MaterialType       : std::uint8_t
@@ -1478,22 +1241,24 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     inline static float SdfMetaballs(const Point3& p)
 //  inline static float SdfMetaballs(const Point3& p)
     {
-        Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
-//      Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
-        Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
-//      Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
-        float sphere1Dist = SdfSphere(p1, 10.00f);
-//      float sphere1Dist = SdfSphere(p1, 10.00f);
-        float sphere2Dist = SdfSphere(p2, 10.00f);
-//      float sphere2Dist = SdfSphere(p2, 10.00f);
-        return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
-//      return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+//        Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
+////      Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
+//        Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
+////      Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
+//        float sphere1Dist = SdfSphere(p1, 10.00f);
+////      float sphere1Dist = SdfSphere(p1, 10.00f);
+//        float sphere2Dist = SdfSphere(p2, 10.00f);
+////      float sphere2Dist = SdfSphere(p2, 10.00f);
+//        return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+////      return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+        return sdf3d::SDFTorus(sdf3d::opTwist(p), { 9,5 });
+//      return sdf3d::SDFTorus(sdf3d::opTwist(p), { 9,5 });
     }
     inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
 //  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
     {
-        constexpr float epsilon = 0.0001f;
-//      constexpr float epsilon = 0.0001f;
+        constexpr float epsilon = 1e-4f;
+//      constexpr float epsilon = 1e-4f;
         Vec3 normal =
 //      Vec3 normal =
         {
@@ -1545,8 +1310,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         case GeometryType::PRIMITIVE:
 //      case GeometryType::PRIMITIVE:
             {
-                constexpr float padding = 1e-3f; // COULD BE LOWER
-//              constexpr float padding = 1e-3f; // COULD BE LOWER
+                constexpr float padding = 1e-4f; // COULD BE LOWER
+//              constexpr float padding = 1e-4f; // COULD BE LOWER
                 g.aabb3d.intervalAxisX.min = std::fminf(g.primitive.vertex0.x, std::fminf(g.primitive.vertex1.x, g.primitive.vertex2.x)) - padding;
                 g.aabb3d.intervalAxisY.min = std::fminf(g.primitive.vertex0.y, std::fminf(g.primitive.vertex1.y, g.primitive.vertex2.y)) - padding;
                 g.aabb3d.intervalAxisZ.min = std::fminf(g.primitive.vertex0.z, std::fminf(g.primitive.vertex1.z, g.primitive.vertex2.z)) - padding;
@@ -1584,8 +1349,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         case GeometryType::PRIMITIVE:
 //      case GeometryType::PRIMITIVE:
             {
-                constexpr float padding = 1e-3f; // COULD BE LOWER
-//              constexpr float padding = 1e-3f; // COULD BE LOWER
+                constexpr float padding = 1e-4f; // COULD BE LOWER
+//              constexpr float padding = 1e-4f; // COULD BE LOWER
                 const Point3& destinationVertex0 = Marching(g.primitive.vertex0, g.movingDirection, 1.0f);
                 const Point3& destinationVertex1 = Marching(g.primitive.vertex1, g.movingDirection, 1.0f);
                 const Point3& destinationVertex2 = Marching(g.primitive.vertex2, g.movingDirection, 1.0f);
@@ -1680,8 +1445,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     {
         // Avoid division by zero at grazing
         // Avoid division by zero at grazing
-        if (iCosThetaFromExternalLayerToFilmLayer < 1e-6f)
-            iCosThetaFromExternalLayerToFilmLayer = 1e-6f;
+        if (iCosThetaFromExternalLayerToFilmLayer < 1e-4f)
+            iCosThetaFromExternalLayerToFilmLayer = 1e-4f;
 
         // Angle in film (Snell's Law: externalLayerIOR * iSinThetaFromExternalLayerToFilmLayer = filmLayerIOR * tSinThetaFromExternalLayerToFilmLayer)
         // Angle in film (Snell's Law: externalLayerIOR * iSinThetaFromExternalLayerToFilmLayer = filmLayerIOR * tSinThetaFromExternalLayerToFilmLayer)
@@ -2577,8 +2342,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2681,8 +2446,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2785,8 +2550,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2889,8 +2654,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -3182,8 +2947,8 @@ static RayHitResult RayHit(const Geometry& geo
 
             // Small epsilon to handle floating-point inaccuracies
 //          // Small epsilon to handle floating-point inaccuracies
-            constexpr float EPSILON = 1e-8f;
-//          constexpr float EPSILON = 1e-8f;
+            constexpr float EPSILON = 1e-4f;
+//          constexpr float EPSILON = 1e-4f;
 
             // Calculate two edges of the primitive from its vertices
 //          // Calculate two edges of the primitive from its vertices
@@ -3319,8 +3084,8 @@ static RayHitResult RayHit(const Geometry& geo
         case GeometryType::IMPLICIT_SURFACE:
 //      case GeometryType::IMPLICIT_SURFACE:
         {
-            if (!HitAABB(ray, rayT, geo.aabb3d)) { return {}; }
-//          if (!HitAABB(ray, rayT, geo.aabb3d)) { return {}; }
+            if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .material = geo.material, .hitted = false, }; }
+//          if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .material = geo.material, .hitted = false, }; }
             float t = rayT.min;
 //          float t = rayT.min;
             for (int i = 0; i < geo.implicitSurface.maxSteps; ++i)
@@ -3331,8 +3096,8 @@ static RayHitResult RayHit(const Geometry& geo
                 float dist = geo.implicitSurface.sdf(currentPoint);
 //              float dist = geo.implicitSurface.sdf(currentPoint);
 
-                if (dist < geo.implicitSurface.hitEpsilon)
-//              if (dist < geo.implicitSurface.hitEpsilon)
+                if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
+//              if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
                 {
                     RayHitResult rayHitResult{ .material = geo.material };
 //                  RayHitResult rayHitResult{ .material = geo.material };
@@ -3364,12 +3129,21 @@ static RayHitResult RayHit(const Geometry& geo
                     rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
 //                  rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
 
+                    float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
+//                  float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
+                    if (finalDist < 0.0f)
+//                  if (finalDist < 0.0f)
+                    {
+                        rayHitResult.at += outwardNormal;
+//                      rayHitResult.at += outwardNormal;
+                    }
+
                     return rayHitResult;
 //                  return rayHitResult;
                 }
 
-                t += dist;
-//              t += dist;
+                t += abs(dist);
+//              t += abs(dist);
 
                 if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
 //              if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
@@ -3378,8 +3152,8 @@ static RayHitResult RayHit(const Geometry& geo
 //                  break;
                 }
             }
-            return {};
-//          return {};
+            return RayHitResult{ .material = geo.material, .hitted = false, };
+//          return RayHitResult{ .material = geo.material, .hitted = false, };
         }
         break;
 //      break;
@@ -3442,8 +3216,8 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
     for (int depth = 0; depth < maxDepth; ++depth)
 //  for (int depth = 0; depth < maxDepth; ++depth)
     {
-        const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//      const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+        const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//      const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 
         if (rayHitResult.hitted) [[unlikely]]
 //      if (rayHitResult.hitted) [[unlikely]]
@@ -3634,8 +3408,8 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
 //              RayHitResult rayHitResultEntry = RayHit(bvhTree, 0, ray, Interval::universe);
                 if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
 //              if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
-                RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
-//              RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
+                RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 1e-4f, .max = positiveInfinity, });
+//              RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 1e-4f, .max = positiveInfinity, });
                 if (!rayHitResultExits.hitted) { return rayHitResultExits; }
 //              if (!rayHitResultExits.hitted) { return rayHitResultExits; }
                 if (rayHitResultEntry.minT < rayT.min) { rayHitResultEntry.minT = rayT.min; }
@@ -4181,8 +3955,8 @@ enum class Axis : std::uint8_t
         for (int depth = 0; depth < maxDepth; ++depth)
 //      for (int depth = 0; depth < maxDepth; ++depth)
         {
-            const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//          const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+            const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//          const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 
             if (!rayHitResult.hitted) [[unlikely]]
 //          if (!rayHitResult.hitted) [[unlikely]]
@@ -4264,11 +4038,25 @@ enum class Axis : std::uint8_t
         Ray currentRay = initialRay;
 //      Ray currentRay = initialRay;
 
+    #ifdef FOG
+//  #ifdef FOG
+        RayHitResult firstRayHitResult{};
+//      RayHitResult firstRayHitResult{};
+    #endif
+//  #endif
+
         for (int depth = 0; depth < maxDepth; ++depth)
 //      for (int depth = 0; depth < maxDepth; ++depth)
         {
-            const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//          const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+            const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//          const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+
+    #ifdef FOG
+//  #ifdef FOG
+            if (depth == 0) { firstRayHitResult = rayHitResult; }
+//          if (depth == 0) { firstRayHitResult = rayHitResult; }
+    #endif
+//  #endif
 
             if (!rayHitResult.hitted) [[unlikely]]
 //          if (!rayHitResult.hitted) [[unlikely]]
@@ -4368,8 +4156,30 @@ enum class Axis : std::uint8_t
 //          currentRay   = scatterResult.scatteredRay;
         }
 
+    #ifdef FOG
+//  #ifdef FOG
+        Vec3 exColor
+//      Vec3 exColor
+        {
+            .x = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.z),
+        };
+        Vec3 inColor
+//      Vec3 inColor
+        {
+            .x = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.z),
+        };
+        return accumulatedColor * exColor + _FOG_COLOR_ * (1.0f - inColor);
+//      return accumulatedColor * exColor + _FOG_COLOR_ * (1.0f - inColor);
+    #else
+//  #else
         return accumulatedColor;
 //      return accumulatedColor;
+    #endif
+//  #endif
 }
 
 
@@ -4677,8 +4487,8 @@ int main()
 //  imagesDatabase.svgs.emplace_back("example-002.svg");
 #endif
 #ifdef SCENE_001
-    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/modern_bathroom_16k.exr)");
-//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/modern_bathroom_16k.exr)");
+    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
     imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 //  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 #endif
@@ -4926,8 +4736,8 @@ int main()
 //  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
 
     //FLOOR
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
 
 
 
@@ -4935,26 +4745,26 @@ int main()
 //  Geometry metaballs;
     metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
 //  metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
-    metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::Metal };
-//  metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::Metal };
+    metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
+//  metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
     metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 //  metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 
     metaballs.implicitSurface.sdf = &SdfMetaballs;
 //  metaballs.implicitSurface.sdf = &SdfMetaballs;
-    metaballs.implicitSurface.maxSteps = 500;
-//  metaballs.implicitSurface.maxSteps = 500;
-    metaballs.implicitSurface.maxMarchingDistance = 500.0f;
-//  metaballs.implicitSurface.maxMarchingDistance = 500.0f;
+    metaballs.implicitSurface.maxSteps = 1000;
+//  metaballs.implicitSurface.maxSteps = 1000;
+    metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
+//  metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
     metaballs.implicitSurface.hitEpsilon = 0.0001f;
 //  metaballs.implicitSurface.hitEpsilon = 0.0001f;
 
-    metaballs.aabb3d.intervalAxisX = { -18.0f, +18.0f };
-//  metaballs.aabb3d.intervalAxisX = { -18.0f, +18.0f };
-    metaballs.aabb3d.intervalAxisY = { -10.0f, +10.0f };
-//  metaballs.aabb3d.intervalAxisY = { -10.0f, +10.0f };
-    metaballs.aabb3d.intervalAxisZ = { -10.0f, +10.0f };
-//  metaballs.aabb3d.intervalAxisZ = { -10.0f, +10.0f };
+    metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
+    metaballs.aabb3d.intervalAxisY = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisY = { -100.0f, +100.0f };
+    metaballs.aabb3d.intervalAxisZ = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisZ = { -100.0f, +100.0f };
 
     bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
 //  bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
@@ -5927,8 +5737,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
-//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
+            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
+//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
         }
         }
         pixelColor *= pixelSamplesScale;
