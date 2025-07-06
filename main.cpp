@@ -1251,8 +1251,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 ////      float sphere2Dist = SdfSphere(p2, 10.00f);
 //        return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
 ////      return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
-        return sdf3d::SDFTorus(sdf3d::opTwist(p), { 9,5 });
-//      return sdf3d::SDFTorus(sdf3d::opTwist(p), { 9,5 });
+        return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
+//      return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
     }
     inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
 //  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
