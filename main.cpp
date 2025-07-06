@@ -17,8 +17,10 @@
 //      #define USE_OIDN
 //      #define USE_OIDN
 
-        #define FOG
-//      #define FOG
+//      #define FOG_SIMPLE
+//      #define FOG_SIMPLE
+        #define FOG_HEIGHT
+//      #define FOG_HEIGHT
 
 #include <string_view>
 #include <iostream>
@@ -55,13 +57,21 @@
   #include <OpenImageDenoise/oidn.hpp>
 //#include <OpenImageDenoise/oidn.hpp>
 #endif
-#ifdef FOG
-    constexpr Vec3 _EX_SCATTERING_FOG_DENSITY_{ 0.09f, 0.09f, 0.09f };
-//  constexpr Vec3 _EX_SCATTERING_FOG_DENSITY_{ 0.09f, 0.09f, 0.09f };
-    constexpr Vec3 _IN_SCATTERING_FOG_DENSITY_{ 0.01f, 0.01f, 0.01f };
-//  constexpr Vec3 _IN_SCATTERING_FOG_DENSITY_{ 0.01f, 0.01f, 0.01f };
-    constexpr Vec3 _FOG_COLOR_{ 0.5f, 0.6f, 0.7f };
-//  constexpr Vec3 _FOG_COLOR_{ 0.5f, 0.6f, 0.7f };
+#ifdef FOG_SIMPLE
+    constexpr Color3 _EX_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.09f, 0.09f, 0.09f };
+//  constexpr Color3 _EX_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.09f, 0.09f, 0.09f };
+    constexpr Color3 _IN_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.01f, 0.01f, 0.01f };
+//  constexpr Color3 _IN_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.01f, 0.01f, 0.01f };
+    constexpr Color3 _FOG_SIMPLE_COLOR_{ 0.5f, 0.6f, 0.7f };
+//  constexpr Color3 _FOG_SIMPLE_COLOR_{ 0.5f, 0.6f, 0.7f };
+#endif
+#ifdef FOG_HEIGHT
+    constexpr float  _FOG_HEIGHT_DENSITY_ = 0.02f;
+//  constexpr float  _FOG_HEIGHT_DENSITY_ = 0.02f;
+    constexpr float  _FOG_HEIGHT_FALLOFF_ = 0.08f;
+//  constexpr float  _FOG_HEIGHT_FALLOFF_ = 0.08f;
+    constexpr Color3 _FOG_HEIGHT_COLOR_{ 0.5f, 0.6f, 0.7f };
+//  constexpr Color3 _FOG_HEIGHT_COLOR_{ 0.5f, 0.6f, 0.7f };
 #endif
 
     enum class BackgroundType : std::uint8_t
@@ -4028,6 +4038,34 @@ enum class Axis : std::uint8_t
         return accumulatedColor;
 //      return accumulatedColor;
 }
+    #if defined(FOG_HEIGHT)
+//  #if defined(FOG_HEIGHT)
+    static inline Color3 ApplyFogHeight(const Color3& accumulatedColor, float minT, const Ray& initialRay, const Color3& fogColor, float fogDensity, float fogFalloff)
+//  static inline Color3 ApplyFogHeight(const Color3& accumulatedColor, float minT, const Ray& initialRay, const Color3& fogColor, float fogDensity, float fogFalloff)
+    {
+        float fogAmount;
+//      float fogAmount;
+        if (std::fabsf(initialRay.dir.y) < 1e-4f)
+//      if (std::fabsf(initialRay.dir.y) < 1e-4f)
+        {
+            fogAmount = fogDensity * std::expf(-initialRay.ori.y * fogFalloff) * minT;
+//          fogAmount = fogDensity * std::expf(-initialRay.ori.y * fogFalloff) * minT;
+        }
+        else
+//      else
+        {
+            fogAmount = (fogDensity / fogFalloff) * (std::expf(-initialRay.ori.y * fogFalloff)) * ((1.0f - std::expf(-minT * initialRay.dir.y * fogFalloff)) / initialRay.dir.y);
+//          fogAmount = (fogDensity / fogFalloff) * (std::expf(-initialRay.ori.y * fogFalloff)) * ((1.0f - std::expf(-minT * initialRay.dir.y * fogFalloff)) / initialRay.dir.y);
+        }
+        // CRITICAL: Clamp the fog amount to [0 ; 1] to ensure the mix is valid. The formula can produce values > 1 for very long distances or certain parameters.
+        // CRITICAL: Clamp the fog amount to [0 ; 1] to ensure the mix is valid. The formula can produce values > 1 for very long distances or certain parameters.
+        fogAmount = std::clamp(fogAmount, 0.0f, 1.0f);
+//      fogAmount = std::clamp(fogAmount, 0.0f, 1.0f);
+        return BlendLinear(accumulatedColor, fogColor, fogAmount);
+//      return BlendLinear(accumulatedColor, fogColor, fogAmount);
+    }
+    #endif
+//  #endif
     inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
 //  inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
 {
@@ -4038,8 +4076,8 @@ enum class Axis : std::uint8_t
         Ray currentRay = initialRay;
 //      Ray currentRay = initialRay;
 
-    #ifdef FOG
-//  #ifdef FOG
+    #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+//  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
         RayHitResult firstRayHitResult{};
 //      RayHitResult firstRayHitResult{};
     #endif
@@ -4051,8 +4089,8 @@ enum class Axis : std::uint8_t
             const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 //          const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 
-    #ifdef FOG
-//  #ifdef FOG
+    #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+//  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
             if (depth == 0) { firstRayHitResult = rayHitResult; }
 //          if (depth == 0) { firstRayHitResult = rayHitResult; }
     #endif
@@ -4156,24 +4194,28 @@ enum class Axis : std::uint8_t
 //          currentRay   = scatterResult.scatteredRay;
         }
 
-    #ifdef FOG
-//  #ifdef FOG
-        Vec3 exColor
-//      Vec3 exColor
+    #if defined(FOG_SIMPLE)
+//  #if defined(FOG_SIMPLE)
+        Color3 exColor
+//      Color3 exColor
         {
-            .x = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.x),
-            .y = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.y),
-            .z = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_DENSITY_.z),
+            .x = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.z),
         };
-        Vec3 inColor
-//      Vec3 inColor
+        Color3 inColor
+//      Color3 inColor
         {
-            .x = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.x),
-            .y = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.y),
-            .z = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_DENSITY_.z),
+            .x = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.z),
         };
-        return accumulatedColor * exColor + _FOG_COLOR_ * (1.0f - inColor);
-//      return accumulatedColor * exColor + _FOG_COLOR_ * (1.0f - inColor);
+        return accumulatedColor * exColor + _FOG_SIMPLE_COLOR_ * (1.0f - inColor);
+//      return accumulatedColor * exColor + _FOG_SIMPLE_COLOR_ * (1.0f - inColor);
+    #elif defined(FOG_HEIGHT)
+//  #elif defined(FOG_HEIGHT)
+        return ApplyFogHeight(accumulatedColor, firstRayHitResult.minT, initialRay, _FOG_HEIGHT_COLOR_, _FOG_HEIGHT_DENSITY_, _FOG_HEIGHT_FALLOFF_);
+//      return ApplyFogHeight(accumulatedColor, firstRayHitResult.minT, initialRay, _FOG_HEIGHT_COLOR_, _FOG_HEIGHT_DENSITY_, _FOG_HEIGHT_FALLOFF_);
     #else
 //  #else
         return accumulatedColor;
