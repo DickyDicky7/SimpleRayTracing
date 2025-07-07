@@ -19,7 +19,7 @@
 
 //      #define FOG_SIMPLE
 //      #define FOG_SIMPLE
-        #define FOG_HEIGHT
+//      #define FOG_HEIGHT
 //      #define FOG_HEIGHT
 
 #include <string_view>
@@ -4539,10 +4539,10 @@ int main()
 //  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
 #endif
 #ifdef SCENE_003
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Priesterin_C_Priesterin_Opferschale_O.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Priesterin_C_Priesterin_Opferschale_O.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Priesterin_C_Priesterin_Opferschale_O.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Priesterin_C_Priesterin_Opferschale_O.png)");
 #endif
 #ifdef SCENE_004
 #endif
@@ -4617,12 +4617,12 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 010.000f, 010.000f, 010.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 001.000f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 001.000f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.992f, 000.816f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.992f, 000.816f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.553f, 000.216f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.553f, 000.216f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.031f, 000.482f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.031f, 000.482f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.965f, 000.973f, 000.984f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.965f, 000.973f, 000.984f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.337f, 000.463f, 000.667f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.337f, 000.463f, 000.667f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.424f, 000.157f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.424f, 000.157f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
 #endif
@@ -5073,12 +5073,12 @@ int main()
 
 #endif
 #ifdef SCENE_003
-    bvhTreeMain.bvhTrees.reserve(4);
-//  bvhTreeMain.bvhTrees.reserve(4);
-    for (std::uint8_t i = 0; i < 4; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-//  for (std::uint8_t i = 0; i < 4; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(4 * 2 - 1));
-//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(4 * 2 - 1));
+    bvhTreeMain.bvhTrees.reserve(5);
+//  bvhTreeMain.bvhTrees.reserve(5);
+    for (std::uint8_t i = 0; i < 5; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+//  for (std::uint8_t i = 0; i < 5; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(5 * 2 - 1));
+//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(5 * 2 - 1));
     bvhTreeMain.bvhTrees[0].geometries.reserve(44);
 //  bvhTreeMain.bvhTrees[0].geometries.reserve(44);
     bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(44 * 2 - 1));
@@ -5249,8 +5249,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5262,8 +5262,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 1.0f;
-//                  mesh->mVertices[vertexIndex] *= 1.0f;
+                    mesh->mVertices[vertexIndex] *= 3.0f;
+//                  mesh->mVertices[vertexIndex] *= 3.0f;
                 }
             }
 
@@ -5333,8 +5333,8 @@ int main()
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[2].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
 //                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
-                                        Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = -07.00f, .y = +00.00f, .z = -07.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = -07.00f, .y = +00.00f, .z = -07.00f }                                                                         );
+                                        Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = -10.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = -10.00f }                                                                         );
                 }
             }
         }
@@ -5364,8 +5364,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5377,8 +5377,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 1.0f;
-//                  mesh->mVertices[vertexIndex] *= 1.0f;
+                    mesh->mVertices[vertexIndex] *= 3.0f;
+//                  mesh->mVertices[vertexIndex] *= 3.0f;
                 }
             }
 
@@ -5448,8 +5448,8 @@ int main()
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[3].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
 //                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
-                                        Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +07.00f, .y = +00.00f, .z = +07.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +07.00f, .y = +00.00f, .z = +07.00f }                                                                         );
+                                        Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = -10.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = -10.00f, .y = +00.00f, .z = +00.00f }                                                                         );
                 }
             }
         }
@@ -5457,6 +5457,121 @@ int main()
         {
             std::cout << "Assimp error: " << importerB->GetErrorString() << std::endl;
 //          std::cout << "Assimp error: " << importerB->GetErrorString() << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+//  catch (const std::exception& e)
+    {
+        std::cout << "General error: " << e.what() << std::endl;
+//      std::cout << "General error: " << e.what() << std::endl;
+    }
+
+
+
+    std::unique_ptr<Assimp::Importer> importerC = std::make_unique<Assimp::Importer>();
+//  std::unique_ptr<Assimp::Importer> importerC = std::make_unique<Assimp::Importer>();
+    try
+    {
+        float minModelX = std::numeric_limits<float>::max();
+        float maxModelX = std::numeric_limits<float>::lowest();
+        float minModelY = std::numeric_limits<float>::max();
+        float maxModelY = std::numeric_limits<float>::lowest();
+        float minModelZ = std::numeric_limits<float>::max();
+        float maxModelZ = std::numeric_limits<float>::lowest();
+
+        aiScene const * const scene = importerC->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerC->ReadFile(R"(./assets/scene003/Priesterin_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        if (scene)
+//      if (scene)
+        {
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    mesh->mVertices[vertexIndex] *= 3.0f;
+//                  mesh->mVertices[vertexIndex] *= 3.0f;
+                }
+            }
+
+
+
+            std::size_t geometriesCount = 0;
+//          std::size_t geometriesCount = 0;
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+//              geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+            }
+            bvhTreeMain.bvhTrees[4].geometries.reserve(geometriesCount);
+//          bvhTreeMain.bvhTrees[4].geometries.reserve(geometriesCount);
+            bvhTreeMain.bvhTrees[4].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+//          bvhTreeMain.bvhTrees[4].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+//                  const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+                    minModelX = std::fminf(minModelX, vertex.x);
+                    maxModelX = std::fmaxf(maxModelX, vertex.x);
+                    minModelY = std::fminf(minModelY, vertex.y);
+                    maxModelY = std::fmaxf(maxModelY, vertex.y);
+                    minModelZ = std::fminf(minModelZ, vertex.z);
+                    maxModelZ = std::fmaxf(maxModelZ, vertex.z);
+                }
+            }
+            constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+//          constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh* mesh = scene->mMeshes[meshIndex];
+//              aiMesh* mesh = scene->mMeshes[meshIndex];
+                for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+//              for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+                {
+                    const aiFace& face = mesh->mFaces[faceIndex];
+//                  const aiFace& face = mesh->mFaces[faceIndex];
+                    const aiVector3D& vertex0 = mesh->mVertices[face.mIndices[0]];
+                    const aiVector3D& vertex1 = mesh->mVertices[face.mIndices[1]];
+                    const aiVector3D& vertex2 = mesh->mVertices[face.mIndices[2]];
+                    const aiVector3D& vertex0UV = mesh->mTextureCoords[0][face.mIndices[0]];
+                    const aiVector3D& vertex1UV = mesh->mTextureCoords[0][face.mIndices[1]];
+                    const aiVector3D& vertex2UV = mesh->mTextureCoords[0][face.mIndices[2]];
+                    const aiVector3D& vertex0FrontFaceNormal = mesh->mNormals[face.mIndices[0]];
+                    const aiVector3D& vertex1FrontFaceNormal = mesh->mNormals[face.mIndices[1]];
+                    const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
+                    bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                
+                    std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
+//                  std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(-090.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(-090.000f));
+                                        Move(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +10.00f, .y = +00.00f, .z = +10.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +10.00f, .y = +00.00f, .z = +10.00f }                                                                         );
+                }
+            }
+        }
+        else
+        {
+            std::cout << "Assimp error: " << importerC->GetErrorString() << std::endl;
+//          std::cout << "Assimp error: " << importerC->GetErrorString() << std::endl;
         }
     }
     catch (const std::exception& e)
