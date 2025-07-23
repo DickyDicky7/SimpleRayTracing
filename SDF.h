@@ -143,13 +143,13 @@
 
         // Calculates the signed distance from a point to a torus.
         // Calculates the signed distance from a point to a torus.
-        static inline float SDFTorus(const Point3& samplePoint, const Vec2& torusRadii)
-//      static inline float SDFTorus(const Point3& samplePoint, const Vec2& torusRadii)
+        static inline float SDFTorus(const Point3& samplePoint, const Vec2& majorRadiusMinorRadius)
+//      static inline float SDFTorus(const Point3& samplePoint, const Vec2& majorRadiusMinorRadius)
         {
-            // torusRadii.x is the major radius (distance from center to the tube's center)
-            // torusRadii.x is the major radius (distance from center to the tube's center)
-            // torusRadii.y is the minor radius (the radius of the tube itself)
-            // torusRadii.y is the minor radius (the radius of the tube itself)
+            // majorRadiusMinorRadius.x is the major radius (distance from center to the tube's center)
+            // majorRadiusMinorRadius.x is the major radius (distance from center to the tube's center)
+            // majorRadiusMinorRadius.y is the minor radius (the radius of the tube itself)
+            // majorRadiusMinorRadius.y is the minor radius (the radius of the tube itself)
 
             // Project the 3D sample point onto a 2D plane representing the torus cross-section.
             // Project the 3D sample point onto a 2D plane representing the torus cross-section.
@@ -157,21 +157,21 @@
             // The new x-component is the distance from the center of the tube.
             // The new y-component is the original height.
             // The new y-component is the original height.
-            Vec2 pointInCrossSection = Vec2{ Length(Vec2{samplePoint.x, samplePoint.z}) - torusRadii.x, samplePoint.y };
-//          Vec2 pointInCrossSection = Vec2{ Length(Vec2{samplePoint.x, samplePoint.z}) - torusRadii.x, samplePoint.y };
+            Vec2 pointInCrossSection = Vec2{ Length(Vec2{samplePoint.x, samplePoint.z}) - majorRadiusMinorRadius.x, samplePoint.y };
+//          Vec2 pointInCrossSection = Vec2{ Length(Vec2{samplePoint.x, samplePoint.z}) - majorRadiusMinorRadius.x, samplePoint.y };
 
             // The final distance is the SDF of a 2D circle in that cross-section plane.
             // The final distance is the SDF of a 2D circle in that cross-section plane.
-            return Length(pointInCrossSection) - torusRadii.y;
-//          return Length(pointInCrossSection) - torusRadii.y;
+            return Length(pointInCrossSection) - majorRadiusMinorRadius.y;
+//          return Length(pointInCrossSection) - majorRadiusMinorRadius.y;
         }
 
 
 
         // Calculates the signed distance to a torus capped with a cone/sphere section.
         // Calculates the signed distance to a torus capped with a cone/sphere section.
-        static inline float SDFCappedTorus(const Point3& samplePoint, const Vec2& capNormal, float majorRadius, float tubeRadius)
-//      static inline float SDFCappedTorus(const Point3& samplePoint, const Vec2& capNormal, float majorRadius, float tubeRadius)
+        static inline float SDFCappedTorus(const Point3& samplePoint, const Vec2& capNormalBySinCosAngles, float majorRadius, float tubeRadius)
+//      static inline float SDFCappedTorus(const Point3& samplePoint, const Vec2& capNormalBySinCosAngles, float majorRadius, float tubeRadius)
         {
             // Fold the space so we only need to consider the positive x-quadrant.
             // Fold the space so we only need to consider the positive x-quadrant.
@@ -189,15 +189,15 @@
             // This logic determines which part of the shape the sample point is closest to
             // by comparing its position relative to the line defined by the cap normal.
             // by comparing its position relative to the line defined by the cap normal.
-            if (capNormal.y * foldedPoint.x > capNormal.x * foldedPoint.y)
-//          if (capNormal.y * foldedPoint.x > capNormal.x * foldedPoint.y)
+            if (capNormalBySinCosAngles.y * foldedPoint.x > capNormalBySinCosAngles.x * foldedPoint.y)
+//          if (capNormalBySinCosAngles.y * foldedPoint.x > capNormalBySinCosAngles.x * foldedPoint.y)
             {
                 // If the point is in the "cone" region, the effective distance to the
                 // If the point is in the "cone" region, the effective distance to the
                 // torus centerline is the dot product with the cap normal.
                 // torus centerline is the dot product with the cap normal.
-                projectionDistance = Dot(Vec2{ foldedPoint.x, foldedPoint.y }, capNormal);
-//              projectionDistance = Dot(Vec2{ foldedPoint.x, foldedPoint.y }, capNormal);
+                projectionDistance = Dot(Vec2{ foldedPoint.x, foldedPoint.y }, capNormalBySinCosAngles);
+//              projectionDistance = Dot(Vec2{ foldedPoint.x, foldedPoint.y }, capNormalBySinCosAngles);
             }
             else
             {
@@ -272,6 +272,7 @@
         // Calculates the exact signed distance to a finite cone aligned with the Y-axis.
         // Calculates the exact signed distance to a finite cone aligned with the Y-axis.
         static inline float SDFConeExact(const Point3& samplePoint, const Vec2& coneAngleSinCos, float height)
+//      static inline float SDFConeExact(const Point3& samplePoint, const Vec2& coneAngleSinCos, float height)
         {
             // coneAngleSinCos contains the sine and cosine of the cone's half-angle.
             // coneAngleSinCos contains the sine and cosine of the cone's half-angle.
@@ -311,8 +312,8 @@
 
         // Calculates a fast, approximate ("bounding") signed distance to a cone.
         // Calculates a fast, approximate ("bounding") signed distance to a cone.
-        static inline float SDFConeBound(const Point3& samplePoint, const Vec2& coneNormal, float height)
-//      static inline float SDFConeBound(const Point3& samplePoint, const Vec2& coneNormal, float height)
+        static inline float SDFConeBound(const Point3& samplePoint, const Vec2& coneNormalBySinCosAngles, float height)
+//      static inline float SDFConeBound(const Point3& samplePoint, const Vec2& coneNormalBySinCosAngles, float height)
         {
             // This method uses the intersection of two planes (one for the slope, one for the cap)
             // This method uses the intersection of two planes (one for the slope, one for the cap)
@@ -321,10 +322,10 @@
             float radialDistance = Length(samplePoint.Swizzle<'x', 'z'>());
 //          float radialDistance = Length(samplePoint.Swizzle<'x', 'z'>());
 
-            // Dot product with coneNormal gives distance to the infinite cone slope.
-            // Dot product with coneNormal gives distance to the infinite cone slope.
-            float distanceToSlope = Dot(coneNormal.Swizzle<'x', 'y'>(), Vec2{ radialDistance, samplePoint.y });
-//          float distanceToSlope = Dot(coneNormal.Swizzle<'x', 'y'>(), Vec2{ radialDistance, samplePoint.y });
+            // Dot product with coneNormalBySinCosAngles gives distance to the infinite cone slope.
+            // Dot product with coneNormalBySinCosAngles gives distance to the infinite cone slope.
+            float distanceToSlope = Dot(coneNormalBySinCosAngles.Swizzle<'x', 'y'>(), Vec2{ radialDistance, samplePoint.y });
+//          float distanceToSlope = Dot(coneNormalBySinCosAngles.Swizzle<'x', 'y'>(), Vec2{ radialDistance, samplePoint.y });
 
             // Distance to the top capping plane.
             // Distance to the top capping plane.
@@ -946,6 +947,7 @@
 
 
 
+/*
         // Calculates the signed distance to an arbitrarily-oriented cone with rounded caps.
         // Calculates the signed distance to an arbitrarily-oriented cone with rounded caps.
         static inline float SDFRoundCone2(const Point3& samplePoint, const Vec3& startPoint, const Vec3& ceasePoint, float startRadius, float ceaseRadius)
@@ -982,20 +984,21 @@
             return (std::sqrtf(xSquared * slopeFactorSq * invSegmentLenSq) + yProjection * radiusDiff) * invSegmentLenSq - startRadius;
 //          return (std::sqrtf(xSquared * slopeFactorSq * invSegmentLenSq) + yProjection * radiusDiff) * invSegmentLenSq - startRadius;
         }
+*/
 
 
 
         // Calculates an approximate signed distance to an ellipsoid.
         // Calculates an approximate signed distance to an ellipsoid.
-        static inline float SDFEllipsoid(const Point3& samplePoint, const Vec3& radii)
-//      static inline float SDFEllipsoid(const Point3& samplePoint, const Vec3& radii)
+        static inline float SDFEllipsoid(const Point3& samplePoint, const Vec3& radiusUVW)
+//      static inline float SDFEllipsoid(const Point3& samplePoint, const Vec3& radiusUVW)
         {
             // This is a known, good approximation for the ellipsoid distance.
             // This is a known, good approximation for the ellipsoid distance.
-            float k0 = Length(samplePoint /  radii         );
-//          float k0 = Length(samplePoint /  radii         );
-            float k1 = Length(samplePoint / (radii * radii));
-//          float k1 = Length(samplePoint / (radii * radii));
+            float k0 = Length(samplePoint /  radiusUVW             );
+//          float k0 = Length(samplePoint /  radiusUVW             );
+            float k1 = Length(samplePoint / (radiusUVW * radiusUVW));
+//          float k1 = Length(samplePoint / (radiusUVW * radiusUVW));
             return k0 * (k0 - 1.0f) / k1;
 //          return k0 * (k0 - 1.0f) / k1;
         }
@@ -1045,6 +1048,7 @@
 
 
 
+/*
         // Calculates the signed distance to a rhombus with rounded edges.
         // Calculates the signed distance to a rhombus with rounded edges.
         static inline float SDFRhombus(const Point3& samplePoint, float halfDiagonalA, float halfDiagonalB, float halfHeight, float edgeRadius)
@@ -1070,6 +1074,7 @@
             return std::fminf(std::fmaxf(offsetFromEdge.x, offsetFromEdge.y), 0.0f) + Length(Max(offsetFromEdge, 0.0f));
 //          return std::fminf(std::fmaxf(offsetFromEdge.x, offsetFromEdge.y), 0.0f) + Length(Max(offsetFromEdge, 0.0f));
         }
+*/
 
 
 
@@ -1117,6 +1122,7 @@
 
 
 
+/*
         // Calculates the signed distance to a square-base pyramid.
         // Calculates the signed distance to a square-base pyramid.
         static inline float SDFPyramid(const Point3& samplePoint, float height)
@@ -1185,6 +1191,7 @@
             return std::sqrtf((minSquaredDistance + pointInSlopePlane.z * pointInSlopePlane.z) / slopeSquared) * Sign(std::fmaxf(pointInSlopePlane.z, -pointTemporarily.y));
 //          return std::sqrtf((minSquaredDistance + pointInSlopePlane.z * pointInSlopePlane.z) / slopeSquared) * Sign(std::fmaxf(pointInSlopePlane.z, -pointTemporarily.y));
         }
+*/
 
 
 

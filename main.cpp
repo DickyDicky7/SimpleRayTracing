@@ -4806,8 +4806,8 @@ int main()
 //  metaballs.implicitSurface.maxSteps = 1000;
     metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
 //  metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
-    metaballs.implicitSurface.hitEpsilon = 0.0001f;
-//  metaballs.implicitSurface.hitEpsilon = 0.0001f;
+    metaballs.implicitSurface.hitEpsilon = 0.00001f; // 1e-5f
+//  metaballs.implicitSurface.hitEpsilon = 0.00001f; // 1e-5f
 
     metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
 //  metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
