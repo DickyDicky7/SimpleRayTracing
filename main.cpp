@@ -2,9 +2,9 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 //      #define SCENE_000
-        #define SCENE_001
+//      #define SCENE_001
 //      #define SCENE_002
-//      #define SCENE_003
+        #define SCENE_003
 //      #define SCENE_004
 //      #define SCENE_005
 //      #define SCENE_006
@@ -14,8 +14,13 @@
 //      #define OLD_PNG_SAMPLING
         #define NEW_PNG_SAMPLING
 
+        #define USE_OIDN
 //      #define USE_OIDN
-//      #define USE_OIDN
+
+//      #define FOG_SIMPLE
+//      #define FOG_SIMPLE
+//      #define FOG_HEIGHT
+//      #define FOG_HEIGHT
 
 #include <string_view>
 #include <iostream>
@@ -24,6 +29,7 @@
 #include <ctime>
 #include <cmath>
 #include <array>
+#include "SDF.h"
 #include <iomanip>
 #include <cstdint>
 #include <numbers>
@@ -32,6 +38,8 @@
 #include <random>
 #include <vector>
 #include "Lazy.h"
+#include "Vec2.h"
+#include "Vec3.h"
 #include <span>
 #include "ImagePNG.h"
 #include "ImageJPG.h"
@@ -48,6 +56,22 @@
 #ifdef USE_OIDN
   #include <OpenImageDenoise/oidn.hpp>
 //#include <OpenImageDenoise/oidn.hpp>
+#endif
+#ifdef FOG_SIMPLE
+    constexpr Color3 _EX_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.09f, 0.09f, 0.09f };
+//  constexpr Color3 _EX_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.09f, 0.09f, 0.09f };
+    constexpr Color3 _IN_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.01f, 0.01f, 0.01f };
+//  constexpr Color3 _IN_SCATTERING_FOG_SIMPLE_DENSITY_{ 0.01f, 0.01f, 0.01f };
+    constexpr Color3 _FOG_SIMPLE_COLOR_{ 0.5f, 0.6f, 0.7f };
+//  constexpr Color3 _FOG_SIMPLE_COLOR_{ 0.5f, 0.6f, 0.7f };
+#endif
+#ifdef FOG_HEIGHT
+    constexpr float  _FOG_HEIGHT_DENSITY_ = 0.01f;
+//  constexpr float  _FOG_HEIGHT_DENSITY_ = 0.01f;
+    constexpr float  _FOG_HEIGHT_FALLOFF_ = 0.08f;
+//  constexpr float  _FOG_HEIGHT_FALLOFF_ = 0.08f;
+    constexpr Color3 _FOG_HEIGHT_COLOR_{ 0.5f, 0.6f, 0.7f };
+//  constexpr Color3 _FOG_HEIGHT_COLOR_{ 0.5f, 0.6f, 0.7f };
 #endif
 
     enum class BackgroundType : std::uint8_t
@@ -208,240 +232,12 @@ struct AABB3D
 }
 
 
-struct Vec3
-{
-    float x;
-    float y;
-    float z;
-
-    Vec3  operator- (              ) const { return Vec3 { -x, -y, -z }; }
-//  Vec3  operator- (              ) const { return Vec3 { -x, -y, -z }; }
-    Vec3& operator+=(const Vec3 & v)
-    {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        return *this;
-    }
-    Vec3& operator-=(const Vec3 & v)
-    {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        return *this;
-    }
-    Vec3& operator*=(const Vec3 & v)
-    {
-        x *= v.x;
-        y *= v.y;
-        z *= v.z;
-        return *this;
-    }
-    Vec3& operator/=(const Vec3 & v)
-    {
-        x /= v.x;
-        y /= v.y;
-        z /= v.z;
-        return *this;
-    }
-    Vec3& operator*=(const float& v)
-    {
-        x *= v;
-        y *= v;
-        z *= v;
-        return *this;
-    }
-    Vec3& operator/=(const float& v)
-    {
-        x /= v;
-        y /= v;
-        z /= v;
-        return *this;
-    }
-
-    float Length       () const { return std::sqrt(LengthSquared()); }
-//  float Length       () const { return std::sqrt(LengthSquared()); }
-    float LengthSquared() const { return x * x
-                                       + y * y
-                                       + z * z                     ; }
-
-    bool NearZero() const
-//  bool NearZero() const
-    {
-        // Return true if the vector is close to zero in all dimensions.
-        // Return true if the vector is close to zero in all dimensions.
-        constexpr float s = 1e-8f;
-//      constexpr float s = 1e-8f;
-        return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
-//      return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
-    }
-};
-
-
-using Point3 = Vec3;
-using Color3 = Vec3;
-
-static inline Vec3 operator+(const Vec3& u, const Vec3& v) { return Vec3 { u.x + v.x, u.y + v.y, u.z + v.z }; }
-static inline Vec3 operator-(const Vec3& u, const Vec3& v) { return Vec3 { u.x - v.x, u.y - v.y, u.z - v.z }; }
-static inline Vec3 operator*(const Vec3& u, const Vec3& v) { return Vec3 { u.x * v.x, u.y * v.y, u.z * v.z }; }
-static inline Vec3 operator/(const Vec3& u, const Vec3& v) { return Vec3 { u.x / v.x, u.y / v.y, u.z / v.z }; }
-
-static inline Vec3 operator*(const Vec3& u, float t) { return Vec3 { u.x * t, u.y * t, u.z * t }; }
-static inline Vec3 operator/(const Vec3& u, float t) { return Vec3 { u.x / t, u.y / t, u.z / t }; }
-
-static inline Vec3 operator*(float t, const Vec3& u) { return Vec3 { t * u.x, t * u.y, t * u.z }; }
-static inline Vec3 operator/(float t, const Vec3& u) { return Vec3 { t / u.x, t / u.y, t / u.z }; }
-
-
-    // 4x4 matrix: a flat array of 16 floats (row-major order)
-//  // 4x4 matrix: a flat array of 16 floats (row-major order)
-    static inline Vec3 operator*(const float* m, const Vec3& v)
-//  static inline Vec3 operator*(const float* m, const Vec3& v)
-{
-    float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
-//  float x = m[ 0] * v.x + m[ 1] * v.y + m[ 2] * v.z + m[ 3];
-    float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
-//  float y = m[ 4] * v.x + m[ 5] * v.y + m[ 6] * v.z + m[ 7];
-    float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
-//  float z = m[ 8] * v.x + m[ 9] * v.y + m[10] * v.z + m[11];
-    float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
-//  float w = m[12] * v.x + m[13] * v.y + m[14] * v.z + m[15];
-
-    if (w != 0.0f
-    &&  w != 1.0f)
-    {
-        float invW = 1.0f / w;
-        x *=  invW           ;
-        y *=  invW           ;
-        z *=  invW           ;
-    }
-
-    return { x, y, z };
-//  return { x, y, z };
-}
-
-
-    static inline float Dot(const Vec3& u, const Vec3& v)
-//  static inline float Dot(const Vec3& u, const Vec3& v)
-{
-    return u.x * v.x
-         + u.y * v.y
-         + u.z * v.z
-         ;
-}
-
-static
-inline Vec3  Cross(const Vec3& u, const Vec3& v)
-{
-return Vec3 { u.y * v.z - u.z * v.y,
-              u.z * v.x - u.x * v.z,
-              u.x * v.y - u.y * v.x,
-            };
-}
-
-  inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
-//inline static Vec3 Normalize(const Vec3& v) { return v / v.Length(); }
 
 
 
 
 
 
-struct Vec2
-{
-    float x;
-    float y;
-
-    Vec2  operator- (             ) const { return Vec2 { -x, -y }; }
-//  Vec2  operator- (             ) const { return Vec2 { -x, -y }; }
-    Vec2& operator+=(const Vec2 & v)
-    {
-        x += v.x;
-        y += v.y;
-        return *this;
-    }
-    Vec2& operator-=(const Vec2 & v)
-    {
-        x -= v.x;
-        y -= v.y;
-        return *this;
-    }
-    Vec2& operator*=(const Vec2 & v)
-    {
-        x *= v.x;
-        y *= v.y;
-        return *this;
-    }
-    Vec2& operator/=(const Vec2 & v)
-    {
-        x /= v.x;
-        y /= v.y;
-        return *this;
-    }
-    Vec2& operator*=(const float& v)
-    {
-        x *= v;
-        y *= v;
-        return *this;
-    }
-    Vec2& operator/=(const float& v)
-    {
-        x /= v;
-        y /= v;
-        return *this;
-    }
-
-    float Length       () const { return std::sqrt(LengthSquared()); }
-//  float Length       () const { return std::sqrt(LengthSquared()); }
-    float LengthSquared() const { return x * x
-                                       + y * y                     ; }
-
-    bool NearZero() const
-//  bool NearZero() const
-    {
-        // Return true if the vector is close to zero in all dimensions.
-        // Return true if the vector is close to zero in all dimensions.
-        constexpr float s = 1e-8f;
-//      constexpr float s = 1e-8f;
-        return (std::fabs(x) < s) && (std::fabs(y) < s);
-//      return (std::fabs(x) < s) && (std::fabs(y) < s);
-    }
-};
-
-
-using Point2 = Vec2;
-using Color2 = Vec2;
-
-static inline Vec2 operator+(const Vec2& u, const Vec2& v) { return Vec2 { u.x + v.x, u.y + v.y }; }
-static inline Vec2 operator-(const Vec2& u, const Vec2& v) { return Vec2 { u.x - v.x, u.y - v.y }; }
-static inline Vec2 operator*(const Vec2& u, const Vec2& v) { return Vec2 { u.x * v.x, u.y * v.y }; }
-static inline Vec2 operator/(const Vec2& u, const Vec2& v) { return Vec2 { u.x / v.x, u.y / v.y }; }
-
-static inline Vec2 operator*(const Vec2& u, float t) { return Vec2 { u.x * t, u.y * t }; }
-static inline Vec2 operator/(const Vec2& u, float t) { return Vec2 { u.x / t, u.y / t }; }
-
-static inline Vec2 operator*(float t, const Vec2& u) { return Vec2 { t * u.x, t * u.y }; }
-static inline Vec2 operator/(float t, const Vec2& u) { return Vec2 { t / u.x, t / u.y }; }
-
-
-    static inline float Dot(const Vec2& u, const Vec2& v)
-//  static inline float Dot(const Vec2& u, const Vec2& v)
-{
-    return u.x * v.x
-         + u.y * v.y
-         ;
-}
-
-    static inline Vec2 Cross(const Vec2& u, const Vec2& v)
-//  static inline Vec2 Cross(const Vec2& u, const Vec2& v)
-{
-    return Vec2 { u.y * v.x - u.x * v.y,
-                  u.x * v.y - u.y * v.x,
-                };
-}
-
-  inline static Vec2 Normalize(const Vec2& v) { return v / v.Length(); }
-//inline static Vec2 Normalize(const Vec2& v) { return v / v.Length(); }
 
 
 
@@ -1221,10 +1017,11 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //          const Vec3& p = GenRandom(-1.0f, +1.0f);
             const float& pLengthSquared = p.LengthSquared();
 //          const float& pLengthSquared = p.LengthSquared();
-            if (pLengthSquared <= 1.0000f
-            &&  pLengthSquared >  1e-160f)
+            if (pLengthSquared <= 1.0000f && pLengthSquared > 1e-4f)
+//          if (pLengthSquared <= 1.0000f && pLengthSquared > 1e-4f)
             {
                 return p / std::sqrt(pLengthSquared);
+//              return p / std::sqrt(pLengthSquared);
             }
         }
     }
@@ -1298,30 +1095,6 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //      return r0 + (1.0f - r0) * std::powf((1.0f - cosine), 5.0f);
     }
 
-inline
-static float  BlendLinear(      float startValue,       float ceaseValue,       float ratio)
-{
-return (1.0f - ratio) * startValue
-             + ratio  * ceaseValue;
-}
-inline
-static Vec3   BlendLinear(const Vec3& startValue, const Vec3& ceaseValue,       float ratio)
-{
-return Vec3 {
-              BlendLinear(startValue.x, ceaseValue.x, ratio),
-              BlendLinear(startValue.y, ceaseValue.y, ratio),
-              BlendLinear(startValue.z, ceaseValue.z, ratio),
-            };
-}
-inline
-static Vec3   BlendLinear(const Vec3& startValue, const Vec3& ceaseValue, const Vec3& ratio)
-{
-return Vec3 {
-              BlendLinear(startValue.x, ceaseValue.x, ratio.x),
-              BlendLinear(startValue.y, ceaseValue.y, ratio.y),
-              BlendLinear(startValue.z, ceaseValue.z, ratio.z),
-            };
-}
 
 
     enum class MaterialType       : std::uint8_t
@@ -1431,17 +1204,88 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //  PRIMITIVE = 1,
     PRIMITIVE = 1,
 //  PRIMITIVE = 1,
+//  IMPLICIT_SURFACE = 2,
+    IMPLICIT_SURFACE = 2,
+//  IMPLICIT_SURFACE = 2,
 };
 
     struct Geometry
 //  struct Geometry
 {
 //  with triangle: vertex 0 normal == vertex 1 normal == vertex 2 normal => @flat@ shading
+//  with triangle: vertex 0 normal == vertex 1 normal == vertex 2 normal => @flat@ shading
 //  with triangle: vertex 0 normal != vertex 1 normal != vertex 2 normal => smooth shading
-    union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
-//  union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
+//  with triangle: vertex 0 normal != vertex 1 normal != vertex 2 normal => smooth shading
+    union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { float(*sdf)(const Point3& p); int maxSteps; float maxMarchingDistance; float hitEpsilon; } implicitSurface; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
+//  union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { float(*sdf)(const Point3& p); int maxSteps; float maxMarchingDistance; float hitEpsilon; } implicitSurface; }; AABB3D aabb3d; Material material; Vec3 movingDirection; GeometryType geometryType;
 
 };
+
+
+
+
+
+
+    inline static float SdfSphere(const Point3& p, float radius)
+//  inline static float SdfSphere(const Point3& p, float radius)
+    {
+        return p.Length() - radius;
+//      return p.Length() - radius;
+    }
+    inline static float SdfTorus(const Point3& p, const Vec2& t)
+//  inline static float SdfTorus(const Point3& p, const Vec2& t)
+    {
+        Vec2 q = { .x = Vec2{ p.x, p.z }.Length() - t.x, .y = p.y };
+//      Vec2 q = { .x = Vec2{ p.x, p.z }.Length() - t.x, .y = p.y };
+        return q.Length() - t.y;
+//      return q.Length() - t.y;
+    }
+    inline static float SdfSmoothUnion(float d1, float d2, float k)
+//  inline static float SdfSmoothUnion(float d1, float d2, float k)
+    {
+        float h = std::clamp(0.5f + 0.5f * (d2 - d1) / k, 0.0f, 1.0f);
+//      float h = std::clamp(0.5f + 0.5f * (d2 - d1) / k, 0.0f, 1.0f);
+        return BlendLinear(d2, d1, h) - k * h * (1.0f - h);
+//      return BlendLinear(d2, d1, h) - k * h * (1.0f - h);
+    }
+    inline static float SdfMetaballs(const Point3& p)
+//  inline static float SdfMetaballs(const Point3& p)
+    {
+//        Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
+////      Point3 p1 = p - Point3{ -8.0f, 0.0f, 0.0f };
+//        Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
+////      Point3 p2 = p - Point3{ +8.0f, 0.0f, 0.0f };
+//        float sphere1Dist = SdfSphere(p1, 10.00f);
+////      float sphere1Dist = SdfSphere(p1, 10.00f);
+//        float sphere2Dist = SdfSphere(p2, 10.00f);
+////      float sphere2Dist = SdfSphere(p2, 10.00f);
+//        return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+////      return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+        return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
+//      return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
+    }
+    inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
+//  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
+    {
+        constexpr float epsilon = 1e-4f;
+//      constexpr float epsilon = 1e-4f;
+        Vec3 normal =
+//      Vec3 normal =
+        {
+            .x = sdf(Point3{p.x           + epsilon, p.y, p.z}) - sdf(Point3{p.x           - epsilon, p.y, p.z}),
+//          .x = sdf(Point3{p.x           + epsilon, p.y, p.z}) - sdf(Point3{p.x           - epsilon, p.y, p.z}),
+            .y = sdf(Point3{p.x, p.y      + epsilon     , p.z}) - sdf(Point3{p.x, p.y      - epsilon     , p.z}),
+//          .y = sdf(Point3{p.x, p.y      + epsilon     , p.z}) - sdf(Point3{p.x, p.y      - epsilon     , p.z}),
+            .z = sdf(Point3{p.x, p.y, p.z + epsilon          }) - sdf(Point3{p.x, p.y, p.z - epsilon          }),
+//          .z = sdf(Point3{p.x, p.y, p.z + epsilon          }) - sdf(Point3{p.x, p.y, p.z - epsilon          }),
+        };
+        return Normalize(normal);
+//      return Normalize(normal);
+    }
+
+
+
+
 
 
     inline static bool IsStationary(Geometry& g)
@@ -1476,8 +1320,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         case GeometryType::PRIMITIVE:
 //      case GeometryType::PRIMITIVE:
             {
-                constexpr float padding = 1e-3f; // COULD BE LOWER
-//              constexpr float padding = 1e-3f; // COULD BE LOWER
+                constexpr float padding = 1e-4f; // COULD BE LOWER
+//              constexpr float padding = 1e-4f; // COULD BE LOWER
                 g.aabb3d.intervalAxisX.min = std::fminf(g.primitive.vertex0.x, std::fminf(g.primitive.vertex1.x, g.primitive.vertex2.x)) - padding;
                 g.aabb3d.intervalAxisY.min = std::fminf(g.primitive.vertex0.y, std::fminf(g.primitive.vertex1.y, g.primitive.vertex2.y)) - padding;
                 g.aabb3d.intervalAxisZ.min = std::fminf(g.primitive.vertex0.z, std::fminf(g.primitive.vertex1.z, g.primitive.vertex2.z)) - padding;
@@ -1515,8 +1359,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         case GeometryType::PRIMITIVE:
 //      case GeometryType::PRIMITIVE:
             {
-                constexpr float padding = 1e-3f; // COULD BE LOWER
-//              constexpr float padding = 1e-3f; // COULD BE LOWER
+                constexpr float padding = 1e-4f; // COULD BE LOWER
+//              constexpr float padding = 1e-4f; // COULD BE LOWER
                 const Point3& destinationVertex0 = Marching(g.primitive.vertex0, g.movingDirection, 1.0f);
                 const Point3& destinationVertex1 = Marching(g.primitive.vertex1, g.movingDirection, 1.0f);
                 const Point3& destinationVertex2 = Marching(g.primitive.vertex2, g.movingDirection, 1.0f);
@@ -1611,8 +1455,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     {
         // Avoid division by zero at grazing
         // Avoid division by zero at grazing
-        if (iCosThetaFromExternalLayerToFilmLayer < 1e-6f)
-            iCosThetaFromExternalLayerToFilmLayer = 1e-6f;
+        if (iCosThetaFromExternalLayerToFilmLayer < 1e-4f)
+            iCosThetaFromExternalLayerToFilmLayer = 1e-4f;
 
         // Angle in film (Snell's Law: externalLayerIOR * iSinThetaFromExternalLayerToFilmLayer = filmLayerIOR * tSinThetaFromExternalLayerToFilmLayer)
         // Angle in film (Snell's Law: externalLayerIOR * iSinThetaFromExternalLayerToFilmLayer = filmLayerIOR * tSinThetaFromExternalLayerToFilmLayer)
@@ -2508,8 +2352,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2612,8 +2456,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2716,8 +2560,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -2820,8 +2664,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             // If TIR for refraction, it must reflect
             // Refract might return zero vector on TIR
             // Refract might return zero vector on TIR
-            if (scatteredRayDirection.LengthSquared() < 1e-6f)
-//          if (scatteredRayDirection.LengthSquared() < 1e-6f)
+            if (scatteredRayDirection.LengthSquared() < 1e-4f)
+//          if (scatteredRayDirection.LengthSquared() < 1e-4f)
             {
                 reflects = true;
 //              reflects = true;
@@ -3113,8 +2957,8 @@ static RayHitResult RayHit(const Geometry& geo
 
             // Small epsilon to handle floating-point inaccuracies
 //          // Small epsilon to handle floating-point inaccuracies
-            constexpr float EPSILON = 1e-8f;
-//          constexpr float EPSILON = 1e-8f;
+            constexpr float EPSILON = 1e-4f;
+//          constexpr float EPSILON = 1e-4f;
 
             // Calculate two edges of the primitive from its vertices
 //          // Calculate two edges of the primitive from its vertices
@@ -3247,6 +3091,84 @@ static RayHitResult RayHit(const Geometry& geo
 //      break;
 
 
+        case GeometryType::IMPLICIT_SURFACE:
+//      case GeometryType::IMPLICIT_SURFACE:
+        {
+            if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .material = geo.material, .hitted = false, }; }
+//          if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .material = geo.material, .hitted = false, }; }
+            float t = rayT.min;
+//          float t = rayT.min;
+            for (int i = 0; i < geo.implicitSurface.maxSteps; ++i)
+//          for (int i = 0; i < geo.implicitSurface.maxSteps; ++i)
+            {
+                Point3 currentPoint = ray.Marching(t);
+//              Point3 currentPoint = ray.Marching(t);
+                float dist = geo.implicitSurface.sdf(currentPoint);
+//              float dist = geo.implicitSurface.sdf(currentPoint);
+
+                if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
+//              if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
+                {
+                    RayHitResult rayHitResult{ .material = geo.material };
+//                  RayHitResult rayHitResult{ .material = geo.material };
+                    rayHitResult.hitted = true;
+//                  rayHitResult.hitted = true;
+                    rayHitResult.minT = t;
+//                  rayHitResult.minT = t;
+                    rayHitResult.at = currentPoint;
+//                  rayHitResult.at = currentPoint;
+                    
+                    Vec3 outwardNormal = CalculateImplicitNormal(geo.implicitSurface.sdf, currentPoint);
+//                  Vec3 outwardNormal = CalculateImplicitNormal(geo.implicitSurface.sdf, currentPoint);
+                    rayHitResult.isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
+//                  rayHitResult.isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
+                    if (rayHitResult.isFrontFace)
+//                  if (rayHitResult.isFrontFace)
+                    {
+                        rayHitResult.normal =  outwardNormal;
+//                      rayHitResult.normal =  outwardNormal;
+                    }
+                    else
+                    {
+                        rayHitResult.normal = -outwardNormal;
+//                      rayHitResult.normal = -outwardNormal;
+                    }
+
+                    rayHitResult.uSurfaceCoordinate = rayHitResult.at.x;
+//                  rayHitResult.uSurfaceCoordinate = rayHitResult.at.x;
+                    rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
+//                  rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
+
+                    float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
+//                  float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
+                    if (finalDist < 0.0f)
+//                  if (finalDist < 0.0f)
+                    {
+                        rayHitResult.at += outwardNormal;
+//                      rayHitResult.at += outwardNormal;
+                    }
+
+                    return rayHitResult;
+//                  return rayHitResult;
+                }
+
+                t += abs(dist);
+//              t += abs(dist);
+
+                if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
+//              if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
+                {
+                    break;
+//                  break;
+                }
+            }
+            return RayHitResult{ .material = geo.material, .hitted = false, };
+//          return RayHitResult{ .material = geo.material, .hitted = false, };
+        }
+        break;
+//      break;
+
+
         default:
 //      default:
         {
@@ -3304,8 +3226,8 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
     for (int depth = 0; depth < maxDepth; ++depth)
 //  for (int depth = 0; depth < maxDepth; ++depth)
     {
-        const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//      const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+        const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//      const RayHitResult& rayHitResult = RayHit(geometries, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 
         if (rayHitResult.hitted) [[unlikely]]
 //      if (rayHitResult.hitted) [[unlikely]]
@@ -3496,8 +3418,8 @@ static Color3 RayColor(const Ray& initialRay, const std::vector<Geometry>& geome
 //              RayHitResult rayHitResultEntry = RayHit(bvhTree, 0, ray, Interval::universe);
                 if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
 //              if (!rayHitResultEntry.hitted) { return rayHitResultEntry; }
-                RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
-//              RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 0.0001f, .max = positiveInfinity, });
+                RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 1e-4f, .max = positiveInfinity, });
+//              RayHitResult rayHitResultExits = RayHit(bvhTree, 0, ray, Interval{ .min = rayHitResultEntry.minT + 1e-4f, .max = positiveInfinity, });
                 if (!rayHitResultExits.hitted) { return rayHitResultExits; }
 //              if (!rayHitResultExits.hitted) { return rayHitResultExits; }
                 if (rayHitResultEntry.minT < rayT.min) { rayHitResultEntry.minT = rayT.min; }
@@ -4043,8 +3965,8 @@ enum class Axis : std::uint8_t
         for (int depth = 0; depth < maxDepth; ++depth)
 //      for (int depth = 0; depth < maxDepth; ++depth)
         {
-            const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//          const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+            const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//          const RayHitResult& rayHitResult = RayHit(bvhTree, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
 
             if (!rayHitResult.hitted) [[unlikely]]
 //          if (!rayHitResult.hitted) [[unlikely]]
@@ -4116,6 +4038,34 @@ enum class Axis : std::uint8_t
         return accumulatedColor;
 //      return accumulatedColor;
 }
+    #if defined(FOG_HEIGHT)
+//  #if defined(FOG_HEIGHT)
+    static inline Color3 ApplyFogHeight(const Color3& accumulatedColor, float minT, const Ray& initialRay, const Color3& fogColor, float fogDensity, float fogFalloff)
+//  static inline Color3 ApplyFogHeight(const Color3& accumulatedColor, float minT, const Ray& initialRay, const Color3& fogColor, float fogDensity, float fogFalloff)
+    {
+        float fogAmount;
+//      float fogAmount;
+        if (std::fabsf(initialRay.dir.y) < 1e-4f)
+//      if (std::fabsf(initialRay.dir.y) < 1e-4f)
+        {
+            fogAmount = fogDensity * std::expf(-initialRay.ori.y * fogFalloff) * minT;
+//          fogAmount = fogDensity * std::expf(-initialRay.ori.y * fogFalloff) * minT;
+        }
+        else
+//      else
+        {
+            fogAmount = (fogDensity / fogFalloff) * (std::expf(-initialRay.ori.y * fogFalloff)) * ((1.0f - std::expf(-minT * initialRay.dir.y * fogFalloff)) / initialRay.dir.y);
+//          fogAmount = (fogDensity / fogFalloff) * (std::expf(-initialRay.ori.y * fogFalloff)) * ((1.0f - std::expf(-minT * initialRay.dir.y * fogFalloff)) / initialRay.dir.y);
+        }
+        // CRITICAL: Clamp the fog amount to [0 ; 1] to ensure the mix is valid. The formula can produce values > 1 for very long distances or certain parameters.
+        // CRITICAL: Clamp the fog amount to [0 ; 1] to ensure the mix is valid. The formula can produce values > 1 for very long distances or certain parameters.
+        fogAmount = std::clamp(fogAmount, 0.0f, 1.0f);
+//      fogAmount = std::clamp(fogAmount, 0.0f, 1.0f);
+        return BlendLinear(accumulatedColor, fogColor, fogAmount);
+//      return BlendLinear(accumulatedColor, fogColor, fogAmount);
+    }
+    #endif
+//  #endif
     inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
 //  inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
 {
@@ -4126,11 +4076,25 @@ enum class Axis : std::uint8_t
         Ray currentRay = initialRay;
 //      Ray currentRay = initialRay;
 
+    #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+//  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+        RayHitResult firstRayHitResult{};
+//      RayHitResult firstRayHitResult{};
+    #endif
+//  #endif
+
         for (int depth = 0; depth < maxDepth; ++depth)
 //      for (int depth = 0; depth < maxDepth; ++depth)
         {
-            const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
-//          const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 0.001f, .max = positiveInfinity });
+            const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+//          const RayHitResult& rayHitResult = RayHit(bvhTreeMain, 0, currentRay, Interval{ .min = 1e-4f, .max = positiveInfinity });
+
+    #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+//  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+            if (depth == 0) { firstRayHitResult = rayHitResult; }
+//          if (depth == 0) { firstRayHitResult = rayHitResult; }
+    #endif
+//  #endif
 
             if (!rayHitResult.hitted) [[unlikely]]
 //          if (!rayHitResult.hitted) [[unlikely]]
@@ -4230,8 +4194,34 @@ enum class Axis : std::uint8_t
 //          currentRay   = scatterResult.scatteredRay;
         }
 
+    #if defined(FOG_SIMPLE)
+//  #if defined(FOG_SIMPLE)
+        Color3 exColor
+//      Color3 exColor
+        {
+            .x = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _EX_SCATTERING_FOG_SIMPLE_DENSITY_.z),
+        };
+        Color3 inColor
+//      Color3 inColor
+        {
+            .x = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.x),
+            .y = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.y),
+            .z = std::expf(-firstRayHitResult.minT * _IN_SCATTERING_FOG_SIMPLE_DENSITY_.z),
+        };
+        return accumulatedColor * exColor + _FOG_SIMPLE_COLOR_ * (1.0f - inColor);
+//      return accumulatedColor * exColor + _FOG_SIMPLE_COLOR_ * (1.0f - inColor);
+    #elif defined(FOG_HEIGHT)
+//  #elif defined(FOG_HEIGHT)
+        return ApplyFogHeight(accumulatedColor, firstRayHitResult.minT, initialRay, _FOG_HEIGHT_COLOR_, _FOG_HEIGHT_DENSITY_, _FOG_HEIGHT_FALLOFF_);
+//      return ApplyFogHeight(accumulatedColor, firstRayHitResult.minT, initialRay, _FOG_HEIGHT_COLOR_, _FOG_HEIGHT_DENSITY_, _FOG_HEIGHT_FALLOFF_);
+    #else
+//  #else
         return accumulatedColor;
 //      return accumulatedColor;
+    #endif
+//  #endif
 }
 
 
@@ -4539,8 +4529,8 @@ int main()
 //  imagesDatabase.svgs.emplace_back("example-002.svg");
 #endif
 #ifdef SCENE_001
-    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
-//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/industrial_sunset_puresky_16k.exr)");
+    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
     imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 //  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 #endif
@@ -4549,10 +4539,14 @@ int main()
 //  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
 #endif
 #ifdef SCENE_003
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/ChinaVase.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Chiours.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Chiours.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Owl.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Owl.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Bob.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Bob.png)");
+    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Cat.png)");
+//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Cat.png)");
 #endif
 #ifdef SCENE_004
 #endif
@@ -4607,6 +4601,9 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+
 #endif
 #ifdef SCENE_002
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
@@ -4624,14 +4621,18 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 010.000f, 010.000f, 010.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 001.000f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 001.000f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.992f, 000.816f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.992f, 000.816f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.553f, 000.216f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.553f, 000.216f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.031f, 000.482f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.031f, 000.482f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.965f, 000.976f, 000.984f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.965f, 000.976f, 000.984f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.231f, 000.525f, 000.620f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.231f, 000.525f, 000.620f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.380f, 000.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.380f, 000.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
 #endif
 #ifdef SCENE_004
 #endif
@@ -4773,21 +4774,54 @@ int main()
     bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .sphere = { .center = { .x = +3.0f, .y = -1.5f, .z = +1.5f }, .radius = 1.0f, }, .material = { .layer1Roughness = 1.0f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 20, .materialType = MaterialType::Metal       , }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::SPHERE, });
 #endif
 #ifdef SCENE_001
-    bvhTreeMain.bvhTrees.reserve(2);
-//  bvhTreeMain.bvhTrees.reserve(2);
-    for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-//  for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
-//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
-    bvhTreeMain.bvhTrees[0].geometries.reserve(2);
-//  bvhTreeMain.bvhTrees[0].geometries.reserve(2);
-    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
-//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
+    bvhTreeMain.bvhTrees.reserve(1);
+//  bvhTreeMain.bvhTrees.reserve(1);
+    for (std::uint8_t i = 0; i < 1; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+//  for (std::uint8_t i = 0; i < 1; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(1 * 2 - 1));
+//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(1 * 2 - 1));
+    bvhTreeMain.bvhTrees[0].geometries.reserve(3);
+//  bvhTreeMain.bvhTrees[0].geometries.reserve(3);
+    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
+//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
 
     //FLOOR
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
 
+
+
+    Geometry metaballs;
+//  Geometry metaballs;
+    metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
+//  metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
+    metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
+//  metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
+    metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
+//  metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
+
+    metaballs.implicitSurface.sdf = &SdfMetaballs;
+//  metaballs.implicitSurface.sdf = &SdfMetaballs;
+    metaballs.implicitSurface.maxSteps = 1000;
+//  metaballs.implicitSurface.maxSteps = 1000;
+    metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
+//  metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
+    metaballs.implicitSurface.hitEpsilon = 0.00001f; // 1e-5f
+//  metaballs.implicitSurface.hitEpsilon = 0.00001f; // 1e-5f
+
+    metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisX = { -100.0f, +100.0f };
+    metaballs.aabb3d.intervalAxisY = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisY = { -100.0f, +100.0f };
+    metaballs.aabb3d.intervalAxisZ = { -100.0f, +100.0f };
+//  metaballs.aabb3d.intervalAxisZ = { -100.0f, +100.0f };
+
+    bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
+//  bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
+
+
+
+/*
     //MODEL
     std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
 //  std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
@@ -4901,6 +4935,7 @@ int main()
         std::cout << "General error: " << e.what() << std::endl;
 //      std::cout << "General error: " << e.what() << std::endl;
     }
+*/
 
 #endif
 #ifdef SCENE_002
@@ -5046,12 +5081,12 @@ int main()
 
 #endif
 #ifdef SCENE_003
-    bvhTreeMain.bvhTrees.reserve(4);
-//  bvhTreeMain.bvhTrees.reserve(4);
-    for (std::uint8_t i = 0; i < 4; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-//  for (std::uint8_t i = 0; i < 4; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(4 * 2 - 1));
-//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(4 * 2 - 1));
+    bvhTreeMain.bvhTrees.reserve(6);
+//  bvhTreeMain.bvhTrees.reserve(6);
+    for (std::uint8_t i = 0; i < 6; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+//  for (std::uint8_t i = 0; i < 6; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(6 * 2 - 1));
+//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(6 * 2 - 1));
     bvhTreeMain.bvhTrees[0].geometries.reserve(44);
 //  bvhTreeMain.bvhTrees[0].geometries.reserve(44);
     bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(44 * 2 - 1));
@@ -5222,8 +5257,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/Chiours.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerA->ReadFile(R"(./assets/scene003/Chiours.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5235,8 +5270,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 1.0f;
-//                  mesh->mVertices[vertexIndex] *= 1.0f;
+                    mesh->mVertices[vertexIndex] *= 9.0f;
+//                  mesh->mVertices[vertexIndex] *= 9.0f;
                 }
             }
 
@@ -5306,8 +5341,8 @@ int main()
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[2].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
 //                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
-                                        Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = -07.00f, .y = +00.00f, .z = -07.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = -07.00f, .y = +00.00f, .z = -07.00f }                                                                         );
+                                        Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +07.50f, .y = +00.00f, .z = -10.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +07.50f, .y = +00.00f, .z = -10.00f }                                                                         );
                 }
             }
         }
@@ -5337,8 +5372,8 @@ int main()
         float minModelZ = std::numeric_limits<float>::max();
         float maxModelZ = std::numeric_limits<float>::lowest();
 
-        aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/ChinaVase.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/Owl.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerB->ReadFile(R"(./assets/scene003/Owl.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
@@ -5350,8 +5385,8 @@ int main()
                 for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 //              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
                 {
-                    mesh->mVertices[vertexIndex] *= 1.0f;
-//                  mesh->mVertices[vertexIndex] *= 1.0f;
+                    mesh->mVertices[vertexIndex] *= 9.0f;
+//                  mesh->mVertices[vertexIndex] *= 9.0f;
                 }
             }
 
@@ -5419,10 +5454,10 @@ int main()
                 
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[3].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[3].geometries.size() - 1;
-                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
-//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+090.000f));
-                                        Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +07.00f, .y = +00.00f, .z = +07.00f }                                                                         );
-//                                      Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +07.00f, .y = +00.00f, .z = +07.00f }                                                                         );
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
+                                        Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = -07.50f, .y = +00.00f, .z = -10.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = -07.50f, .y = +00.00f, .z = -10.00f }                                                                         );
                 }
             }
         }
@@ -5430,6 +5465,236 @@ int main()
         {
             std::cout << "Assimp error: " << importerB->GetErrorString() << std::endl;
 //          std::cout << "Assimp error: " << importerB->GetErrorString() << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+//  catch (const std::exception& e)
+    {
+        std::cout << "General error: " << e.what() << std::endl;
+//      std::cout << "General error: " << e.what() << std::endl;
+    }
+
+
+
+    std::unique_ptr<Assimp::Importer> importerC = std::make_unique<Assimp::Importer>();
+//  std::unique_ptr<Assimp::Importer> importerC = std::make_unique<Assimp::Importer>();
+    try
+    {
+        float minModelX = std::numeric_limits<float>::max();
+        float maxModelX = std::numeric_limits<float>::lowest();
+        float minModelY = std::numeric_limits<float>::max();
+        float maxModelY = std::numeric_limits<float>::lowest();
+        float minModelZ = std::numeric_limits<float>::max();
+        float maxModelZ = std::numeric_limits<float>::lowest();
+
+        aiScene const * const scene = importerC->ReadFile(R"(./assets/scene003/Bob.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerC->ReadFile(R"(./assets/scene003/Bob.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        if (scene)
+//      if (scene)
+        {
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    mesh->mVertices[vertexIndex] *= 9.0f;
+//                  mesh->mVertices[vertexIndex] *= 9.0f;
+                }
+            }
+
+
+
+            std::size_t geometriesCount = 0;
+//          std::size_t geometriesCount = 0;
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+//              geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+            }
+            bvhTreeMain.bvhTrees[4].geometries.reserve(geometriesCount);
+//          bvhTreeMain.bvhTrees[4].geometries.reserve(geometriesCount);
+            bvhTreeMain.bvhTrees[4].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+//          bvhTreeMain.bvhTrees[4].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+//                  const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+                    minModelX = std::fminf(minModelX, vertex.x);
+                    maxModelX = std::fmaxf(maxModelX, vertex.x);
+                    minModelY = std::fminf(minModelY, vertex.y);
+                    maxModelY = std::fmaxf(maxModelY, vertex.y);
+                    minModelZ = std::fminf(minModelZ, vertex.z);
+                    maxModelZ = std::fmaxf(maxModelZ, vertex.z);
+                }
+            }
+            constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+//          constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh* mesh = scene->mMeshes[meshIndex];
+//              aiMesh* mesh = scene->mMeshes[meshIndex];
+                for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+//              for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+                {
+                    const aiFace& face = mesh->mFaces[faceIndex];
+//                  const aiFace& face = mesh->mFaces[faceIndex];
+                    const aiVector3D& vertex0 = mesh->mVertices[face.mIndices[0]];
+                    const aiVector3D& vertex1 = mesh->mVertices[face.mIndices[1]];
+                    const aiVector3D& vertex2 = mesh->mVertices[face.mIndices[2]];
+                    const aiVector3D& vertex0UV = mesh->mTextureCoords[0][face.mIndices[0]];
+                    const aiVector3D& vertex1UV = mesh->mTextureCoords[0][face.mIndices[1]];
+                    const aiVector3D& vertex2UV = mesh->mTextureCoords[0][face.mIndices[2]];
+                    const aiVector3D& vertex0FrontFaceNormal = mesh->mNormals[face.mIndices[0]];
+                    const aiVector3D& vertex1FrontFaceNormal = mesh->mNormals[face.mIndices[1]];
+                    const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
+                    bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                
+                    std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
+//                  std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+060.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+060.000f));
+                                        Move(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = -12.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = -12.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+                }
+            }
+        }
+        else
+        {
+            std::cout << "Assimp error: " << importerC->GetErrorString() << std::endl;
+//          std::cout << "Assimp error: " << importerC->GetErrorString() << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+//  catch (const std::exception& e)
+    {
+        std::cout << "General error: " << e.what() << std::endl;
+//      std::cout << "General error: " << e.what() << std::endl;
+    }
+
+
+
+    std::unique_ptr<Assimp::Importer> importerD = std::make_unique<Assimp::Importer>();
+//  std::unique_ptr<Assimp::Importer> importerD = std::make_unique<Assimp::Importer>();
+    try
+    {
+        float minModelX = std::numeric_limits<float>::max();
+        float maxModelX = std::numeric_limits<float>::lowest();
+        float minModelY = std::numeric_limits<float>::max();
+        float maxModelY = std::numeric_limits<float>::lowest();
+        float minModelZ = std::numeric_limits<float>::max();
+        float maxModelZ = std::numeric_limits<float>::lowest();
+
+        aiScene const * const scene = importerD->ReadFile(R"(./assets/scene003/Cat.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importerD->ReadFile(R"(./assets/scene003/Cat.dae)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        if (scene)
+//      if (scene)
+        {
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    mesh->mVertices[vertexIndex] *= 9.0f;
+//                  mesh->mVertices[vertexIndex] *= 9.0f;
+                }
+            }
+
+
+
+            std::size_t geometriesCount = 0;
+//          std::size_t geometriesCount = 0;
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+//              geometriesCount += scene->mMeshes[meshIndex]->mNumFaces;
+            }
+            bvhTreeMain.bvhTrees[5].geometries.reserve(geometriesCount);
+//          bvhTreeMain.bvhTrees[5].geometries.reserve(geometriesCount);
+            bvhTreeMain.bvhTrees[5].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+//          bvhTreeMain.bvhTrees[5].bvhNodes.reserve(static_cast<std::size_t>(geometriesCount * 2 - 1));
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh const * const mesh = scene->mMeshes[meshIndex];
+//              aiMesh const * const mesh = scene->mMeshes[meshIndex];
+                for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+//              for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+                {
+                    const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+//                  const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+                    minModelX = std::fminf(minModelX, vertex.x);
+                    maxModelX = std::fmaxf(maxModelX, vertex.x);
+                    minModelY = std::fminf(minModelY, vertex.y);
+                    maxModelY = std::fmaxf(maxModelY, vertex.y);
+                    minModelZ = std::fminf(minModelZ, vertex.z);
+                    maxModelZ = std::fmaxf(maxModelZ, vertex.z);
+                }
+            }
+            constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+//          constexpr float floorY = -20.00f; float offsetY = minModelY - floorY;
+
+
+
+            for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+//          for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+            {
+                aiMesh* mesh = scene->mMeshes[meshIndex];
+//              aiMesh* mesh = scene->mMeshes[meshIndex];
+                for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+//              for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+                {
+                    const aiFace& face = mesh->mFaces[faceIndex];
+//                  const aiFace& face = mesh->mFaces[faceIndex];
+                    const aiVector3D& vertex0 = mesh->mVertices[face.mIndices[0]];
+                    const aiVector3D& vertex1 = mesh->mVertices[face.mIndices[1]];
+                    const aiVector3D& vertex2 = mesh->mVertices[face.mIndices[2]];
+                    const aiVector3D& vertex0UV = mesh->mTextureCoords[0][face.mIndices[0]];
+                    const aiVector3D& vertex1UV = mesh->mTextureCoords[0][face.mIndices[1]];
+                    const aiVector3D& vertex2UV = mesh->mTextureCoords[0][face.mIndices[2]];
+                    const aiVector3D& vertex0FrontFaceNormal = mesh->mNormals[face.mIndices[0]];
+                    const aiVector3D& vertex1FrontFaceNormal = mesh->mNormals[face.mIndices[1]];
+                    const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
+                    bvhTreeMain.bvhTrees[5].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//                  bvhTreeMain.bvhTrees[5].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .material = { .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+                
+                    std::size_t currentIndex = bvhTreeMain.bvhTrees[5].geometries.size() - 1;
+//                  std::size_t currentIndex = bvhTreeMain.bvhTrees[5].geometries.size() - 1;
+                    RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[5].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
+//                  RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[5].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
+                                        Move(bvhTreeMain.bvhTrees[5].geometries[currentIndex], { .x = +12.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+//                                      Move(bvhTreeMain.bvhTrees[5].geometries[currentIndex], { .x = +12.00f, .y = +00.00f, .z = +00.00f }                                                                         );
+                }
+            }
+        }
+        else
+        {
+            std::cout << "Assimp error: " << importerD->GetErrorString() << std::endl;
+//          std::cout << "Assimp error: " << importerD->GetErrorString() << std::endl;
         }
     }
     catch (const std::exception& e)
@@ -5752,8 +6017,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
-//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::SKY_BOX);
+            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
+//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
         }
         }
         pixelColor *= pixelSamplesScale;
