@@ -41,6 +41,7 @@
 #include "Vec2.h"
 #include "Vec3.h"
 #include <span>
+#include "Image.h"
 #include "ImagePNG.h"
 #include "ImageJPG.h"
 #include "ImageSVG.h"
