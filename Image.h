@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef IMAGE_H
 #define IMAGE_H
 
@@ -21,6 +21,45 @@
 
 class Image
 {
+    protected:
+//  protected:
+    static inline bool IsGammaEncoded(FREE_IMAGE_FORMAT format)
+//  static inline bool IsGammaEncoded(FREE_IMAGE_FORMAT format)
+    {
+        switch (format)
+//      switch (format)
+        {
+            case FIF_JPEG:
+//          case FIF_JPEG:
+            case FIF_PNG:
+//          case FIF_PNG:
+            case FIF_BMP:
+//          case FIF_BMP:
+            case FIF_TARGA:
+//          case FIF_TARGA:
+            case FIF_GIF:
+//          case FIF_GIF:
+                return true;
+//              return true;
+            case FIF_EXR:
+//          case FIF_EXR:
+            case FIF_HDR:
+//          case FIF_HDR:
+                return false;
+//              return false;
+            default:
+//          default:
+                return false;
+//              return false;
+        }
+    }
+    static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { return std::powf(linearSpaceComponent, 1.0f / 2.2f); }
+//  static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { return std::powf(linearSpaceComponent, 1.0f / 2.2f); }
+    static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return std::powf(gammasSpaceComponent,        2.2f); }
+//  static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return std::powf(gammasSpaceComponent,        2.2f); }
+
+
+
     public:
 //  public:
     std::vector<float> rgbs; // RGB float buffer (Linear [0, 1] or HDR)
@@ -106,21 +145,48 @@ class Image
 //      rgbs.reserve(static_cast<std::size_t>(w) * h * 3);
 
 
-        for (int y = 0; y < h; ++y)
-//      for (int y = 0; y < h; ++y)
+        bool isGammaEncoded = Image::IsGammaEncoded(freeImageFormat);
+//      bool isGammaEncoded = Image::IsGammaEncoded(freeImageFormat);
+
+
+        if (isGammaEncoded)
+//      if (isGammaEncoded)
         {
-            FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
-//          FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
-        for (int x = 0; x < w; ++x)
-//      for (int x = 0; x < w; ++x)
-        {
-            rgbs.emplace_back(pixel[x].red  );
-//          rgbs.emplace_back(pixel[x].red  );
-            rgbs.emplace_back(pixel[x].green);
-//          rgbs.emplace_back(pixel[x].green);
-            rgbs.emplace_back(pixel[x].blue );
-//          rgbs.emplace_back(pixel[x].blue );
+            for (int y = 0; y < h; ++y)
+//          for (int y = 0; y < h; ++y)
+            {
+                FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
+//              FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
+            for (int x = 0; x < w; ++x)
+//          for (int x = 0; x < w; ++x)
+            {
+                rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].red  ));
+//              rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].red  ));
+                rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].green));
+//              rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].green));
+                rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].blue ));
+//              rgbs.emplace_back(Image::GammasSpaceToLinearSpace(pixel[x].blue ));
+            }
+            }
         }
+        else
+        {
+            for (int y = 0; y < h; ++y)
+//          for (int y = 0; y < h; ++y)
+            {
+                FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
+//              FIRGBF* pixel = (FIRGBF*)FreeImage_GetScanLine(freeImageBitmapRGBF, y);
+            for (int x = 0; x < w; ++x)
+//          for (int x = 0; x < w; ++x)
+            {
+                rgbs.emplace_back(pixel[x].red  );
+//              rgbs.emplace_back(pixel[x].red  );
+                rgbs.emplace_back(pixel[x].green);
+//              rgbs.emplace_back(pixel[x].green);
+                rgbs.emplace_back(pixel[x].blue );
+//              rgbs.emplace_back(pixel[x].blue );
+            }
+            }
         }
 
 

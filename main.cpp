@@ -11,8 +11,8 @@
 //      #define SCENE_007
 //      #define SCENE_008
 
-//      #define OLD_PNG_SAMPLING
-        #define NEW_PNG_SAMPLING
+//      #define OLD_IMAGE_SAMPLING
+        #define NEW_IMAGE_SAMPLING
 
         #define USE_OIDN
 //      #define USE_OIDN
@@ -124,10 +124,10 @@ static inline float Sample3LinearInterpolation(const std::vector<float>& rgbs, i
     return 0.0f;
 }
 
-  static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
-//static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { if    (linearSpaceComponent > 0.0f) { return std::sqrt(linearSpaceComponent); } return 0.0f; }
-  static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return gammasSpaceComponent *                          gammasSpaceComponent ;                }
-//static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return gammasSpaceComponent *                          gammasSpaceComponent ;                }
+  static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { return std::powf(linearSpaceComponent, 1.0f / 2.0f); }
+//static inline float LinearSpaceToGammasSpace(float linearSpaceComponent) { return std::powf(linearSpaceComponent, 1.0f / 2.0f); }
+  static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return std::powf(gammasSpaceComponent,        2.0f); }
+//static inline float GammasSpaceToLinearSpace(float gammasSpaceComponent) { return std::powf(gammasSpaceComponent,        2.0f); }
 
     constexpr float positiveInfinity = +std::numeric_limits<float>::infinity();
 //  constexpr float positiveInfinity = +std::numeric_limits<float>::infinity();
@@ -655,14 +655,10 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 //  CHECKER_TEXTURE_1 = 1,
     CHECKER_TEXTURE_2 = 2,
 //  CHECKER_TEXTURE_2 = 2,
-    IMAGE_TEXTURE_PNG = 3,
-//  IMAGE_TEXTURE_PNG = 3,
-    IMAGE_TEXTURE_JPG = 4,
-//  IMAGE_TEXTURE_JPG = 4,
-    IMAGE_TEXTURE_SVG = 5,
-//  IMAGE_TEXTURE_SVG = 5,
-    NOISE_PERLIN = 6,
-//  NOISE_PERLIN = 6,
+    IMAGE_TEXTURE = 3,
+//  IMAGE_TEXTURE = 3,
+    NOISE_PERLIN = 4,
+//  NOISE_PERLIN = 4,
 };
 
 
@@ -673,8 +669,8 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 //  Color3 albedo = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
     float scale = 1.0;
 //  float scale = 1.0;
-    int imageIndex = -1; // png(s) jpg(s) svg(s)
-//  int imageIndex = -1; // png(s) jpg(s) svg(s)
+    int imageIndex = -1; // png(s) jpg(s) svg(s) exr(s) etc.
+//  int imageIndex = -1; // png(s) jpg(s) svg(s) exr(s) etc.
     int noiseIndex = -1; // perlin origin(s) perlin smooth(s)
 //  int noiseIndex = -1; // perlin origin(s) perlin smooth(s)
     int oTileTextureIndex = -1;
@@ -689,8 +685,8 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
     static inline struct TexturesDatabase { std::vector<Texture> textures; } texturesDatabase;
 //  static inline struct TexturesDatabase { std::vector<Texture> textures; } texturesDatabase;
 
-    static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; std::vector<ImageEXR> exrs; } imagesDatabase;
-//  static inline struct ImagesDatabase { std::vector<ImagePNG> pngs; std::vector<ImageJPG> jpgs; std::vector<ImageSVG> svgs; std::vector<ImageEXR> exrs; } imagesDatabase;
+    static inline struct ImagesDatabase { std::vector<Image> images; Image imageBasedLighting; } imagesDatabase;
+//  static inline struct ImagesDatabase { std::vector<Image> images; Image imageBasedLighting; } imagesDatabase;
 
     static inline struct NoisesDatabase { std::vector<NoisePerlin> noisePerlins; } noisesDatabase;
 //  static inline struct NoisesDatabase { std::vector<NoisePerlin> noisePerlins; } noisesDatabase;
@@ -827,12 +823,12 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
 //      break;
 
 
-        case TextureType::IMAGE_TEXTURE_PNG:
-//      case TextureType::IMAGE_TEXTURE_PNG:
+        case TextureType::IMAGE_TEXTURE:
+//      case TextureType::IMAGE_TEXTURE:
         {
-#ifdef OLD_PNG_SAMPLING
-            const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
-//          const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+#ifdef OLD_IMAGE_SAMPLING
+            const Image& image = imagesDatabase.images[texture.imageIndex];
+//          const Image& image = imagesDatabase.images[texture.imageIndex];
 
             Interval rgbRange{ 0.0f, 1.0f };
 //          Interval rgbRange{ 0.0f, 1.0f };
@@ -843,20 +839,20 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
             vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
 //          vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
 
-            std::uint16_t imagePixelX = static_cast<std::uint16_t>(uTextureCoordinate * (imagePNG.w - 1));
-            std::uint16_t imagePixelY = static_cast<std::uint16_t>(vTextureCoordinate * (imagePNG.h - 1));
+            std::uint16_t imagePixelX = static_cast<std::uint16_t>(uTextureCoordinate * (image.w - 1));
+            std::uint16_t imagePixelY = static_cast<std::uint16_t>(vTextureCoordinate * (image.h - 1));
 
-            size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * imagePNG.w + imagePixelX) * 3 /* number of color channels */;
-//          size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * imagePNG.w + imagePixelX) * 3 /* number of color channels */;
+            size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * image.w + imagePixelX) * 3 /* number of color channels */;
+//          size_t imagePixelIndex = (static_cast<size_t>(imagePixelY) * image.w + imagePixelX) * 3 /* number of color channels */;
 
-            return Color3{ .x = imagePNG.rgbs[imagePixelIndex + 0],
-                           .y = imagePNG.rgbs[imagePixelIndex + 1],
-                           .z = imagePNG.rgbs[imagePixelIndex + 2],
+            return Color3{ .x = image.rgbs[imagePixelIndex + 0],
+                           .y = image.rgbs[imagePixelIndex + 1],
+                           .z = image.rgbs[imagePixelIndex + 2],
                          };
 #endif
-#ifdef NEW_PNG_SAMPLING
-            const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
-//          const ImagePNG& imagePNG = imagesDatabase.pngs[texture.imageIndex];
+#ifdef NEW_IMAGE_SAMPLING
+            const Image& image = imagesDatabase.images[texture.imageIndex];
+//          const Image& image = imagesDatabase.images[texture.imageIndex];
 
             Interval rgbRange{ 0.0f, 1.0f };
 //          Interval rgbRange{ 0.0f, 1.0f };
@@ -867,32 +863,12 @@ static inline Vec3 SampleRGB3LinearInterpolation(const std::vector<float>& rgbs,
             vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
 //          vTextureCoordinate = 1.0f - rgbRange.Clamp(vTextureCoordinate);
 
-            float imagePixelX = uTextureCoordinate * (imagePNG.w - 1);
-            float imagePixelY = vTextureCoordinate * (imagePNG.h - 1);
+            float imagePixelX = uTextureCoordinate * (image.w - 1);
+            float imagePixelY = vTextureCoordinate * (image.h - 1);
 
-            return SampleRGB2LinearInterpolation(imagePNG.rgbs, imagePNG.w, imagePNG.h, imagePixelX, imagePixelY);
-//          return SampleRGB2LinearInterpolation(imagePNG.rgbs, imagePNG.w, imagePNG.h, imagePixelX, imagePixelY);
+            return SampleRGB2LinearInterpolation(image.rgbs, image.w, image.h, imagePixelX, imagePixelY);
+//          return SampleRGB2LinearInterpolation(image.rgbs, image.w, image.h, imagePixelX, imagePixelY);
 #endif
-        }
-        break;
-//      break;
-
-
-        case TextureType::IMAGE_TEXTURE_JPG:
-//      case TextureType::IMAGE_TEXTURE_JPG:
-        {
-            return {};
-//          return {};
-        }
-        break;
-//      break;
-
-
-        case TextureType::IMAGE_TEXTURE_SVG:
-//      case TextureType::IMAGE_TEXTURE_SVG:
-        {
-            return {};
-//          return {};
         }
         break;
 //      break;
@@ -4142,19 +4118,16 @@ enum class Axis : std::uint8_t
                         float v = theta /         std::numbers::pi_v<float> ;
 //                      float v = theta /         std::numbers::pi_v<float> ;
 
-                        const ImageEXR& imageEXR = imagesDatabase.exrs[0];
-//                      const ImageEXR& imageEXR = imagesDatabase.exrs[0];
-
                         u =        std::clamp(u, 0.0f, 1.0f);
 //                      u =        std::clamp(u, 0.0f, 1.0f);
                         v = 1.0f - std::clamp(v, 0.0f, 1.0f);
 //                      v = 1.0f - std::clamp(v, 0.0f, 1.0f);
 
-                        float imagePixelX = u * (imageEXR.w - 1);
-                        float imagePixelY = v * (imageEXR.h - 1);
+                        float imagePixelX = u * (imagesDatabase.imageBasedLighting.w - 1);
+                        float imagePixelY = v * (imagesDatabase.imageBasedLighting.h - 1);
 
-                        backgroundColor = SampleRGB2LinearInterpolation(imageEXR.rgbs, imageEXR.w, imageEXR.h, imagePixelX, imagePixelY);
-//                      backgroundColor = SampleRGB2LinearInterpolation(imageEXR.rgbs, imageEXR.w, imageEXR.h, imagePixelX, imagePixelY);          
+                        backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);
+//                      backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);          
                     }
                     break;
 //                  break;
@@ -4520,34 +4493,30 @@ int main()
 
 
 #ifdef SCENE_000
-    imagesDatabase.pngs.emplace_back("smile-face-001.png");
-    imagesDatabase.pngs.emplace_back("smile-face-002.png");
-//  imagesDatabase.pngs.emplace_back("example-001.png");
-//  imagesDatabase.pngs.emplace_back("example-002.png");
-//  imagesDatabase.jpgs.emplace_back("example-001.jpg");
-//  imagesDatabase.jpgs.emplace_back("example-002.jpg");
-//  imagesDatabase.svgs.emplace_back("example-001.svg");
-//  imagesDatabase.svgs.emplace_back("example-002.svg");
+    imagesDatabase.images.emplace_back("./assets/smile-face-001.png");
+//  imagesDatabase.images.emplace_back("./assets/smile-face-001.png");
+    imagesDatabase.images.emplace_back("./assets/smile-face-002.png");
+//  imagesDatabase.images.emplace_back("./assets/smile-face-002.png");
 #endif
 #ifdef SCENE_001
-    imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
-//  imagesDatabase.exrs.emplace_back(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
+    imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+//  imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+    imagesDatabase.images.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
+//  imagesDatabase.images.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
 #endif
 #ifdef SCENE_002
-    imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
-//  imagesDatabase.pngs.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
+    imagesDatabase.images.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
+//  imagesDatabase.images.emplace_back(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C_Joseph_Kainz_O.png)");
 #endif
 #ifdef SCENE_003
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Chiours.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Chiours.png)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Owl.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Owl.png)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Bob.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Bob.png)");
-    imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Cat.png)");
-//  imagesDatabase.pngs.emplace_back(R"(./assets/scene003/Cat.png)");
+    imagesDatabase.images.emplace_back(R"(./assets/scene003/Chiours.png)");
+//  imagesDatabase.images.emplace_back(R"(./assets/scene003/Chiours.png)");
+    imagesDatabase.images.emplace_back(R"(./assets/scene003/Owl.png)");
+//  imagesDatabase.images.emplace_back(R"(./assets/scene003/Owl.png)");
+    imagesDatabase.images.emplace_back(R"(./assets/scene003/Bob.png)");
+//  imagesDatabase.images.emplace_back(R"(./assets/scene003/Bob.png)");
+    imagesDatabase.images.emplace_back(R"(./assets/scene003/Cat.png)");
+//  imagesDatabase.images.emplace_back(R"(./assets/scene003/Cat.png)");
 #endif
 #ifdef SCENE_004
 #endif
@@ -4578,8 +4547,8 @@ int main()
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = TextureType::CHECKER_TEXTURE_1, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 0.1f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = +6, .eTileTextureIndex = +7, .type = TextureType::CHECKER_TEXTURE_2, });
 
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_JPG, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_JPG, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_SVG, });
@@ -4598,8 +4567,8 @@ int main()
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 1.0f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 #endif
 #ifdef SCENE_001
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
@@ -4607,8 +4576,8 @@ int main()
 
 #endif
 #ifdef SCENE_002
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 9.9f, 9.9f, 9.9f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 9.9f, 9.9f, 9.9f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.3f, 0.3f, 0.3f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
@@ -4616,8 +4585,8 @@ int main()
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 #endif
 #ifdef SCENE_003
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 010.000f, 010.000f, 010.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 010.000f, 010.000f, 010.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 001.000f, 001.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
@@ -4628,12 +4597,12 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.231f, 000.525f, 000.620f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.380f, 000.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.380f, 000.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE_PNG, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +2, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 000.000f, 000.000f, 000.000f }, .scale = 1.0f, .imageIndex = +3, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
 #endif
 #ifdef SCENE_004
 #endif
