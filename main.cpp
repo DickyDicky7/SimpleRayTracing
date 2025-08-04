@@ -2,9 +2,9 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 //      #define SCENE_000
-//      #define SCENE_001
+        #define SCENE_001
 //      #define SCENE_002
-        #define SCENE_003
+//      #define SCENE_003
 //      #define SCENE_004
 //      #define SCENE_005
 //      #define SCENE_006
@@ -54,6 +54,8 @@
 //#include <assimp/scene.h>
   #include <assimp/postprocess.h>
 //#include <assimp/postprocess.h>
+  #include "FastNoiseLite.h"
+//#include "FastNoiseLite.h"
 #ifdef USE_OIDN
   #include <OpenImageDenoise/oidn.hpp>
 //#include <OpenImageDenoise/oidn.hpp>
@@ -1225,6 +1227,34 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         return BlendLinear(d2, d1, h) - k * h * (1.0f - h);
 //      return BlendLinear(d2, d1, h) - k * h * (1.0f - h);
     }
+    FastNoiseLite* noise;
+//  FastNoiseLite* noise;
+
+    // p: current point in space (vec3)
+    // p: current point in space (vec3)
+    // frequency: how "zoomed in" the noise is. Higher frequency = smaller, more frequent features.
+    // frequency: how "zoomed in" the noise is. Higher frequency = smaller, more frequent features.
+    // amplitude: how high the mountains are. The maximum displacement height.
+    // amplitude: how high the mountains are. The maximum displacement height.
+    inline static float TerrainSDF(const Vec3& p, float frequency = 1.0f, float amplitude = 15.0f)
+    {
+        // 1. Get the 2D noise value for the current XZ position.
+        // 1. Get the 2D noise value for the current XZ position.
+        // We multiply the position by frequency to scale the noise.
+        // We multiply the position by frequency to scale the noise.
+        float noiseValue = noise->GetNoise(p.x * frequency, p.z * frequency);
+//      float noiseValue = noise->GetNoise(p.x * frequency, p.z * frequency);
+
+        // 2. The height of the terrain at this XZ position.
+        // 2. The height of the terrain at this XZ position.
+        float terrainHeight = noiseValue * amplitude;
+//      float terrainHeight = noiseValue * amplitude;
+
+        // 3. The SDF is the vertical distance to that height.
+        // 3. The SDF is the vertical distance to that height.
+        return p.y - terrainHeight;
+//      return p.y - terrainHeight;
+    }
     inline static float SdfMetaballs(const Point3& p)
 //  inline static float SdfMetaballs(const Point3& p)
     {
@@ -1238,8 +1268,12 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 ////      float sphere2Dist = SdfSphere(p2, 10.00f);
 //        return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
 ////      return SdfSmoothUnion(sphere1Dist, sphere2Dist, 0.8f);
+        return TerrainSDF(sdf3d::OpTranslate(p, { 0, -15, 0 }), 1.0f, 15.0f);
+//      return TerrainSDF(sdf3d::OpTranslate(p, { 0, -15, 0 }), 1.0f, 15.0f);
+/*
         return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
 //      return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
+*/
     }
     inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
 //  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
@@ -3083,8 +3117,8 @@ static RayHitResult RayHit(const Geometry& geo
                 float dist = geo.implicitSurface.sdf(currentPoint);
 //              float dist = geo.implicitSurface.sdf(currentPoint);
 
-                if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
-//              if ((dist < geo.implicitSurface.hitEpsilon && geo.material.materialType == MaterialType::Metal) || (dist == 0.0f && geo.material.materialType == MaterialType::Dielectric))
+                if (dist < geo.implicitSurface.hitEpsilon)
+//              if (dist < geo.implicitSurface.hitEpsilon)
                 {
                     RayHitResult rayHitResult{ .material = geo.material };
 //                  RayHitResult rayHitResult{ .material = geo.material };
@@ -3121,16 +3155,16 @@ static RayHitResult RayHit(const Geometry& geo
                     if (finalDist < 0.0f)
 //                  if (finalDist < 0.0f)
                     {
-                        rayHitResult.at += outwardNormal;
-//                      rayHitResult.at += outwardNormal;
+                        rayHitResult.at -= outwardNormal * finalDist;
+//                      rayHitResult.at -= outwardNormal * finalDist;
                     }
 
                     return rayHitResult;
 //                  return rayHitResult;
                 }
 
-                t += abs(dist);
-//              t += abs(dist);
+                t += dist;
+//              t += dist;
 
                 if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
 //              if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
@@ -4465,6 +4499,18 @@ enum class Axis : std::uint8_t
 
 int main()
 {
+    noise = new FastNoiseLite();
+//  noise = new FastNoiseLite();
+    noise->SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+//  noise->SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    noise->SetFractalType(FastNoiseLite::FractalType_FBm);
+//  noise->SetFractalType(FastNoiseLite::FractalType_FBm);
+    noise->SetFractalOctaves(6); // 6 layers of detail
+//  noise->SetFractalOctaves(6); // 6 layers of detail
+    noise->SetFractalLacunarity(2.0); // Each octave is 2.0x higher frequency
+//  noise->SetFractalLacunarity(2.0); // Each octave is 2.0x higher frequency
+    noise->SetFractalGain(0.5); // Each octave is 0.5x the amplitude
+//  noise->SetFractalGain(0.5); // Each octave is 0.5x the amplitude
 #ifdef SCENE_000
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::BLOCKY          , .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
     noisesDatabase.noisePerlins.emplace_back(NoisePerlin{ .noisePerlinType = NoisePerlinType::SMOOTH_SHIFT_OFF, .noisePerlinProcedureType = NoisePerlinProcedureType::NOISE_NORMALIZED });
@@ -4625,8 +4671,8 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 2500 ;
-//  int                              samplesPerPixel = 2500 ;
+    int                              samplesPerPixel = 100 ;
+//  int                              samplesPerPixel = 100 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
     int stratifiedSamplesPerPixel = static_cast<int>(std::sqrtf(static_cast<float>(samplesPerPixel)));
@@ -4757,7 +4803,9 @@ int main()
 
     //FLOOR
     bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
     bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::DIAMOND), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Dielectric, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .geometryType = GeometryType::PRIMITIVE, });
 
 
 
@@ -4765,8 +4813,8 @@ int main()
 //  Geometry metaballs;
     metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
 //  metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
-    metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
-//  metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::Metal };
+    metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2 };
+//  metaballs.material = { .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2 };
     metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 //  metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 
@@ -5749,8 +5797,8 @@ int main()
 
     float aspectRatio = 16.0f / 9.0f;
 //  float aspectRatio = 16.0f / 9.0f;
-    int imgW = 1920;
-//  int imgW = 1920;
+    int imgW = 1920/2;
+//  int imgW = 1920/2;
     int imgH = int(imgW / aspectRatio);
 //  int imgH = int(imgW / aspectRatio);
     imgH = std::max(imgH, 1);
@@ -5762,9 +5810,9 @@ int main()
     constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
 #endif
 #ifdef SCENE_001
-    constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = -40.00f };
-    constexpr Point3 lookAt   { .x = +00.00f, .y = +00.00f, .z = +00.00f };
-    constexpr Point3 viewUp   { .x = +00.00f, .y = +01.00f, .z = +00.00f };
+    constexpr Point3 lookFrom { .x = -28.284f, .y = +00.00f, .z = -28.284f };
+    constexpr Point3 lookAt   { .x = +00.000f, .y = +00.00f, .z = +00.000f };
+    constexpr Point3 viewUp   { .x = +00.000f, .y = +01.00f, .z = +00.000f };
 #endif
 #ifdef SCENE_002
     constexpr Point3 lookFrom { .x = +00.00f, .y = +00.00f, .z = +40.00f };
@@ -5987,8 +6035,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
-//          pixelColor += RayColor(ray, bvhTreeMain, 1000, BackgroundType::DARK_ROOM_SPACE);
+            pixelColor += RayColor(ray, bvhTreeMain, 100, BackgroundType::SKY_BOX);
+//          pixelColor += RayColor(ray, bvhTreeMain, 100, BackgroundType::SKY_BOX);
         }
         }
         pixelColor *= pixelSamplesScale;
@@ -6180,6 +6228,11 @@ int main()
 //  delete threadPool;
     threadPool = nullptr;
 //  threadPool = nullptr;
+
+    delete noise;
+//  delete noise;
+    noise = nullptr;
+//  noise = nullptr;
 
     return 0;
 //  return 0;
