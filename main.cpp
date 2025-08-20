@@ -988,6 +988,9 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
     inline static Vec3 GenRandomUnitVector()
 //  inline static Vec3 GenRandomUnitVector()
     {
+//  Rejection Sampling Method (References: Las-Vegas algorithm vs Monte-Carlo algorithm)
+//  Rejection Sampling Method (References: Las-Vegas algorithm vs Monte-Carlo algorithm)
+/*
         while (true)
         {
             const Vec3& p = GenRandom(-1.0f, +1.0f);
@@ -1001,6 +1004,26 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //              return p / std::sqrt(pLengthSquared);
             }
         }
+*/
+//  Archimedes' Method
+//  Archimedes' Method
+
+        float theta = Random(+0.0f, +2.0f * std::numbers::pi_v<float>); // Longitude          (uniform)
+//      float theta = Random(+0.0f, +2.0f * std::numbers::pi_v<float>); // Longitude          (uniform)
+        float z     = Random(-1.0f, +1.0f                            ); // Height on cylinder (uniform)
+//      float z     = Random(-1.0f, +1.0f                            ); // Height on cylinder (uniform)
+
+        float r = std::sqrt(1.0f - z * z); // Radius of the circle at this height
+//      float r = std::sqrt(1.0f - z * z); // Radius of the circle at this height
+
+        float x = r * std::cos(theta);
+//      float x = r * std::cos(theta);
+        float y = r * std::sin(theta);
+//      float y = r * std::sin(theta);
+
+        return { x, y, z };
+//      return { x, y, z };
+
     }
     inline static Vec3 GenRandomUnitVectorOnHemisphere(const Vec3& normal)
 //  inline static Vec3 GenRandomUnitVectorOnHemisphere(const Vec3& normal)
@@ -1186,6 +1209,13 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //  IMPLICIT_SURFACE = 2,
 };
 
+    struct SDFHitResult
+//  struct SDFHitResult
+{
+    float distance; std::uint8_t materialIndex;
+//  float distance; std::uint8_t materialIndex; 
+};
+
     struct Geometry
 //  struct Geometry
 {
@@ -1193,8 +1223,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //  with triangle: vertex 0 normal == vertex 1 normal == vertex 2 normal => @flat@ shading
 //  with triangle: vertex 0 normal != vertex 1 normal != vertex 2 normal => smooth shading
 //  with triangle: vertex 0 normal != vertex 1 normal != vertex 2 normal => smooth shading
-    union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { float(*sdf)(const Point3& p); int maxSteps; float maxMarchingDistance; float hitEpsilon; } implicitSurface; }; AABB3D aabb3d; Vec3 movingDirection; std::uint8_t materialIndex; GeometryType geometryType;
-//  union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { float(*sdf)(const Point3& p); int maxSteps; float maxMarchingDistance; float hitEpsilon; } implicitSurface; }; AABB3D aabb3d; Vec3 movingDirection; std::uint8_t materialIndex; GeometryType geometryType;
+    union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { int maxSteps; float maxMarchingDistance; float hitEpsilon; std::uint8_t sdfIndex; } implicitSurface; }; AABB3D aabb3d; Vec3 movingDirection; std::uint8_t materialIndex; GeometryType geometryType;
+//  union { struct Sphere { Point3 center; float radius; } sphere; struct Primitive { Point3 vertex0; Point3 vertex1; Point3 vertex2; Vec3 vertex0FrontFaceNormal; Vec3 vertex1FrontFaceNormal; Vec3 vertex2FrontFaceNormal; float frontFaceVertex0U; float frontFaceVertex0V; float frontFaceVertex1U; float frontFaceVertex1V; float frontFaceVertex2U; float frontFaceVertex2V; float backFaceVertex0U; float backFaceVertex0V; float backFaceVertex1U; float backFaceVertex1V; float backFaceVertex2U; float backFaceVertex2V; bool perVertexFrontFaceNormalAvailable; } primitive; struct ImplicitSurface { int maxSteps; float maxMarchingDistance; float hitEpsilon; std::uint8_t sdfIndex; } implicitSurface; }; AABB3D aabb3d; Vec3 movingDirection; std::uint8_t materialIndex; GeometryType geometryType;
 
 };
 
@@ -1281,8 +1311,31 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //      return sdf3d::SDFTorus(sdf3d::OpTwist(p), { 9,5 });
 */
     }
-    inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
-//  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3&), const Point3& p)
+    inline static SDFHitResult SDFIndex0(const Point3& p)
+//  inline static SDFHitResult SDFIndex0(const Point3& p)
+    {
+        SDFHitResult sdfHitResult{};
+//      SDFHitResult sdfHitResult{};
+        Point3 transformedP = sdf3d::OpTranslate(p, { 0, -15, 0 });
+//      Point3 transformedP = sdf3d::OpTranslate(p, { 0, -15, 0 });
+        sdfHitResult.distance = TerrainSDF(transformedP, 1.0f, 15.0f);
+//      sdfHitResult.distance = TerrainSDF(transformedP, 1.0f, 15.0f);
+        if (transformedP.y <= -2.0f)
+//      if (transformedP.y <= -2.0f)
+        {
+            sdfHitResult.materialIndex = 3;
+//          sdfHitResult.materialIndex = 3;
+        }
+        else
+        {
+            sdfHitResult.materialIndex = 4;
+//          sdfHitResult.materialIndex = 4;
+        }
+        return sdfHitResult;
+//      return sdfHitResult;
+    }
+    inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3& p), const Point3& p)
+//  inline static Vec3 CalculateImplicitNormal(float (*sdf)(const Point3& p), const Point3& p)
     {
         constexpr float epsilon = 1e-4f;
 //      constexpr float epsilon = 1e-4f;
@@ -1299,6 +1352,28 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         return Normalize(normal);
 //      return Normalize(normal);
     }
+    using SDFFunctionPointer = SDFHitResult(*)(const Point3& p);
+//  using SDFFunctionPointer = SDFHitResult(*)(const Point3& p);
+    inline static Vec3 CalculateImplicitNormal(const SDFFunctionPointer& sdf, const Point3& p)
+//  inline static Vec3 CalculateImplicitNormal(const SDFFunctionPointer& sdf, const Point3& p)
+    {
+        constexpr float epsilon = 1e-4f;
+//      constexpr float epsilon = 1e-4f;
+        Vec3 normal =
+//      Vec3 normal =
+        {
+            .x = sdf(Point3{p.x           + epsilon, p.y, p.z}).distance - sdf(Point3{p.x           - epsilon, p.y, p.z}).distance,
+//          .x = sdf(Point3{p.x           + epsilon, p.y, p.z}).distance - sdf(Point3{p.x           - epsilon, p.y, p.z}).distance,
+            .y = sdf(Point3{p.x, p.y      + epsilon     , p.z}).distance - sdf(Point3{p.x, p.y      - epsilon     , p.z}).distance,
+//          .y = sdf(Point3{p.x, p.y      + epsilon     , p.z}).distance - sdf(Point3{p.x, p.y      - epsilon     , p.z}).distance,
+            .z = sdf(Point3{p.x, p.y, p.z + epsilon          }).distance - sdf(Point3{p.x, p.y, p.z - epsilon          }).distance,
+//          .z = sdf(Point3{p.x, p.y, p.z + epsilon          }).distance - sdf(Point3{p.x, p.y, p.z - epsilon          }).distance,
+        };
+        return Normalize(normal);
+//      return Normalize(normal);
+    }
+    static inline struct SDFsDatabase { SDFFunctionPointer sdfs[1] = { SDFIndex0, }; } sdfsDatabase;
+//  static inline struct SDFsDatabase { SDFFunctionPointer sdfs[1] = { SDFIndex0, }; } sdfsDatabase;
 
 
 
@@ -1798,6 +1873,9 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     case MaterialType::Dielectric:
 //  case MaterialType::Dielectric:
         {
+            Vec3 diffuseRayDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+//          Vec3 diffuseRayDirection = Normalize(rayHitResult.normal + GenRandomUnitVector());
+
             float ratioOfEtaiOverEtat = material.layer1IOR / material.layer0IOR;
 //          float ratioOfEtaiOverEtat = material.layer1IOR / material.layer0IOR;
             if (rayHitResult.isFrontFace) [[likely]] { ratioOfEtaiOverEtat = material.layer0IOR / material.layer1IOR; }
@@ -1814,15 +1892,17 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             Vec3 scatteredRayDirection;
 //          Vec3 scatteredRayDirection;
 
+            // chia material.layer1Roughness ra làm 2 property, 1 cho reflect, 1 cho refract
+            // chia material.layer1Roughness ra làm 2 property, 1 cho reflect, 1 cho refract
             if ( notAbleToRefract )
             {
-                 scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
-//               scatteredRayDirection = Reflect(normalizedIncomingRayDirection, rayHitResult.normal);
+                 scatteredRayDirection = BlendLinear(Reflect(normalizedIncomingRayDirection, rayHitResult.normal), diffuseRayDirection, material.layer1Roughness);
+//               scatteredRayDirection = BlendLinear(Reflect(normalizedIncomingRayDirection, rayHitResult.normal), diffuseRayDirection, material.layer1Roughness);
             }
             else
             {
-                 scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
-//               scatteredRayDirection = Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat);
+                 scatteredRayDirection = BlendLinear(Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat), -diffuseRayDirection, material.layer1Roughness);
+//               scatteredRayDirection = BlendLinear(Refract(normalizedIncomingRayDirection, rayHitResult.normal, ratioOfEtaiOverEtat), -diffuseRayDirection, material.layer1Roughness);
             }
 
             materialScatteredResult.scatteredRay.ori = rayHitResult.at;
@@ -1839,6 +1919,22 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //          materialScatteredResult.isScattered = true;
             materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
 //          materialScatteredResult.scatteredRay.dir = Normalize(materialScatteredResult.scatteredRay.dir);
+
+/*
+            // Absorption
+            // Absorption
+            if (!rayHitResult.isFrontFace)
+//          if (!rayHitResult.isFrontFace)
+            {
+                materialScatteredResult.attenuation *= Color3
+//              materialScatteredResult.attenuation *= Color3
+                {
+                    std::expf(-rayHitResult.minT * 0.1f),
+                    std::expf(-rayHitResult.minT * 0.1f),
+                    std::expf(-rayHitResult.minT * 0.1f),
+                };
+            }
+*/
         }
         break;
 //      break;
@@ -3115,6 +3211,8 @@ static RayHitResult RayHit(const Geometry& geo
         {
             if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .hitted = false, .materialIndex = geo.materialIndex, }; }
 //          if (!HitAABB(ray, rayT, geo.aabb3d)) { return RayHitResult{ .hitted = false, .materialIndex = geo.materialIndex, }; }
+            const SDFFunctionPointer& sdf = sdfsDatabase.sdfs[geo.implicitSurface.sdfIndex];
+//          const SDFFunctionPointer& sdf = sdfsDatabase.sdfs[geo.implicitSurface.sdfIndex];
             float t = rayT.min;
 //          float t = rayT.min;
             for (int i = 0; i < geo.implicitSurface.maxSteps; ++i)
@@ -3122,14 +3220,14 @@ static RayHitResult RayHit(const Geometry& geo
             {
                 Point3 currentPoint = ray.Marching(t);
 //              Point3 currentPoint = ray.Marching(t);
-                float dist = geo.implicitSurface.sdf(currentPoint);
-//              float dist = geo.implicitSurface.sdf(currentPoint);
+                SDFHitResult sdfHitResult = sdf(currentPoint);
+//              SDFHitResult sdfHitResult = sdf(currentPoint);
 
-                if (dist < geo.implicitSurface.hitEpsilon)
-//              if (dist < geo.implicitSurface.hitEpsilon)
+                if (sdfHitResult.distance < geo.implicitSurface.hitEpsilon)
+//              if (sdfHitResult.distance < geo.implicitSurface.hitEpsilon)
                 {
-                    RayHitResult rayHitResult{ .materialIndex = geo.materialIndex };
-//                  RayHitResult rayHitResult{ .materialIndex = geo.materialIndex };
+                    RayHitResult rayHitResult{ .materialIndex = sdfHitResult.materialIndex };
+//                  RayHitResult rayHitResult{ .materialIndex = sdfHitResult.materialIndex };
                     rayHitResult.hitted = true;
 //                  rayHitResult.hitted = true;
                     rayHitResult.minT = t;
@@ -3137,8 +3235,8 @@ static RayHitResult RayHit(const Geometry& geo
                     rayHitResult.at = currentPoint;
 //                  rayHitResult.at = currentPoint;
                     
-                    Vec3 outwardNormal = CalculateImplicitNormal(geo.implicitSurface.sdf, currentPoint);
-//                  Vec3 outwardNormal = CalculateImplicitNormal(geo.implicitSurface.sdf, currentPoint);
+                    Vec3 outwardNormal = CalculateImplicitNormal(sdf, currentPoint);
+//                  Vec3 outwardNormal = CalculateImplicitNormal(sdf, currentPoint);
                     rayHitResult.isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
 //                  rayHitResult.isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
                     if (rayHitResult.isFrontFace)
@@ -3158,21 +3256,21 @@ static RayHitResult RayHit(const Geometry& geo
                     rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
 //                  rayHitResult.vSurfaceCoordinate = rayHitResult.at.y;
 
-                    float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
-//                  float finalDist = geo.implicitSurface.sdf(rayHitResult.at);
-                    if (finalDist < 0.0f)
-//                  if (finalDist < 0.0f)
+                    SDFHitResult finalSDFHitResult = sdf(rayHitResult.at);
+//                  SDFHitResult finalSDFHitResult = sdf(rayHitResult.at);
+                    if (finalSDFHitResult.distance < 0.0f)
+//                  if (finalSDFHitResult.distance < 0.0f)
                     {
-                        rayHitResult.at -= outwardNormal * finalDist;
-//                      rayHitResult.at -= outwardNormal * finalDist;
+                        rayHitResult.at -= outwardNormal * finalSDFHitResult.distance;
+//                      rayHitResult.at -= outwardNormal * finalSDFHitResult.distance;
                     }
 
                     return rayHitResult;
 //                  return rayHitResult;
                 }
 
-                t += dist;
-//              t += dist;
+                t += sdfHitResult.distance;
+//              t += sdfHitResult.distance;
 
                 if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
 //              if (t > rayT.max || t > geo.implicitSurface.maxMarchingDistance)
@@ -4583,6 +4681,10 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 
 #endif
 #ifdef SCENE_002
@@ -4630,6 +4732,11 @@ int main()
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::Metal, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::Metal, });
+
 #endif
 #ifdef SCENE_002
     materialsDatabase.materials.reserve(6);
@@ -4710,10 +4817,10 @@ int main()
 //  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
 
     //FLOOR
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .vertex1 = { .x = -0.00f, .y = -0.00f, .z = +0.00f }, .vertex2 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .vertex1 = { .x = -0.00f, .y = -0.00f, .z = +0.00f }, .vertex2 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .vertex1 = { .x = +0.00f, .y = -0.00f, .z = -0.00f }, .vertex2 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .vertex1 = { .x = +0.00f, .y = -0.00f, .z = -0.00f }, .vertex2 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
 
 
 
@@ -4726,8 +4833,8 @@ int main()
     metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 //  metaballs.movingDirection = { 0.0f, 0.0f, 0.0f };
 
-    metaballs.implicitSurface.sdf = &SdfMetaballs;
-//  metaballs.implicitSurface.sdf = &SdfMetaballs;
+    metaballs.implicitSurface.sdfIndex = 0;
+//  metaballs.implicitSurface.sdfIndex = 0;
     metaballs.implicitSurface.maxSteps = 1000;
 //  metaballs.implicitSurface.maxSteps = 1000;
     metaballs.implicitSurface.maxMarchingDistance = 1000.0f;
@@ -4917,8 +5024,8 @@ int main()
 //  std::unique_ptr<Assimp::Importer> importer = std::make_unique<Assimp::Importer>();
     try
     {
-        aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
-//      aiScene const * const scene = importer->ReadFile(R"(D:\Workspace\SimpleRayTracingLocal\assets\scene002\joseph-kainz\source\Joseph_Kainz_C\Joseph_Kainz_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+        aiScene const * const scene = importer->ReadFile(R"(./assets/scene002/joseph-kainz/source/Joseph_Kainz_C/Joseph_Kainz_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
+//      aiScene const * const scene = importer->ReadFile(R"(./assets/scene002/joseph-kainz/source/Joseph_Kainz_C/Joseph_Kainz_C.obj)", aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_GenSmoothNormals | aiPostProcessSteps::aiProcess_FixInfacingNormals | aiPostProcessSteps::aiProcess_OptimizeGraph | aiPostProcessSteps::aiProcess_OptimizeMeshes);
         if (scene)
 //      if (scene)
         {
