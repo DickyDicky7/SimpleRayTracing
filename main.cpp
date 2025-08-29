@@ -19,6 +19,9 @@
 //      #define FOG_HEIGHT
 //      #define FOG_HEIGHT
 
+        #define DISPLAY_WINDOW
+//      #define DISPLAY_WINDOW
+
 #include <string_view>
 #include <iostream>
 #include <fstream>
@@ -74,6 +77,21 @@
 //  constexpr Color3 _FOG_HEIGHT_COLOR_{ 0.5f, 0.6f, 0.7f };
 #endif
 
+    #ifdef DISPLAY_WINDOW
+//  #ifdef DISPLAY_WINDOW
+    namespace rl
+//  namespace rl
+    {
+        extern "C"
+//      extern "C"
+        {
+            #include <raylib.h>
+//          #include <raylib.h>
+        }
+    }
+    #endif
+//  #endif
+
     enum class BackgroundType : std::uint8_t
 //  enum class BackgroundType : std::uint8_t
 {
@@ -84,6 +102,9 @@
     SKY_BOX         = 2,
 //  SKY_BOX         = 2,
 };
+
+    static inline const constexpr float Safe(bool expression, float valueT, float valueF) { if (expression) { return valueT; } else { return valueF; } }
+//  static inline const constexpr float Safe(bool expression, float valueT, float valueF) { if (expression) { return valueT; } else { return valueF; } }
 
 static inline float Sample1LinearInterpolation(const std::vector<float>& rgbs, int imgW, int imgH, float x, float y, std::uint8_t colorChannel, std::uint8_t numberOfColorChannels)
 {
@@ -1138,6 +1159,10 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //  ThinFilmDielectric4                    = 17,
     ThinFilmMetal                          = 18,
 //  ThinFilmMetal                          = 18,
+    SubsurfaceRandomWalk1                  = 19, // homogeneous SSS via one-bounce random walk
+//  SubsurfaceRandomWalk1                  = 19, // homogeneous SSS via one-bounce random walk
+    SubsurfaceRandomWalk2                  = 20, // homogeneous SSS via one-bounce random walk
+//  SubsurfaceRandomWalk2                  = 20, // homogeneous SSS via one-bounce random walk
 };
 
 
@@ -1150,12 +1175,14 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //  AIR     = 1,
     WATER   = 2,
 //  WATER   = 2,
-    GLASS   = 3,
-//  GLASS   = 3,
-    MARBLE  = 4,
-//  MARBLE  = 4,
-    DIAMOND = 5,
-//  DIAMOND = 5,
+    SKIN    = 3,
+//  SKIN    = 3,
+    GLASS   = 4,
+//  GLASS   = 4,
+    MARBLE  = 5,
+//  MARBLE  = 5,
+    DIAMOND = 6,
+//  DIAMOND = 6,
 };
 
 
@@ -1169,6 +1196,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //      case MaterialDielectric::AIR    : return 1.000293f; break;
         case MaterialDielectric::WATER  : return 1.333000f; break;
 //      case MaterialDielectric::WATER  : return 1.333000f; break;
+        case MaterialDielectric::SKIN   : return 1.400000f; break;
+//      case MaterialDielectric::SKIN   : return 1.400000f; break;
         case MaterialDielectric::GLASS  : return 1.500000f; break;
 //      case MaterialDielectric::GLASS  : return 1.500000f; break;
         case MaterialDielectric::MARBLE : return 1.550000f; break;
@@ -1184,8 +1213,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     struct Material
 //  struct Material
 {
-    float layer1Roughness; float layer1Thickness; float layer0IOR; float layer1IOR; float layer2IOR; std::uint8_t textureIndex; MaterialType materialType;
-//  float layer1Roughness; float layer1Thickness; float layer0IOR; float layer1IOR; float layer2IOR; std::uint8_t textureIndex; MaterialType materialType;
+    Color3 absorption; Color3 scattering; float asymmetryParameter /* range: [-1 ; +1] | skin ~ 0.8-0.95 */; float layer1Roughness; float layer1Thickness; float layer0IOR; float layer1IOR; float layer2IOR; std::uint8_t textureIndex; MaterialType materialType;
+//  Color3 absorption; Color3 scattering; float asymmetryParameter /* range: [-1 ; +1] | skin ~ 0.8-0.95 */; float layer1Roughness; float layer1Thickness; float layer0IOR; float layer1IOR; float layer2IOR; std::uint8_t textureIndex; MaterialType materialType;
 };
 
     struct MaterialScatteredResult
@@ -1722,6 +1751,89 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 
 
 
+    // Higher totalExtinction => Shorter free-flight distances => Light scatters/absorbs more frequently
+    // Higher totalExtinction => Shorter free-flight distances => Light scatters/absorbs more frequently
+    inline static float SampleFreeFlightDistance(float totalExtinction)
+//  inline static float SampleFreeFlightDistance(float totalExtinction)
+    {
+        // guard epsilon = 1e-6f
+        // guard epsilon = 1e-6f
+        // Exponential free-flight distance
+        // Exponential free-flight distance
+        float sample = std::fmaxf(1e-6f, Random());
+//      float sample = std::fmaxf(1e-6f, Random());
+        return -std::logf(sample) / std::fmaxf(1e-6f, totalExtinction);
+//      return -std::logf(sample) / std::fmaxf(1e-6f, totalExtinction);
+    }
+    // Henyey–Greenstein phase sampling (sample scattered ray direction based on transmit direction)
+    // Henyey–Greenstein phase sampling (sample scattered ray direction based on transmit direction)
+    inline static Vec3 SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(const Vec3& transmitDirection, float asymmetryParameter)
+//  inline static Vec3 SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(const Vec3& transmitDirection, float asymmetryParameter)
+    {
+        float     polarAngleSample = Random();
+//      float     polarAngleSample = Random();
+        float azimuthalAngleSample = Random();
+//      float azimuthalAngleSample = Random();
+
+        float cosTheta;
+//      float cosTheta;
+        if (std::fabsf(asymmetryParameter) < 1e-4f)
+//      if (std::fabsf(asymmetryParameter) < 1e-4f)
+        {
+            cosTheta = 1.0f - 2.0f * polarAngleSample;
+//          cosTheta = 1.0f - 2.0f * polarAngleSample;
+        }
+        else
+//      else
+        {
+            float temp = (1.0f - asymmetryParameter * asymmetryParameter              ) / (1.0f - asymmetryParameter + 2.0f * asymmetryParameter * polarAngleSample);
+//          float temp = (1.0f - asymmetryParameter * asymmetryParameter              ) / (1.0f - asymmetryParameter + 2.0f * asymmetryParameter * polarAngleSample);
+            cosTheta   = (1.0f + asymmetryParameter * asymmetryParameter - temp * temp) / (                            2.0f * asymmetryParameter                   );
+//          cosTheta   = (1.0f + asymmetryParameter * asymmetryParameter - temp * temp) / (                            2.0f * asymmetryParameter                   );
+            cosTheta   = std::clamp(cosTheta, -1.0f, 1.0f);
+//          cosTheta   = std::clamp(cosTheta, -1.0f, 1.0f);
+        }
+        float sinTheta = std::sqrtf(std::fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
+//      float sinTheta = std::sqrtf(std::fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
+        float phi = 2.0f * std::numbers::pi_v<float> * azimuthalAngleSample;
+//      float phi = 2.0f * std::numbers::pi_v<float> * azimuthalAngleSample;
+
+        // build an ONB (Orthonormal Basis) around forward-axis-w = transmitDirection
+        // build an ONB (Orthonormal Basis) around forward-axis-w = transmitDirection
+        // build an orthonormal basis (u,v,w) so you can rotate the sampled local direction (in spherical coords) into world space
+        // build an orthonormal basis (u,v,w) so you can rotate the sampled local direction (in spherical coords) into world space
+        // Frisvad’s fast ONB (branchless & stable)
+        // Frisvad’s fast ONB (branchless & stable)
+        Vec3 w = Normalize(transmitDirection);
+//      Vec3 w = Normalize(transmitDirection);
+        float sign = std::copysign(1.0f, w.z);
+//      float sign = std::copysign(1.0f, w.z);
+        float stabilityFactor = -1.0f / (sign + w.z);
+//      float stabilityFactor = -1.0f / (sign + w.z);
+        float shorthand = w.x * w.y * stabilityFactor;
+//      float shorthand = w.x * w.y * stabilityFactor;
+        Vec3 u = Normalize(Vec3{ 1.0f + sign * w.x * w.x * stabilityFactor, sign * shorthand, -sign * w.x });
+//      Vec3 u = Normalize(Vec3{ 1.0f + sign * w.x * w.x * stabilityFactor, sign * shorthand, -sign * w.x });
+        Vec3 v = Cross(w, u);
+//      Vec3 v = Cross(w, u);
+
+        // Local Spherical -> World
+        // Local Spherical -> World
+        // Vec3 local = Vec3{ sinTheta * std::cosf(phi), sinTheta * std::sinf(phi), cosTheta };
+        // Vec3 local = Vec3{ sinTheta * std::cosf(phi), sinTheta * std::sinf(phi), cosTheta };
+        return Normalize(sinTheta * std::cosf(phi) * u + sinTheta * std::sinf(phi) * v + cosTheta * w);
+//      return Normalize(sinTheta * std::cosf(phi) * u + sinTheta * std::sinf(phi) * v + cosTheta * w);
+    }
+
+
+
+
+
+
+
+
+
+
     inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
 //  inline static MaterialScatteredResult Scatter(const Ray& rayIn, const RayHitResult& rayHitResult)
 {
@@ -1929,9 +2041,9 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
                 materialScatteredResult.attenuation *= Color3
 //              materialScatteredResult.attenuation *= Color3
                 {
-                    std::expf(-rayHitResult.minT * 0.1f),
-                    std::expf(-rayHitResult.minT * 0.1f),
-                    std::expf(-rayHitResult.minT * 0.1f),
+                    std::expf(-rayHitResult.minT * 1.0f),
+                    std::expf(-rayHitResult.minT * 1.0f),
+                    std::expf(-rayHitResult.minT * 1.0f),
                 };
             }
 */
@@ -2921,6 +3033,322 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
         materialScatteredResult.isScattered = true;
 //      materialScatteredResult.isScattered = true;
+    }
+    break;
+//  break;
+
+
+
+    case MaterialType::SubsurfaceRandomWalk1:
+//  case MaterialType::SubsurfaceRandomWalk1:
+    {
+        // Homogeneous medium just beneath the surface
+        // Homogeneous medium just beneath the surface
+
+        // Choose which side we’re going into:
+        // Choose which side we’re going into:
+        // If we’re outside (front face), enter; if already inside (back face), just continue.
+        // If we’re outside (front face), enter; if already inside (back face), just continue.
+        float eta = material.layer1IOR / material.layer0IOR;
+//      float eta = material.layer1IOR / material.layer0IOR;
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+              eta = material.layer0IOR / material.layer1IOR;
+//            eta = material.layer0IOR / material.layer1IOR;
+        }
+        
+        // Try to refract into the medium; if TIR, reflect (acts like a glossy dielectric at grazing angles)
+        // Try to refract into the medium; if TIR, reflect (acts like a glossy dielectric at grazing angles)
+        Vec3 transmitDirection;
+//      Vec3 transmitDirection;
+        bool totalInternalReflection = false;
+//      bool totalInternalReflection = false;
+        
+        float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
+//      float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
+        Vec3  tangentialPartOfTheRefractedDirection = eta * (rayIn.dir + cosTheta * rayHitResult.normal);
+//      Vec3  tangentialPartOfTheRefractedDirection = eta * (rayIn.dir + cosTheta * rayHitResult.normal);
+        float leftoverEnergy = 1.0f - tangentialPartOfTheRefractedDirection.LengthSquared();
+//      float leftoverEnergy = 1.0f - tangentialPartOfTheRefractedDirection.LengthSquared();
+        if (leftoverEnergy < 0.0f)
+//      if (leftoverEnergy < 0.0f)
+        {
+            totalInternalReflection = true;
+//          totalInternalReflection = true;
+        }
+        if (!totalInternalReflection)
+//      if (!totalInternalReflection)
+        {
+            Vec3 parallel = -std::sqrtf(std::fmaxf(0.0f, leftoverEnergy)) * rayHitResult.normal;
+//          Vec3 parallel = -std::sqrtf(std::fmaxf(0.0f, leftoverEnergy)) * rayHitResult.normal;
+            transmitDirection = Normalize(tangentialPartOfTheRefractedDirection + parallel);
+//          transmitDirection = Normalize(tangentialPartOfTheRefractedDirection + parallel);
+        }
+
+        if (totalInternalReflection)
+//      if (totalInternalReflection)
+        {
+            // Specular reflection fallback
+            // Specular reflection fallback
+            Vec3 reflect = Normalize(Reflect(rayIn.dir, rayHitResult.normal) + material.layer1Roughness * GenRandomUnitVector());
+//          Vec3 reflect = Normalize(Reflect(rayIn.dir, rayHitResult.normal) + material.layer1Roughness * GenRandomUnitVector());
+            materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+//          materialScatteredResult.scatteredRay.ori = rayHitResult.at;
+            materialScatteredResult.scatteredRay.dir = reflect;
+//          materialScatteredResult.scatteredRay.dir = reflect;
+            materialScatteredResult.scatteredRay.time = rayIn.time;
+//          materialScatteredResult.scatteredRay.time = rayIn.time;
+            materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//          materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.isScattered = Dot(reflect, rayHitResult.normal) > 0.0f;
+//          materialScatteredResult.isScattered = Dot(reflect, rayHitResult.normal) > 0.0f;
+            break;
+//          break;
+        }
+
+        // We are in the medium now: do one interior free-flight and a phase-function scatter
+        // We are in the medium now: do one interior free-flight and a phase-function scatter
+        Color3 totalExtinction
+//      Color3 totalExtinction
+        {
+            .x = material.absorption.x + material.scattering.x,
+            .y = material.absorption.y + material.scattering.y,
+            .z = material.absorption.z + material.scattering.z,
+        };
+
+        // Sample distance with a single luminance-based total extinction then do per-channel Beer–Lambert attenuation
+        // Sample distance with a single luminance-based total extinction then do per-channel Beer–Lambert attenuation
+        float luminanceBasedTotalExtinction = 0.3333f * (totalExtinction.x + totalExtinction.y + totalExtinction.z);
+//      float luminanceBasedTotalExtinction = 0.3333f * (totalExtinction.x + totalExtinction.y + totalExtinction.z);
+        float freeFlightDistance = SampleFreeFlightDistance(luminanceBasedTotalExtinction);
+//      float freeFlightDistance = SampleFreeFlightDistance(luminanceBasedTotalExtinction);
+
+        // Interior scatter point (push a bit inside to avoid self-hit)
+        // Interior scatter point (push a bit inside to avoid self-hit)
+        Vec3 normal = rayHitResult.normal;
+//      Vec3 normal = rayHitResult.normal;
+        if (rayHitResult.isFrontFace) normal = -rayHitResult.normal;
+//      if (rayHitResult.isFrontFace) normal = -rayHitResult.normal;
+        Vec3 interiorScatterPoint = rayHitResult.at + normal * 1e-4f + freeFlightDistance * transmitDirection;
+//      Vec3 interiorScatterPoint = rayHitResult.at + normal * 1e-4f + freeFlightDistance * transmitDirection;
+
+/*
+        // Beer–Lambert attenuation from entry to scatter
+        // Beer–Lambert attenuation from entry to scatter
+        Color3 beerLambertAttenuation
+//      Color3 beerLambertAttenuation
+        {
+            .x = std::expf(-material.absorption.x * freeFlightDistance),
+            .y = std::expf(-material.absorption.y * freeFlightDistance),
+            .z = std::expf(-material.absorption.z * freeFlightDistance),
+//          .x = std::expf(-material.scattering.x * freeFlightDistance),
+//          .y = std::expf(-material.scattering.y * freeFlightDistance),
+//          .z = std::expf(-material.scattering.z * freeFlightDistance),
+//          .x = std::expf(-totalExtinction.x * freeFlightDistance),
+//          .y = std::expf(-totalExtinction.y * freeFlightDistance),
+//          .z = std::expf(-totalExtinction.z * freeFlightDistance),
+        };
+*/
+
+        // Single-scatter albedo factor
+        // Single-scatter albedo factor
+        Color3 singleScatterWeight
+//      Color3 singleScatterWeight
+        {
+        };
+        if (totalExtinction.x > 0.0f) singleScatterWeight.x = material.scattering.x / totalExtinction.x;
+        if (totalExtinction.y > 0.0f) singleScatterWeight.y = material.scattering.y / totalExtinction.y;
+        if (totalExtinction.z > 0.0f) singleScatterWeight.z = material.scattering.z / totalExtinction.z;
+
+
+        // Sample new interior direction from phase function
+        // Sample new interior direction from phase function
+        Vec3 interiorDirection = SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(transmitDirection, material.asymmetryParameter);
+//      Vec3 interiorDirection = SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(transmitDirection, material.asymmetryParameter);
+
+        // Return a ray starting at the interior scatter point heading somewhere inside.
+        // Return a ray starting at the interior scatter point heading somewhere inside.
+        // On the next intersection it will hit the inner surface and exit naturally.
+        // On the next intersection it will hit the inner surface and exit naturally.
+        materialScatteredResult.scatteredRay.ori = interiorScatterPoint;
+//      materialScatteredResult.scatteredRay.ori = interiorScatterPoint;
+        materialScatteredResult.scatteredRay.dir = interiorDirection;
+//      materialScatteredResult.scatteredRay.dir = interiorDirection;
+        materialScatteredResult.scatteredRay.time = rayIn.time;
+//      materialScatteredResult.scatteredRay.time = rayIn.time;
+
+        Color3 textureColor = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//      Color3 textureColor = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+
+        materialScatteredResult.attenuation = Color3
+//      materialScatteredResult.attenuation = Color3
+        {
+//          .x = textureColor.x * beerLambertAttenuation.x * singleScatterWeight.x,
+//          .y = textureColor.y * beerLambertAttenuation.y * singleScatterWeight.y,
+//          .z = textureColor.z * beerLambertAttenuation.z * singleScatterWeight.z,
+            .x = textureColor.x                            * singleScatterWeight.x,
+            .y = textureColor.y                            * singleScatterWeight.y,
+            .z = textureColor.z                            * singleScatterWeight.z,
+        };
+
+        materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//      materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+        materialScatteredResult.isScattered = true;
+//      materialScatteredResult.isScattered = true;
+    }
+    break;
+//  break;
+
+
+
+    case MaterialType::SubsurfaceRandomWalk2:
+//  case MaterialType::SubsurfaceRandomWalk2:
+    {
+        // 1. Fresnel Reflection vs. Refraction
+        // 1. Fresnel Reflection vs. Refraction
+        // Decide if the ray reflects off the surface or enters the medium based on the Fresnel equations.
+        // Decide if the ray reflects off the surface or enters the medium based on the Fresnel equations.
+        float ratioOfEtaiOverEtat;
+//      float ratioOfEtaiOverEtat;
+        if (rayHitResult.isFrontFace)
+//      if (rayHitResult.isFrontFace)
+        {
+            ratioOfEtaiOverEtat = material.layer0IOR / material.layer1IOR;
+//          ratioOfEtaiOverEtat = material.layer0IOR / material.layer1IOR;
+        }
+        else
+        {
+            // Ray is inside the medium and trying to exit.
+            // Ray is inside the medium and trying to exit.
+            ratioOfEtaiOverEtat = material.layer1IOR / material.layer0IOR;
+//          ratioOfEtaiOverEtat = material.layer1IOR / material.layer0IOR;
+        }
+        float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
+//      float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
+        float reflectanceProbability = Reflectance(cosTheta, ratioOfEtaiOverEtat);
+//      float reflectanceProbability = Reflectance(cosTheta, ratioOfEtaiOverEtat);
+
+
+        // 2. Probabilistically choose between reflection and subsurface scattering
+        // 2. Probabilistically choose between reflection and subsurface scattering
+        if (Random() < reflectanceProbability)
+//      if (Random() < reflectanceProbability)
+        {
+            // --- Surface Reflection (like a glossy dielectric) ---
+            // --- Surface Reflection (like a glossy dielectric) ---
+            Vec3 reflectedDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//          Vec3 reflectedDirection = Reflect(rayIn.dir, rayHitResult.normal);
+            if (material.layer1Roughness > 0.0f)
+//          if (material.layer1Roughness > 0.0f)
+            {
+                 reflectedDirection = Normalize(reflectedDirection + material.layer1Roughness * GenRandomUnitVector());
+//               reflectedDirection = Normalize(reflectedDirection + material.layer1Roughness * GenRandomUnitVector());
+            }
+
+            materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = reflectedDirection, .time = rayIn.time, };
+//          materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = reflectedDirection, .time = rayIn.time, };
+            materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular reflection is white
+//          materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f }; // Specular reflection is white
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+            materialScatteredResult.isScattered = (Dot(reflectedDirection, rayHitResult.normal) > 0.0f); // Ensure reflection is valid
+//          materialScatteredResult.isScattered = (Dot(reflectedDirection, rayHitResult.normal) > 0.0f); // Ensure reflection is valid
+        }
+        else
+        {
+            // --- Subsurface Scattering (Random Walk) ---
+            // --- Subsurface Scattering (Random Walk) ---
+            Vec3 refractedDirection = Refract(rayIn.dir, rayHitResult.normal, ratioOfEtaiOverEtat);
+//          Vec3 refractedDirection = Refract(rayIn.dir, rayHitResult.normal, ratioOfEtaiOverEtat);
+            if ( refractedDirection.LengthSquared() < 1e-6 )
+//          if ( refractedDirection.LengthSquared() < 1e-6 )
+            {
+                // Handle Total Internal Reflection
+                // Handle Total Internal Reflection
+                Vec3 reflectedDirection = Reflect(rayIn.dir, rayHitResult.normal);
+//              Vec3 reflectedDirection = Reflect(rayIn.dir, rayHitResult.normal);
+                materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = reflectedDirection, .time = rayIn.time, };
+//              materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = reflectedDirection, .time = rayIn.time, };
+                materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+//              materialScatteredResult.attenuation = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+                materialScatteredResult.isScattered = true;
+//              materialScatteredResult.isScattered = true;
+            }
+            else
+            {
+                // Ray has entered the medium, perform the one-bounce random walk
+                // Ray has entered the medium, perform the one-bounce random walk
+                Color3 totalExtinction = material.absorption + material.scattering;
+//              Color3 totalExtinction = material.absorption + material.scattering;
+                float luminanceBasedTotalExtinction = (totalExtinction.x + totalExtinction.y + totalExtinction.z) / 3.0f;
+//              float luminanceBasedTotalExtinction = (totalExtinction.x + totalExtinction.y + totalExtinction.z) / 3.0f;
+
+                // If the medium doesn't absorb or scatter, just treat it as a simple transparent dielectric
+                // If the medium doesn't absorb or scatter, just treat it as a simple transparent dielectric
+                if (luminanceBasedTotalExtinction < 1e-6f)
+//              if (luminanceBasedTotalExtinction < 1e-6f)
+                {
+                    materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = refractedDirection, .time = rayIn.time, };
+//                  materialScatteredResult.scatteredRay = { .ori = rayHitResult.at, .dir = refractedDirection, .time = rayIn.time, };
+                    materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+//                  materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
+                    materialScatteredResult.isScattered = true;
+//                  materialScatteredResult.isScattered = true;
+                }
+                else
+                {
+                    // Sample the distance the light travels inside the medium
+                    // Sample the distance the light travels inside the medium
+                    float freeFlightDistance = SampleFreeFlightDistance(luminanceBasedTotalExtinction);
+//                  float freeFlightDistance = SampleFreeFlightDistance(luminanceBasedTotalExtinction);
+
+                    // Calculate the point where the light scatters inside the medium
+                    // Calculate the point where the light scatters inside the medium
+                    Point3 interiorPoint = rayHitResult.at + refractedDirection * (freeFlightDistance + 1e-4f);
+//                  Point3 interiorPoint = rayHitResult.at + refractedDirection * (freeFlightDistance + 1e-4f);
+
+                    // Sample a new direction after scattering using the Henyey-Greenstein phase function
+                    // Sample a new direction after scattering using the Henyey-Greenstein phase function
+                    Vec3 newDirection = SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(refractedDirection, material.asymmetryParameter);
+//                  Vec3 newDirection = SampleScatteredDirectionUsingHenyeyGreensteinPhaseFunction(refractedDirection, material.asymmetryParameter);
+
+                    materialScatteredResult.scatteredRay = { .ori = interiorPoint, .dir = newDirection, .time = rayIn.time, };
+//                  materialScatteredResult.scatteredRay = { .ori = interiorPoint, .dir = newDirection, .time = rayIn.time, };
+
+                    // Attenuation from Beer-Lambert Law (absorption and out-scattering)
+                    // Attenuation from Beer-Lambert Law (absorption and out-scattering)
+                    Color3 beerLambertAttenuation
+//                  Color3 beerLambertAttenuation
+                    {
+                        .x = expf(-totalExtinction.x * freeFlightDistance),
+                        .y = expf(-totalExtinction.y * freeFlightDistance),
+                        .z = expf(-totalExtinction.z * freeFlightDistance),
+                    };
+
+                    // Albedo: The probability of scattering vs. absorbing
+                    // Albedo: The probability of scattering vs. absorbing
+                    Color3 singleScatterAlbedo
+//                  Color3 singleScatterAlbedo
+                    {
+                        .x = material.scattering.x / Safe(totalExtinction.x > 1e-6f, totalExtinction.x, 1.0f),
+                        .y = material.scattering.y / Safe(totalExtinction.y > 1e-6f, totalExtinction.y, 1.0f),
+                        .z = material.scattering.z / Safe(totalExtinction.z > 1e-6f, totalExtinction.z, 1.0f),
+                    };
+
+                    // Final attenuation combines surface color, albedo, and Beer-Lambert law
+                    // Final attenuation combines surface color, albedo, and Beer-Lambert law
+                    materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) * singleScatterAlbedo * beerLambertAttenuation;
+//                  materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at) * singleScatterAlbedo * beerLambertAttenuation;
+                    materialScatteredResult.isScattered = true;
+//                  materialScatteredResult.isScattered = true;
+                }
+            }
+            materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
+        }
     }
     break;
 //  break;
@@ -4640,8 +5068,8 @@ int main()
 #ifdef SCENE_001
     thread_local static const constexpr BackgroundType backgroundType = BackgroundType::SKY_BOX;
 //  thread_local static const constexpr BackgroundType backgroundType = BackgroundType::SKY_BOX;
-    imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
-//  imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+    imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/symmetrical_garden_02_16k.exr)");
+//  imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/symmetrical_garden_02_16k.exr)");
     imagesDatabase.images.reserve(1);
 //  imagesDatabase.images.reserve(1);
     imagesDatabase.images.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
@@ -4675,8 +5103,8 @@ int main()
 #ifdef SCENE_001
     texturesDatabase.textures.reserve(3);
 //  texturesDatabase.textures.reserve(3);
-    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
-//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.0f, 0.0f, 0.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+    texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
+//  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = +0, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::IMAGE_TEXTURE, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 1.0f, 1.0f, 1.0f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
     texturesDatabase.textures.emplace_back(Texture{ .albedo = { 0.5f, 0.5f, 0.5f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
@@ -4726,6 +5154,8 @@ int main()
 #ifdef SCENE_001
     materialsDatabase.materials.reserve(3);
 //  materialsDatabase.materials.reserve(3);
+//  materialsDatabase.materials.emplace_back(Material{ .absorption = { 0.1f, 0.4f, 0.6f }, .scattering = { 1.0f, 1.0f, 1.0f }, .asymmetryParameter = 0.85f, .layer1Roughness = 0.5f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::SKIN), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::SubsurfaceRandomWalk2, });
+//  materialsDatabase.materials.emplace_back(Material{ .absorption = { 0.1f, 0.4f, 0.6f }, .scattering = { 1.0f, 1.0f, 1.0f }, .asymmetryParameter = 0.85f, .layer1Roughness = 0.5f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::SKIN), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::SubsurfaceRandomWalk2, });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.1f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
@@ -4785,14 +5215,14 @@ int main()
 
     ThreadPool* threadPool = new ThreadPool();
 //  ThreadPool* threadPool = new ThreadPool();
-    threadPool->WarmUp(255);
-//  threadPool->WarmUp(255);
+    threadPool->WarmUp(4);
+//  threadPool->WarmUp(4);
 
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 100 ;
-//  int                              samplesPerPixel = 100 ;
+    int                              samplesPerPixel = 2500 ;
+//  int                              samplesPerPixel = 2500 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
     int stratifiedSamplesPerPixel = static_cast<int>(std::sqrtf(static_cast<float>(samplesPerPixel)));
@@ -4805,25 +5235,26 @@ int main()
     BVHTreeMain bvhTreeMain;
 //  BVHTreeMain bvhTreeMain;
 #ifdef SCENE_001
-    bvhTreeMain.bvhTrees.reserve(1);
-//  bvhTreeMain.bvhTrees.reserve(1);
-    for (std::uint8_t i = 0; i < 1; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-//  for (std::uint8_t i = 0; i < 1; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
-    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(1 * 2 - 1));
-//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(1 * 2 - 1));
-    bvhTreeMain.bvhTrees[0].geometries.reserve(3);
-//  bvhTreeMain.bvhTrees[0].geometries.reserve(3);
-    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
-//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(3 * 2 - 1));
+    bvhTreeMain.bvhTrees.reserve(2);
+//  bvhTreeMain.bvhTrees.reserve(2);
+    for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+//  for (std::uint8_t i = 0; i < 2; ++i) bvhTreeMain.bvhTrees.emplace_back(BVHTree{});
+    bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
+//  bvhTreeMain.bvhNodeMains.reserve(static_cast<std::size_t>(2 * 2 - 1));
+    bvhTreeMain.bvhTrees[0].geometries.reserve(2);
+//  bvhTreeMain.bvhTrees[0].geometries.reserve(2);
+    bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
+//  bvhTreeMain.bvhTrees[0].bvhNodes.reserve(static_cast<std::size_t>(2 * 2 - 1));
 
     //FLOOR
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .vertex1 = { .x = -0.00f, .y = -0.00f, .z = +0.00f }, .vertex2 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .vertex1 = { .x = -0.00f, .y = -0.00f, .z = +0.00f }, .vertex2 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .vertex1 = { .x = +0.00f, .y = -0.00f, .z = -0.00f }, .vertex2 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +0.00f, .y = -0.00f, .z = +0.00f }, .vertex1 = { .x = +0.00f, .y = -0.00f, .z = -0.00f }, .vertex2 = { .x = -0.00f, .y = -0.00f, .z = -0.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .vertex1 = { .x = -20.00f, .y = -20.00f, .z = +20.00f }, .vertex2 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+    bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
+//  bvhTreeMain.bvhTrees[0].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = +20.00f, .y = -20.00f, .z = +20.00f }, .vertex1 = { .x = +20.00f, .y = -20.00f, .z = -20.00f }, .vertex2 = { .x = -20.00f, .y = -20.00f, .z = -20.00f }, .frontFaceVertex0U = 0.0f, .frontFaceVertex0V = 0.0f, .frontFaceVertex1U = 1.0f, .frontFaceVertex1V = 0.0f, .frontFaceVertex2U = 0.5f, .frontFaceVertex2V = 1.0, .backFaceVertex0U = 0.0f, .backFaceVertex0V = 1.0f, .backFaceVertex1U = 1.0f, .backFaceVertex1V = 1.0f, .backFaceVertex2U = 0.5f, .backFaceVertex2V = 0.0f, .perVertexFrontFaceNormalAvailable = false, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
 
 
 
+/*
     Geometry metaballs;
 //  Geometry metaballs;
     metaballs.geometryType = GeometryType::IMPLICIT_SURFACE;
@@ -4851,10 +5282,10 @@ int main()
 
     bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
 //  bvhTreeMain.bvhTrees[0].geometries.push_back(metaballs);
+*/
 
 
 
-/*
     //MODEL
     std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
 //  std::unique_ptr<Assimp::Importer> importerA = std::make_unique<Assimp::Importer>();
@@ -4968,7 +5399,8 @@ int main()
         std::cout << "General error: " << e.what() << std::endl;
 //      std::cout << "General error: " << e.what() << std::endl;
     }
-*/
+
+
 
 #endif
 #ifdef SCENE_002
@@ -5803,8 +6235,8 @@ int main()
 
     float aspectRatio = 16.0f / 9.0f;
 //  float aspectRatio = 16.0f / 9.0f;
-    int imgW = 1920/2;
-//  int imgW = 1920/2;
+    int imgW = 1920 / 2;
+//  int imgW = 1920 / 2;
     int imgH = int(imgW / aspectRatio);
 //  int imgH = int(imgW / aspectRatio);
     imgH = std::max(imgH, 1);
@@ -5865,10 +6297,14 @@ int main()
 #endif
 
 
-    float vFOV = std::numbers::pi_v<float> / 2.0f;
-    float hFOV = std::numbers::pi_v<float> / 2.0f;
+    float vFOV = std::numbers::pi_v<float> / 2.5f;
+//  float vFOV = std::numbers::pi_v<float> / 2.5f;
+    float hFOV = std::numbers::pi_v<float> / 2.5f;
+//  float hFOV = std::numbers::pi_v<float> / 2.5f;
     float h = std::tanf(vFOV / 2.0f);
+//  float h = std::tanf(vFOV / 2.0f);
     float w = std::tanf(hFOV / 2.0f);
+//  float w = std::tanf(hFOV / 2.0f);
 
     float focalLength = (lookAt - lookFrom).Length();
 //  float focalLength = (lookAt - lookFrom).Length();
@@ -5909,24 +6345,6 @@ int main()
 //  Point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5f + fromPixelToPixelDeltaV * 0.5f;
 
 
-    const std::string& fileName = GetCurrentDateTime();
-//  const std::string& fileName = GetCurrentDateTime();
-    std::ofstream PPMFile0(fileName + "_TM0.ppm");
-    std::ofstream PPMFile1(fileName + "_TM1.ppm");
-    std::ofstream PPMFile2(fileName + "_TM2.ppm");
-    std::ofstream PPMFile3(fileName + "_TM3.ppm");
-    std::ofstream PPMFile4(fileName + "_TM4.ppm");
-    std::ofstream PPMFile5(fileName + "_TM5.ppm");
-    std::ofstream PPMFile6(fileName + "_TM6.ppm");
-    std::ofstream PPMFile7(fileName + "_TM7.ppm");
-    PPMFile0 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile1 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile2 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile3 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile4 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile5 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile6 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile7 << "P3\n" << imgW << " " << imgH << "\n255\n";
 
     constexpr int numberOfChannels = 3; // R G B
 //  constexpr int numberOfChannels = 3; // R G B
@@ -5972,8 +6390,8 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 100, backgroundType);
-//          pixelColor += RayColor(ray, bvhTreeMain, 100, backgroundType);
+            pixelColor += RayColor(ray, bvhTreeMain, 1000, backgroundType);
+//          pixelColor += RayColor(ray, bvhTreeMain, 1000, backgroundType);
         }
         }
         pixelColor *= pixelSamplesScale;
@@ -5987,18 +6405,109 @@ int main()
     });
     }
 
+
+    
+    #ifdef DISPLAY_WINDOW
+//  #ifdef DISPLAY_WINDOW
+
+
+
+    rl::InitWindow(imgW, imgH, "Path Tracing");
+//  rl::InitWindow(imgW, imgH, "Path Tracing");
+    rl::SetTargetFPS(60);
+//  rl::SetTargetFPS(60);
+
+
+
+    std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
+//  std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
+    rl::Image img { .data = rgb8.data(), .width = imgW, .height = imgH, .mipmaps = 1, .format = rl::PIXELFORMAT_UNCOMPRESSED_R8G8B8 };
+//  rl::Image img { .data = rgb8.data(), .width = imgW, .height = imgH, .mipmaps = 1, .format = rl::PIXELFORMAT_UNCOMPRESSED_R8G8B8 };
+    rl::Texture2D tex = LoadTextureFromImage(img);
+//  rl::Texture2D tex = LoadTextureFromImage(img);
+    rl::Rectangle src = { .x = 0.0f, .y = 0.0f, .width = static_cast<float>(imgW), .height = static_cast<float>(imgH) };
+//  rl::Rectangle src = { .x = 0.0f, .y = 0.0f, .width = static_cast<float>(imgW), .height = static_cast<float>(imgH) };
+    rl::Rectangle dst = { .x = 0.0f, .y = 0.0f, .width = static_cast<float>(imgW), .height = static_cast<float>(imgH) };
+//  rl::Rectangle dst = { .x = 0.0f, .y = 0.0f, .width = static_cast<float>(imgW), .height = static_cast<float>(imgH) };
+
+
+
+    std::size_t size = static_cast<size_t>(imgW) * imgH;
+//  std::size_t size = static_cast<size_t>(imgW) * imgH;
+    while (!rl::WindowShouldClose())
+//  while (!rl::WindowShouldClose())
+    {
+        for (std::size_t i = 0; i < size; ++i)
+//      for (std::size_t i = 0; i < size; ++i)
+        {
+            std::size_t ri = 3 * i + 0;
+//          std::size_t ri = 3 * i + 0;
+            std::size_t gi = 3 * i + 1;
+//          std::size_t gi = 3 * i + 1;
+            std::size_t bi = 3 * i + 2;
+//          std::size_t bi = 3 * i + 2;
+            rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[ri]), 0.0f, 1.0f));
+//          rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[ri]), 0.0f, 1.0f));
+            rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[gi]), 0.0f, 1.0f));
+//          rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[gi]), 0.0f, 1.0f));
+            rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[bi]), 0.0f, 1.0f));
+//          rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[bi]), 0.0f, 1.0f));
+        }
+        rl::UpdateTexture(tex, rgb8.data());
+//      rl::UpdateTexture(tex, rgb8.data());
+        rl::BeginDrawing();
+//      rl::BeginDrawing();
+        rl::ClearBackground(rl::BLACK);
+//      rl::ClearBackground(rl::BLACK);
+//      dst.width  = static_cast<float>(rl::GetScreenWidth ());
+//      dst.width  = static_cast<float>(rl::GetScreenWidth ());
+//      dst.height = static_cast<float>(rl::GetScreenHeight());
+//      dst.height = static_cast<float>(rl::GetScreenHeight());
+        rl::DrawTexturePro(tex, src, dst, { .x = 0.0f, .y = 0.0f, }, 0.0f, rl::WHITE);
+//      rl::DrawTexturePro(tex, src, dst, { .x = 0.0f, .y = 0.0f, }, 0.0f, rl::WHITE);
+        rl::DrawFPS(10, 10);
+//      rl::DrawFPS(10, 10);
+        rl::EndDrawing();
+//      rl::EndDrawing();
+    }
+
+
+
+    rl::UnloadTexture(tex);
+//  rl::UnloadTexture(tex);
+    rl::CloseWindow();
+//  rl::CloseWindow();
+
+
+
+    #else
+//  #else
+
+
+
     threadPool->WaitForAllTasksToBeDone();
 //  threadPool->WaitForAllTasksToBeDone();
 
 
 
-
-
-
-
-
-
-
+    const std::string& fileName = GetCurrentDateTime();
+//  const std::string& fileName = GetCurrentDateTime();
+    std::ofstream PPMFile0(fileName + "_TM0.ppm");
+    std::ofstream PPMFile1(fileName + "_TM1.ppm");
+    std::ofstream PPMFile2(fileName + "_TM2.ppm");
+    std::ofstream PPMFile3(fileName + "_TM3.ppm");
+    std::ofstream PPMFile4(fileName + "_TM4.ppm");
+    std::ofstream PPMFile5(fileName + "_TM5.ppm");
+    std::ofstream PPMFile6(fileName + "_TM6.ppm");
+    std::ofstream PPMFile7(fileName + "_TM7.ppm");
+    PPMFile0 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile1 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile2 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile3 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile4 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile5 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile6 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    PPMFile7 << "P3\n" << imgW << " " << imgH << "\n255\n";
 
 
 
@@ -6150,6 +6659,11 @@ int main()
     PPMFile5.close();
     PPMFile6.close();
     PPMFile7.close();
+
+
+
+    #endif
+//  #endif
 
     const std::chrono::steady_clock::time_point& ceaseTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& ceaseTime = std::chrono::high_resolution_clock::now();

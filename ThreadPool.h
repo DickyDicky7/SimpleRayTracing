@@ -23,11 +23,16 @@ public:
     {
         size_t numberOfThreadsAvailable = std::max<size_t>(1, std::thread::hardware_concurrency());
 //      size_t numberOfThreadsAvailable = std::max<size_t>(1, std::thread::hardware_concurrency());
+        threads.reserve(numberOfThreadsAvailable);
+//      threads.reserve(numberOfThreadsAvailable);
         for (size_t i = 0; i < numberOfThreadsAvailable; ++i)
+//      for (size_t i = 0; i < numberOfThreadsAvailable; ++i)
         {
             threads.emplace_back([this]
+//          threads.emplace_back([this]
             {
                 while (true)
+//              while (true)
                 {
                     std::function<void()> task;
 //                  std::function<void()> task;
@@ -69,11 +74,16 @@ public:
     {
         size_t numberOfThreadsAvailable = std::min<size_t>(numberOfThreads, std::thread::hardware_concurrency());
 //      size_t numberOfThreadsAvailable = std::min<size_t>(numberOfThreads, std::thread::hardware_concurrency());
+        threads.reserve(numberOfThreadsAvailable);
+//      threads.reserve(numberOfThreadsAvailable);
         for (size_t i = 0; i < numberOfThreadsAvailable; ++i)
+//      for (size_t i = 0; i < numberOfThreadsAvailable; ++i)
         {
             threads.emplace_back([this]
+//          threads.emplace_back([this]
             {
                 while (true)
+//              while (true)
                 {
                     std::function<void()> task;
 //                  std::function<void()> task;
@@ -127,11 +137,18 @@ public:
 //          std::unique_lock<std::mutex> lock(tasksMutex);
             stop = true;
 //          stop = true;
+            std::queue<std::function<void()>>().swap(tasks);
+//          std::queue<std::function<void()>>().swap(tasks);
+            currentlyExecutingTasksCount = 0;
+//          currentlyExecutingTasksCount = 0;
         }
         conditionVariableForNewTasks.notify_all();
 //      conditionVariableForNewTasks.notify_all();
+        conditionVariableForAllTasks.notify_all();
+//      conditionVariableForAllTasks.notify_all();
 
         for (std::thread& thread : threads)
+//      for (std::thread& thread : threads)
         {
             if (thread.joinable())
 //          if (thread.joinable())
@@ -140,6 +157,11 @@ public:
 //              thread.join();
             }
         }
+
+        std::vector<std::thread>().swap(threads);
+//      std::vector<std::thread>().swap(threads);
+        stop = false;
+//      stop = false;
     }
 
     void Enqueue(std::function<void()>&& task)
