@@ -157,6 +157,10 @@ static inline Vec2 operator/(float t, const Vec2& u) { return Vec2 { t / u.x, t 
 //inline static Vec2 Abs(const Vec2& v) { return { std::fabsf(v.x), std::fabsf(v.y), }; }
 
 
+  inline static Vec2 Exp(const Vec2& v) { return { std::expf(v.x), std::expf(v.y), }; }
+//inline static Vec2 Exp(const Vec2& v) { return { std::expf(v.x), std::expf(v.y), }; }
+
+
   inline static Vec2 Min(const Vec2& v1, const Vec2& v2) { return { std::fminf(v1.x, v2.x), std::fminf(v1.y, v2.y), }; }
 //inline static Vec2 Min(const Vec2& v1, const Vec2& v2) { return { std::fminf(v1.x, v2.x), std::fminf(v1.y, v2.y), }; }
 
@@ -179,6 +183,10 @@ static inline Vec2 operator/(float t, const Vec2& u) { return Vec2 { t / u.x, t 
 
   inline static Vec2 Max(float f, const Vec2& v) { return { std::fmaxf(f, v.x), std::fmaxf(f, v.y), }; }
 //inline static Vec2 Max(float f, const Vec2& v) { return { std::fmaxf(f, v.x), std::fmaxf(f, v.y), }; }
+
+
+  inline static Vec2 Pow(const Vec2& v, float f) { return { std::powf(v.x, f), std::powf(v.y, f), }; }
+//inline static Vec2 Pow(const Vec2& v, float f) { return { std::powf(v.x, f), std::powf(v.y, f), }; }
 
 
   inline static float Length(const Vec2& v) { return std::sqrtf(v.x * v.x + v.y * v.y); }

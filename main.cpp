@@ -4939,8 +4939,8 @@ enum class Axis : std::uint8_t
 
 
 
-    static inline Vec2 Saturate(const Vec2& v)
-//  static inline Vec2 Saturate(const Vec2& v)
+    static inline Color2 Saturate(const Color2& v)
+//  static inline Color2 Saturate(const Color2& v)
     {
         return
         {
@@ -4949,8 +4949,8 @@ enum class Axis : std::uint8_t
         };
 
     }
-    static inline Vec3 Saturate(const Vec3& v)
-//  static inline Vec3 Saturate(const Vec3& v)
+    static inline Color3 Saturate(const Color3& v)
+//  static inline Color3 Saturate(const Color3& v)
     {
         return
         {
@@ -4959,34 +4959,34 @@ enum class Axis : std::uint8_t
             .z = std::clamp(v.z, 0.0f, 1.0f),
         };
     }
-    static inline Vec3 TonemapACES(const Vec3& v)
-//  static inline Vec3 TonemapACES(const Vec3& v)
+    static inline Color3 TonemapACES(const Color3& v)
+//  static inline Color3 TonemapACES(const Color3& v)
     {
-        return Saturate((v * (2.51f * v + Vec3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Vec3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Vec3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
-//      return Saturate((v * (2.51f * v + Vec3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Vec3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Vec3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
+        return Saturate((v * (2.51f * v + Color3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Color3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Color3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
+//      return Saturate((v * (2.51f * v + Color3{ .x = 0.03f, .y = 0.03f, .z = 0.03f })) / (v * (2.43f * v + Color3{ .x = 0.59f, .y = 0.59f, .z = 0.59f }) + Color3{ .x = 0.14f, .y = 0.14f, .z = 0.14f }));
     }
-    static inline Vec3 TonemapFilmic(const Vec3& v)
-//  static inline Vec3 TonemapFilmic(const Vec3& v)
+    static inline Color3 TonemapFilmic(const Color3& v)
+//  static inline Color3 TonemapFilmic(const Color3& v)
     {
-        Vec3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
-//      Vec3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
-        return (m * (6.2f * m + Vec3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Vec3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Vec3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
-//      return (m * (6.2f * m + Vec3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Vec3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Vec3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
+        Color3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
+//      Color3 m{ .x = std::fmaxf(0.0f, v.x - 0.004f), .y = std::fmaxf(0.0f, v.y - 0.004f), .z = std::fmaxf(0.0f, v.z - 0.004f) };
+        return (m * (6.2f * m + Color3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Color3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Color3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
+//      return (m * (6.2f * m + Color3{ .x = 0.5f, .y = 0.5f, .z = 0.5f })) / (m * (6.2f * m + Color3{ .x = 1.7f, .y = 1.7f, .z = 1.7f }) + Color3{ .x = 0.06f, .y = 0.06f, .z = 0.06f });
     }
-    static inline Vec3 TonemapReinhard(const Vec3& v)
-//  static inline Vec3 TonemapReinhard(const Vec3& v)
+    static inline Color3 TonemapReinhard(const Color3& v)
+//  static inline Color3 TonemapReinhard(const Color3& v)
     {
-        return v / (1.0f + Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
-//      return v / (1.0f + Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
+        return v / (1.0f + Dot(v, Color3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
+//      return v / (1.0f + Dot(v, Color3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }));
     }
-    static inline Vec3 TonemapReinhardJodie(const Vec3& v)
-//  static inline Vec3 TonemapReinhardJodie(const Vec3& v)
+    static inline Color3 TonemapReinhardJodie(const Color3& v)
+//  static inline Color3 TonemapReinhardJodie(const Color3& v)
     {
-        float l = Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Vec3 tc = v / (v + Vec3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
-//      float l = Dot(v, Vec3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Vec3 tc = v / (v + Vec3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
+        float l = Dot(v, Color3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Color3 tc = v / (v + Color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
+//      float l = Dot(v, Color3{ .x = 0.21250175f, .y = 0.71537574f, .z = 0.07212251f }); Color3 tc = v / (v + Color3{ .x = 1.0f, .y = 1.0f, .z = 1.0f }); return BlendLinear(v / (l + 1.0f), tc, tc);
     }
-    static inline Vec3 TonemapUncharted2(const Vec3& v)
-//  static inline Vec3 TonemapUncharted2(const Vec3& v)
+    static inline Color3 TonemapUncharted2(const Color3& v)
+//  static inline Color3 TonemapUncharted2(const Color3& v)
     {
         constexpr float A = 0.15f;
 //      constexpr float A = 0.15f;
@@ -5000,34 +5000,197 @@ enum class Axis : std::uint8_t
 //      constexpr float E = 0.02f;
         constexpr float F = 0.30f;
 //      constexpr float F = 0.30f;
-        constexpr Vec3 VCB{ .x = C * B, .y = C * B, .z = C * B };
-        constexpr Vec3 VB { .x =     B, .y =     B, .z =     B };
-        constexpr Vec3 VDE{ .x = D * E, .y = D * E, .z = D * E };
-        constexpr Vec3 VDF{ .x = D * F, .y = D * F, .z = D * F };
-        constexpr Vec3 VEF{ .x = E / F, .y = E / F, .z = E / F };
+        constexpr Color3 VCB{ .x = C * B, .y = C * B, .z = C * B };
+//      constexpr Color3 VCB{ .x = C * B, .y = C * B, .z = C * B };
+        constexpr Color3 VB { .x =     B, .y =     B, .z =     B };
+//      constexpr Color3 VB { .x =     B, .y =     B, .z =     B };
+        constexpr Color3 VDE{ .x = D * E, .y = D * E, .z = D * E };
+//      constexpr Color3 VDE{ .x = D * E, .y = D * E, .z = D * E };
+        constexpr Color3 VDF{ .x = D * F, .y = D * F, .z = D * F };
+//      constexpr Color3 VDF{ .x = D * F, .y = D * F, .z = D * F };
+        constexpr Color3 VEF{ .x = E / F, .y = E / F, .z = E / F };
+//      constexpr Color3 VEF{ .x = E / F, .y = E / F, .z = E / F };
         return ((v * (A * v + VCB) + VDE) / (v * (A * v + VB) + VDF)) - VEF;
 //      return ((v * (A * v + VCB) + VDE) / (v * (A * v + VB) + VDF)) - VEF;
     }
-    static inline Vec3 TonemapUncharted1(const Vec3& v)
-//  static inline Vec3 TonemapUncharted1(const Vec3& v)
+    static inline Color3 TonemapUncharted1(const Color3& v)
+//  static inline Color3 TonemapUncharted1(const Color3& v)
     {
         constexpr float W = 11.2f;
 //      constexpr float W = 11.2f;
         constexpr float exposureBias = 2.0f;
 //      constexpr float exposureBias = 2.0f;
-        Vec3 curr = TonemapUncharted2(exposureBias * v);
-//      Vec3 curr = TonemapUncharted2(exposureBias * v);
-        Vec3 whiteScale = 1.0f / TonemapUncharted2(Vec3{ .x = W, .y = W, .z = W });
-//      Vec3 whiteScale = 1.0f / TonemapUncharted2(Vec3{ .x = W, .y = W, .z = W });
+        Color3 curr = TonemapUncharted2(exposureBias * v);
+//      Color3 curr = TonemapUncharted2(exposureBias * v);
+        Color3 whiteScale = 1.0f / TonemapUncharted2(Color3{ .x = W, .y = W, .z = W });
+//      Color3 whiteScale = 1.0f / TonemapUncharted2(Color3{ .x = W, .y = W, .z = W });
         return curr * whiteScale;
 //      return curr * whiteScale;
     }
-    static inline Vec3 TonemapUnreal(const Vec3& v)
-//  static inline Vec3 TonemapUnreal(const Vec3& v)
+    static inline Color3 TonemapUnreal(const Color3& v)
+//  static inline Color3 TonemapUnreal(const Color3& v)
     {
-        return v / (v + Vec3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
-//      return v / (v + Vec3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
+        return v / (v + Color3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
+//      return v / (v + Color3{ .x = 0.155f, .y = 0.155f, .z = 0.155f }) * 1.019f;
     }
+    static inline Color3 TonemapLinear(const Color3& v)
+//  static inline Color3 TonemapLinear(const Color3& v)
+    {
+        return v;
+//      return v;
+    }
+    static inline Color3 TonemapDrago(const Color3& v)
+//  static inline Color3 TonemapDrago(const Color3& v)
+    {
+        float lum = Dot(v, Color3{ 0.2126f, 0.7152f, 0.0722f });
+//      float lum = Dot(v, Color3{ 0.2126f, 0.7152f, 0.0722f });
+        float logLum = std::log2f(1.0f + lum);
+//      float logLum = std::log2f(1.0f + lum);
+        float bias = std::log2f(0.85f);
+//      float bias = std::log2f(0.85f);
+        float exponent = logLum / bias;
+//      float exponent = logLum / bias;
+        float scale = std::powf(0.96f, exponent);
+//      float scale = std::powf(0.96f, exponent);
+        return v * scale;
+//      return v * scale;
+    }
+    static inline Color3 TonemapExponential(const Color3& v)
+//  static inline Color3 TonemapExponential(const Color3& v)
+    {
+        float exposure = 1.0f;
+//      float exposure = 1.0f;
+        return 1.0f - Exp(-v * exposure);
+//      return 1.0f - Exp(-v * exposure);
+    }
+    static inline Color3 TonemapLogarithmic(const Color3& v)
+//  static inline Color3 TonemapLogarithmic(const Color3& v)
+    {
+        return v / (v + 1.0f);
+//      return v / (v + 1.0f);
+    }
+    static inline Color3 TonemapExtendedReinhard(const Color3& v)
+//  static inline Color3 TonemapExtendedReinhard(const Color3& v)
+    {
+        float whitePoint = 4.0f; // This can be adjusted, or calculated from the scene's max brightness.
+//      float whitePoint = 4.0f; // This can be adjusted, or calculated from the scene's max brightness.
+        Color3 numerator = v * (1.0f + (v / (whitePoint * whitePoint)));
+//      Color3 numerator = v * (1.0f + (v / (whitePoint * whitePoint)));
+        return numerator / (1.0f + v);
+//      return numerator / (1.0f + v);
+    }
+    static inline Color3 TonemapHableFilmic(const Color3& v)
+//  static inline Color3 TonemapHableFilmic(const Color3& v)
+    {
+        float A = 0.22f; // Shoulder Strength
+//      float A = 0.22f; // Shoulder Strength
+        float B = 0.30f; // Linear   Strength
+//      float B = 0.30f; // Linear   Strength
+        float C = 0.10f; // Linear   Angle
+//      float C = 0.10f; // Linear   Angle
+        float D = 0.20f; // Toe      Strength
+//      float D = 0.20f; // Toe      Strength
+        float E = 0.01f; // Toe        Numerator
+//      float E = 0.01f; // Toe        Numerator
+        float F = 0.30f; // Toe      Denominator
+//      float F = 0.30f; // Toe      Denominator
+        float exposure = 2.0f;
+//      float exposure = 2.0f;
+
+        Color3 curr = ((v * (A * v + C * B) + D * E) / (v * (A * v + B) + D * F)) - E / F;
+//      Color3 curr = ((v * (A * v + C * B) + D * E) / (v * (A * v + B) + D * F)) - E / F;
+        Color3 whitePoint = ((Color3{ 11.2f, 11.2f, 11.2f } * (A * Color3{ 11.2f, 11.2f, 11.2f } + C * B) + D * E) / (Color3{ 11.2f, 11.2f, 11.2f } * (A * Color3{ 11.2f, 11.2f, 11.2f } + B) + D * F)) - E / F;
+//      Color3 whitePoint = ((Color3{ 11.2f, 11.2f, 11.2f } * (A * Color3{ 11.2f, 11.2f, 11.2f } + C * B) + D * E) / (Color3{ 11.2f, 11.2f, 11.2f } * (A * Color3{ 11.2f, 11.2f, 11.2f } + B) + D * F)) - E / F;
+
+        return curr * (1.0f / whitePoint);
+//      return curr * (1.0f / whitePoint);
+    }
+    static inline Color3 TonemapACESFitted(const Color3& v)
+//  static inline Color3 TonemapACESFitted(const Color3& v)
+    {
+        // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+        // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+        const float a = 2.51f;
+//      const float a = 2.51f;
+        const float b = 0.03f;
+//      const float b = 0.03f;
+        const float c = 2.43f;
+//      const float c = 2.43f;
+        const float d = 0.59f;
+//      const float d = 0.59f;
+        const float e = 0.14f;
+//      const float e = 0.14f;
+
+        Color3 clamped = Saturate((v * (a * v + b)) / (v * (c * v + d) + e));
+//      Color3 clamped = Saturate((v * (a * v + b)) / (v * (c * v + d) + e));
+        return clamped;
+//      return clamped;
+    }
+    static inline Color3 TonemapLottes(const Color3& v)
+//  static inline Color3 TonemapLottes(const Color3& v)
+    {
+        // A simpler, more robust curve inspired by Lottes' GDC talks
+        // A simpler, more robust curve inspired by Lottes' GDC talks
+        const float contrast = 1.60f;
+//      const float contrast = 1.60f;
+        const float shoulder = 0.98f;
+//      const float shoulder = 0.98f;
+
+        // Apply contrast
+        // Apply contrast
+        Color3 contrasted
+//      Color3 contrasted
+        {
+            .x = std::powf(v.x, contrast),
+            .y = std::powf(v.y, contrast),
+            .z = std::powf(v.z, contrast),
+        };
+
+        // Apply shoulder curve to compress highlights
+        // Apply shoulder curve to compress highlights
+        Color3 tonemapped
+//      Color3 tonemapped
+        {
+            .x = (1.0f - shoulder) * contrasted.x + shoulder * contrasted.x / (1.0f + contrasted.x),
+            .y = (1.0f - shoulder) * contrasted.y + shoulder * contrasted.y / (1.0f + contrasted.y),
+            .z = (1.0f - shoulder) * contrasted.z + shoulder * contrasted.z / (1.0f + contrasted.z),
+        };
+
+        return tonemapped;
+//      return tonemapped;
+    }
+    static inline Color3 TonemapHejlFilmic(const Color3& v)
+//  static inline Color3 TonemapHejlFilmic(const Color3& v)
+    {
+        Color3 temp
+//      Color3 temp
+        {
+            .x = std::fmaxf(0.0f, v.x - 0.004f),
+            .y = std::fmaxf(0.0f, v.y - 0.004f),
+            .z = std::fmaxf(0.0f, v.z - 0.004f),
+        };
+
+        Color3   numerator = (temp * (6.2f * temp + 0.5f));
+//      Color3   numerator = (temp * (6.2f * temp + 0.5f));
+        Color3 denominator = (temp * (6.2f * temp + 1.7f)) + 0.06f;
+//      Color3 denominator = (temp * (6.2f * temp + 1.7f)) + 0.06f;
+
+        return Color3
+//      return Color3
+        {
+            .x = numerator.x / denominator.x,
+            .y = numerator.y / denominator.y,
+            .z = numerator.z / denominator.z,
+        };
+    }
+    using TonemapFunctionPointer = Color3(*)(const Color3& color3);
+//  using TonemapFunctionPointer = Color3(*)(const Color3& color3);
+    static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] = { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; } tonemapsDatabase;
+//  static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] = { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; } tonemapsDatabase;
+    template <typename T, size_t N> static inline const constexpr std::size_t GetArraySize(const T(&array)[N]) { return N; }
+//  template <typename T, size_t N> static inline const constexpr std::size_t GetArraySize(const T(&array)[N]) { return N; }
+    thread_local static inline const constexpr std::size_t tonemapsSize = GetArraySize(tonemapsDatabase.tonemaps);
+//  thread_local static inline const constexpr std::size_t tonemapsSize = GetArraySize(tonemapsDatabase.tonemaps);
 
 
 
@@ -6419,6 +6582,8 @@ int main()
 
 
 
+    std::uint8_t tonemapIndex = 0;
+//  std::uint8_t tonemapIndex = 0;
     std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
 //  std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
     rl::Image img { .data = rgb8.data(), .width = imgW, .height = imgH, .mipmaps = 1, .format = rl::PIXELFORMAT_UNCOMPRESSED_R8G8B8 };
@@ -6437,6 +6602,16 @@ int main()
     while (!rl::WindowShouldClose())
 //  while (!rl::WindowShouldClose())
     {
+        if (rl::IsKeyPressed(rl::KEY_SPACE))
+//      if (rl::IsKeyPressed(rl::KEY_SPACE))
+        {
+            ++tonemapIndex;
+//          ++tonemapIndex;
+            tonemapIndex %= tonemapsSize;
+//          tonemapIndex %= tonemapsSize;
+        }
+        const TonemapFunctionPointer& tonemap = tonemapsDatabase.tonemaps[tonemapIndex];
+//      const TonemapFunctionPointer& tonemap = tonemapsDatabase.tonemaps[tonemapIndex];
         for (std::size_t i = 0; i < size; ++i)
 //      for (std::size_t i = 0; i < size; ++i)
         {
@@ -6446,12 +6621,14 @@ int main()
 //          std::size_t gi = 3 * i + 1;
             std::size_t bi = 3 * i + 2;
 //          std::size_t bi = 3 * i + 2;
-            rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[ri]), 0.0f, 1.0f));
-//          rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[ri]), 0.0f, 1.0f));
-            rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[gi]), 0.0f, 1.0f));
-//          rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[gi]), 0.0f, 1.0f));
-            rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[bi]), 0.0f, 1.0f));
-//          rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(rgbs[bi]), 0.0f, 1.0f));
+            Color3 tonemapColor = tonemap({ .x = rgbs[ri], .y = rgbs[gi], .z = rgbs[bi] });
+//          Color3 tonemapColor = tonemap({ .x = rgbs[ri], .y = rgbs[gi], .z = rgbs[bi] });
+            rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.x), 0.0f, 1.0f));
+//          rgb8[ri] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.x), 0.0f, 1.0f));
+            rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.y), 0.0f, 1.0f));
+//          rgb8[gi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.y), 0.0f, 1.0f));
+            rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.z), 0.0f, 1.0f));
+//          rgb8[bi] = static_cast<std::uint8_t>(255.0f * std::clamp(LinearSpaceToGammasSpace(tonemapColor.z), 0.0f, 1.0f));
         }
         rl::UpdateTexture(tex, rgb8.data());
 //      rl::UpdateTexture(tex, rgb8.data());

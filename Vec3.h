@@ -225,6 +225,10 @@ return Vec3 { u.y * v.z - u.z * v.y,
 //inline static Vec3 Abs(const Vec3& v) { return { std::fabsf(v.x), std::fabsf(v.y), std::fabsf(v.z) }; }
 
 
+  inline static Vec3 Exp(const Vec3& v) { return { std::expf(v.x), std::expf(v.y), std::expf(v.z) }; }
+//inline static Vec3 Exp(const Vec3& v) { return { std::expf(v.x), std::expf(v.y), std::expf(v.z) }; }
+
+
   inline static Vec3 Min(const Vec3& v1, const Vec3& v2) { return { std::fminf(v1.x, v2.x), std::fminf(v1.y, v2.y), std::fminf(v1.z, v2.z) }; }
 //inline static Vec3 Min(const Vec3& v1, const Vec3& v2) { return { std::fminf(v1.x, v2.x), std::fminf(v1.y, v2.y), std::fminf(v1.z, v2.z) }; }
 
@@ -247,6 +251,10 @@ return Vec3 { u.y * v.z - u.z * v.y,
 
   inline static Vec3 Max(float f, const Vec3& v) { return { std::fmaxf(f, v.x), std::fmaxf(f, v.y), std::fmaxf(f, v.z) }; }
 //inline static Vec3 Max(float f, const Vec3& v) { return { std::fmaxf(f, v.x), std::fmaxf(f, v.y), std::fmaxf(f, v.z) }; }
+
+
+  inline static Vec3 Pow(const Vec3& v, float f) { return { std::powf(v.x, f), std::powf(v.y, f), std::powf(v.z, f) }; }
+//inline static Vec3 Pow(const Vec3& v, float f) { return { std::powf(v.x, f), std::powf(v.y, f), std::powf(v.z, f) }; }
 
 
   inline static float Length(const Vec3& v) { return std::sqrtf(v.x * v.x + v.y * v.y + v.z * v.z); }
