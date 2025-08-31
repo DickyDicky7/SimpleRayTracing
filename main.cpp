@@ -19,7 +19,7 @@
 //      #define FOG_HEIGHT
 //      #define FOG_HEIGHT
 
-        #define DISPLAY_WINDOW
+//      #define DISPLAY_WINDOW
 //      #define DISPLAY_WINDOW
 
 #include <string_view>
@@ -5185,8 +5185,8 @@ enum class Axis : std::uint8_t
     }
     using TonemapFunctionPointer = Color3(*)(const Color3& color3);
 //  using TonemapFunctionPointer = Color3(*)(const Color3& color3);
-    static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] = { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; } tonemapsDatabase;
-//  static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] = { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; } tonemapsDatabase;
+    static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; std::string tonemapNames[16] { "TonemapACES", "TonemapFilmic", "TonemapReinhard", "TonemapReinhardJodie", "TonemapUncharted2", "TonemapUncharted1", "TonemapUnreal", "TonemapLinear", "TonemapDrago", "TonemapExponential", "TonemapLogarithmic", "TonemapExtendedReinhard", "TonemapHableFilmic", "TonemapACESFitted", "TonemapLottes", "TonemapHejlFilmic", }; } tonemapsDatabase;
+//  static inline struct TonemapsDatabase { TonemapFunctionPointer tonemaps[16] { TonemapACES, TonemapFilmic, TonemapReinhard, TonemapReinhardJodie, TonemapUncharted2, TonemapUncharted1, TonemapUnreal, TonemapLinear, TonemapDrago, TonemapExponential, TonemapLogarithmic, TonemapExtendedReinhard, TonemapHableFilmic, TonemapACESFitted, TonemapLottes, TonemapHejlFilmic, }; std::string tonemapNames[16] { "TonemapACES", "TonemapFilmic", "TonemapReinhard", "TonemapReinhardJodie", "TonemapUncharted2", "TonemapUncharted1", "TonemapUnreal", "TonemapLinear", "TonemapDrago", "TonemapExponential", "TonemapLogarithmic", "TonemapExtendedReinhard", "TonemapHableFilmic", "TonemapACESFitted", "TonemapLottes", "TonemapHejlFilmic", }; } tonemapsDatabase;
     template <typename T, size_t N> static inline const constexpr std::size_t GetArraySize(const T(&array)[N]) { return N; }
 //  template <typename T, size_t N> static inline const constexpr std::size_t GetArraySize(const T(&array)[N]) { return N; }
     thread_local static inline const constexpr std::size_t tonemapsSize = GetArraySize(tonemapsDatabase.tonemaps);
@@ -6582,8 +6582,8 @@ int main()
 
 
 
-    std::uint8_t tonemapIndex = 0;
-//  std::uint8_t tonemapIndex = 0;
+    std::size_t tonemapIndex = 0;
+//  std::size_t tonemapIndex = 0;
     std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
 //  std::vector<std::uint8_t> rgb8(imgW * imgH * numberOfChannels, 0);
     rl::Image img { .data = rgb8.data(), .width = imgW, .height = imgH, .mipmaps = 1, .format = rl::PIXELFORMAT_UNCOMPRESSED_R8G8B8 };
@@ -6667,24 +6667,37 @@ int main()
 
 
 
-    const std::string& fileName = GetCurrentDateTime();
-//  const std::string& fileName = GetCurrentDateTime();
-    std::ofstream PPMFile0(fileName + "_TM0.ppm");
-    std::ofstream PPMFile1(fileName + "_TM1.ppm");
-    std::ofstream PPMFile2(fileName + "_TM2.ppm");
-    std::ofstream PPMFile3(fileName + "_TM3.ppm");
-    std::ofstream PPMFile4(fileName + "_TM4.ppm");
-    std::ofstream PPMFile5(fileName + "_TM5.ppm");
-    std::ofstream PPMFile6(fileName + "_TM6.ppm");
-    std::ofstream PPMFile7(fileName + "_TM7.ppm");
-    PPMFile0 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile1 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile2 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile3 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile4 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile5 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile6 << "P3\n" << imgW << " " << imgH << "\n255\n";
-    PPMFile7 << "P3\n" << imgW << " " << imgH << "\n255\n";
+    std::string fileName = GetCurrentDateTime();
+//  std::string fileName = GetCurrentDateTime();
+    std::vector<std::ofstream> PPMFiles;
+//  std::vector<std::ofstream> PPMFiles;
+    PPMFiles.reserve(tonemapsSize);
+//  PPMFiles.reserve(tonemapsSize);
+    for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+//  for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+    {
+        std::string digits = std::to_string(tonemapIndex);
+//      std::string digits = std::to_string(tonemapIndex);
+        std::size_t digitsSize = digits.size();
+//      std::size_t digitsSize = digits.size();
+        if (digitsSize == 1)
+//      if (digitsSize == 1)
+        {
+            digits.insert(0, "00");
+//          digits.insert(0, "00");
+        }
+        else
+        if (digitsSize == 2)
+//      if (digitsSize == 2)
+        {
+            digits.insert(0, "0");
+//          digits.insert(0, "0");
+        }
+        PPMFiles.emplace_back(((fileName + "_").append(digits).append("_").append(tonemapsDatabase.tonemapNames[tonemapIndex]).append(".ppm")));
+//      PPMFiles.emplace_back(((fileName + "_").append(digits).append("_").append(tonemapsDatabase.tonemapNames[tonemapIndex]).append(".ppm")));
+        PPMFiles[tonemapIndex] << "P3\n" << imgW << " " << imgH << "\n255\n";
+//      PPMFiles[tonemapIndex] << "P3\n" << imgW << " " << imgH << "\n255\n";
+    }
 
 
 
@@ -6739,103 +6752,30 @@ int main()
 //      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
         thread_local static const Interval intensity { 0.000f , 0.999f };
 //      thread_local static const Interval intensity { 0.000f , 0.999f };
+        for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+//      for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
         {
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 0])));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 1])));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(rgbs[index + 2])));
-            PPMFile0 << std::setw(3) << ir << " ";
-            PPMFile0 << std::setw(3) << ig << " ";
-            PPMFile0 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapACES({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapACES({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile1 << std::setw(3) << ir << " ";
-            PPMFile1 << std::setw(3) << ig << " ";
-            PPMFile1 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapFilmic({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapFilmic({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile2 << std::setw(3) << ir << " ";
-            PPMFile2 << std::setw(3) << ig << " ";
-            PPMFile2 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapReinhard({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapReinhard({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile3 << std::setw(3) << ir << " ";
-            PPMFile3 << std::setw(3) << ig << " ";
-            PPMFile3 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapReinhardJodie({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapReinhardJodie({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile4 << std::setw(3) << ir << " ";
-            PPMFile4 << std::setw(3) << ig << " ";
-            PPMFile4 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapUncharted1({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapUncharted1({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile5 << std::setw(3) << ir << " ";
-            PPMFile5 << std::setw(3) << ig << " ";
-            PPMFile5 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapUncharted2({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapUncharted2({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile6 << std::setw(3) << ir << " ";
-            PPMFile6 << std::setw(3) << ig << " ";
-            PPMFile6 << std::setw(3) << ib << " ";
-        }
-        {
-            const Vec3& c = TonemapUnreal({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-//          const Vec3& c = TonemapUnreal({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
-            int ir = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.x)));
-            int ig = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.y)));
-            int ib = static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(c.z)));
-            PPMFile7 << std::setw(3) << ir << " ";
-            PPMFile7 << std::setw(3) << ig << " ";
-            PPMFile7 << std::setw(3) << ib << " ";
+            Color3 tonemapColor = tonemapsDatabase.tonemaps[tonemapIndex]({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
+//          Color3 tonemapColor = tonemapsDatabase.tonemaps[tonemapIndex]({ .x = rgbs[index + 0], .y = rgbs[index + 1], .z = rgbs[index + 2], });
+            PPMFiles[tonemapIndex] << std::setw(3) << static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(tonemapColor.x))) << " ";
+            PPMFiles[tonemapIndex] << std::setw(3) << static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(tonemapColor.y))) << " ";
+            PPMFiles[tonemapIndex] << std::setw(3) << static_cast<int>(256 * intensity.Clamp(LinearSpaceToGammasSpace(tonemapColor.z))) << " ";
         }
     }
-        PPMFile0 << "\n";
-        PPMFile1 << "\n";
-        PPMFile2 << "\n";
-        PPMFile3 << "\n";
-        PPMFile4 << "\n";
-        PPMFile5 << "\n";
-        PPMFile6 << "\n";
-        PPMFile7 << "\n";
+        for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+//      for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+        {
+            PPMFiles[tonemapIndex] << "\n";
+//          PPMFiles[tonemapIndex] << "\n";
+        }
     }
 
-    PPMFile0.close();
-    PPMFile1.close();
-    PPMFile2.close();
-    PPMFile3.close();
-    PPMFile4.close();
-    PPMFile5.close();
-    PPMFile6.close();
-    PPMFile7.close();
+    for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+//  for (std::size_t tonemapIndex = 0; tonemapIndex < tonemapsSize; ++tonemapIndex)
+    {
+        PPMFiles[tonemapIndex].close();
+//      PPMFiles[tonemapIndex].close();
+    }
 
 
 
