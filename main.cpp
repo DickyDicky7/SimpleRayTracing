@@ -1063,6 +1063,9 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
     }
     inline static Vec3 GenRandomPointInsideNormalizedDisk()
     {
+//  rejection sampling
+//  rejection sampling
+/*
         while (true)
 //      while (true)
         {
@@ -1075,6 +1078,15 @@ static bool HitAABB(const Ray& ray, Interval rayT, const AABB3D& aabb3d)
 //              return point;
             }
         }
+*/
+//  polar sampling
+//  polar sampling
+        float r = std::sqrt(Random()); // radius (sqrt ensures uniform distribution)
+//      float r = std::sqrt(Random()); // radius (sqrt ensures uniform distribution)
+        float theta = Random(0.0f, 2.0f * std::numbers::pi_v<float>); // angle in radians
+//      float theta = Random(0.0f, 2.0f * std::numbers::pi_v<float>); // angle in radians
+        return { r * std::cos(theta), r * std::sin(theta), 0.0f };
+//      return { r * std::cos(theta), r * std::sin(theta), 0.0f };
     }
     inline static Vec3 DefocusDiskSample(const Point3& diskCenter, const Vec3& defocusDiskRadiusU, const Vec3& defocusDiskRadiusV)
 //  inline static Vec3 DefocusDiskSample(const Point3& diskCenter, const Vec3& defocusDiskRadiusU, const Vec3& defocusDiskRadiusV)
