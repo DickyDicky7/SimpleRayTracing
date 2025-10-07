@@ -6494,8 +6494,8 @@ int main()
     defocusDiskRadiusV = cameraV * defocusRadius;
 
 
-    float viewportH = 2.0f * h * /* focalLength */ focusDistance;
-//  float viewportH = 2.0f * h * /* focalLength */ focusDistance;
+    float viewportH = 2.0f * h * focalLength /* focusDistance */;
+//  float viewportH = 2.0f * h * focalLength /* focusDistance */;
     float viewportW = viewportH * (float(imgW) / imgH);
 //  float viewportW = viewportH * (float(imgW) / imgH);
 
@@ -6514,8 +6514,8 @@ int main()
 
 
 
-    Point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
-//  Point3 viewportTL = cameraCenter - (focusDistance /* focalLength */ * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
+    Point3 viewportTL = cameraCenter - (/* focusDistance */ focalLength * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
+//  Point3 viewportTL = cameraCenter - (/* focusDistance */ focalLength * cameraW) - viewportU / 2.0f - viewportV / 2.0f;
     Point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5f + fromPixelToPixelDeltaV * 0.5f;
 //  Point3 pixel00Coord = viewportTL + fromPixelToPixelDeltaU * 0.5f + fromPixelToPixelDeltaV * 0.5f;
 
