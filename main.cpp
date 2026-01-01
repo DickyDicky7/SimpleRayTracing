@@ -4337,7 +4337,9 @@ enum class Axis : std::uint8_t
         bvhTree.bvhNodes[current].geometryIndex = -1;
 //      bvhTree.bvhNodes[current].geometryIndex = -1;
         bvhTree.bvhNodes[current].childIndexL = childIndexL;
+//      bvhTree.bvhNodes[current].childIndexL = childIndexL;
         bvhTree.bvhNodes[current].childIndexR = childIndexR;
+//      bvhTree.bvhNodes[current].childIndexR = childIndexR;
 
         return current;
 //      return current;
