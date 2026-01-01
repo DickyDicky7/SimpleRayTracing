@@ -8,16 +8,63 @@ This project is a custom ray tracing engine built from scratch in C++. It demons
 
 ## Features
 
-- **Monte Carlo Path Tracing**: Physically based rendering.
-- **Multithreading**: Utilizes a custom thread pool for parallel rendering.
-- **Textures & Noise**: Supports solid colors, checkers, image textures, and Perlin noise (including turbulence).
-- **Depth of Field**: Defocus blur simulation.
-- **Post-processing**:
-    - **OpenImageDenoise (OIDN)** integration for high-quality denoising.
-    - Multiple Tonemapping operators.
-- **Real-time Preview**: Optional integration with Raylib for windowed display.
-- **Asset Loading**: Uses Assimp for loading 3D models.
-- **BVH**: Bounding Volume Hierarchy for accelerated ray-scene intersection.
+- **Core Rendering Engine**
+    - **Monte Carlo Path Tracing**: Unbiased physically based rendering engine.
+    - **Motion Blur**: Linear motion blur support for geometric primitives (Spheres, Meshes).
+    - **Multithreading**: Custom `ThreadPool` implementation with dynamic task queuing for efficient parallel rendering.
+    - **BVH (Bounding Volume Hierarchy)**: High-performance acceleration structure for fast ray-scene intersection.
+    - **Global Illumination**: Indirect lighting, soft shadows, and color bleeding.
+
+- **SDF (Signed Distance Fields) & Implicit Surfaces**
+    - **Primitives**: Extensive library including Sphere, Box, RoundBox, BoxFrame, Torus, CappedTorus, Link, Cylinder (Infinite/Vertical/Arbitrary/Rounded), Cone (Exact/Bound/Infinite/Capped), Plane, HexPrism, TriPrism, Capsule, SolidAngle, and CutSphere.
+    - **Operations**: Smooth Union (blending), Metaballs, and Domain Warping.
+    - **Terrain Generation**: Heightmap-based terrain using noise functions.
+
+- **Advanced Material System**
+    - **Physical Materials**:
+        - **Dielectrics**: Accurate refraction with Schlick's approximation. Includes presets for Air, Water, Skin, Glass, Marble, and Diamond.
+        - **Metals**: Configurable fuzziness/roughness.
+        - **Lambertian**: Multiple diffuse reflection models.
+    - **Specialized Shaders**:
+        - **Thin Film Interference**: Simulates iridescence (soap bubbles, oil slicks).
+        - **Subsurface Scattering (SSS)**: Random walk implementation for translucent materials (Skin, Marble).
+        - **Fresnel Layering**: Complex blended materials (Dielectric/Glossy/Diffuse layers).
+    - **Emissive**: Diffuse and Metallic light emitters.
+
+- **Textures & Noise**
+    - **Image Support**: PNG, JPG, SVG, EXR texture mapping.
+    - **Procedural Textures**: 
+        - **Perlin Noise**: Blocky, Smooth, and Hermitian variants with turbulence (Marble-like patterns).
+        - **FastNoiseLite Integration**: Support for OpenSimplex2, Cellular, Value, and Domain Warp noise types.
+    - **Mapping**: Planar, Spherical, and UV mapping support.
+
+- **Volumetrics & Environment**
+    - **Fog Models**: 
+        - Simple constant-density scattering.
+        - Height-based exponential falloff fog.
+    - **Skybox**: 
+        - Constant Color, Gradient (Blue-to-White), and Image-based Lighting (IBL).
+
+- **Camera & Optics**
+    - **Depth of Field**: Physically accurate defocus blur using disk sampling.
+    - **Lens Effects**: Chromatic Aberration post-process effect.
+
+- **Post-Processing Pipeline**
+    - **Denoising**: Integrated **OpenImageDenoise (OIDN)** for AI-accelerated high-quality denoising.
+    - **Filtering**:
+        - **Gaussian Blur**: Optimized 3x3, 5x5, and 7x7 kernels.
+        - **Bilateral Filtering**: Edge-preserving noise reduction.
+    - **Color & Output**:
+        - **Bayer Matrix Dithering**: 2x2 up to 16x16 ordered dithering to prevent color banding.
+        - **Tonemapping**: Multiple operators for High Dynamic Range (HDR) to Low Dynamic Range (LDR) conversion.
+
+- **System & Optimization**
+    - **Memory Management**: Custom **ArenaAllocator** and **PoolAllocator** for high-performance memory usage.
+    - **Math Library**: Custom SIMD-ready `Vec2` / `Vec3` math implementations.
+    - **Asset Loading**: Model loading via **Assimp**.
+    - **Preview**: Real-time windowed preview using **Raylib**.
+
+> **A Final Note**: If you stumble upon a feature that isn't listed above, please treat it like finding an onion ring in your fries—a delightful bonus! 🍟 This is my absolute first experiment with ray tracing, so if I forgot to mention something (or if half the code is held together by hope and `std::vector`), please bear with me. I'm trying my best! 🥺✨
 
 ## Dependencies
 
