@@ -114,7 +114,7 @@ static inline float Sample2LinearInterpolation(const std::vector<float>& rgbs, i
 {
     int pixelX = static_cast<int>(std::floor(x));
     int pixelY = static_cast<int>(std::floor(y));
-    
+
     float deltaX = x - pixelX;
     float deltaY = y - pixelY;
 
@@ -274,7 +274,7 @@ static inline Vec3 SampleRGB2LinearInterpolation(const std::vector<float>& rgbs,
 {
     int pixelX = static_cast<int>(std::floor(x));
     int pixelY = static_cast<int>(std::floor(y));
-    
+
     float deltaX = x - pixelX;
     float deltaY = y - pixelY;
 
@@ -1254,7 +1254,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
 //  struct SDFHitResult
 {
     float distance; std::uint8_t materialIndex;
-//  float distance; std::uint8_t materialIndex; 
+//  float distance; std::uint8_t materialIndex;
 };
 
     struct Geometry
@@ -1618,7 +1618,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         // Notes: iCosThetaFromFilmLayerToSubstrateLayer = tCosThetaFromExternalLayerToFilmLayer
         float sqTSinThetaFromFilmLayerToSubstrateLayer = (filmLayerIOR / substrateLayerIOR) * (filmLayerIOR / substrateLayerIOR) * sqTSinThetaFromExternalLayerToFilmLayer;
 //      float sqTSinThetaFromFilmLayerToSubstrateLayer = (filmLayerIOR / substrateLayerIOR) * (filmLayerIOR / substrateLayerIOR) * sqTSinThetaFromExternalLayerToFilmLayer;
-        
+
         // If sqTSinThetaFromFilmLayerToSubstrateLayer >= 1.0f then TIR occurs at film-substrate interface. This affects phase shift and amplitude at r12. For simplicity here -> we'll assume no TIR for substrate or that it's handled by complex IORs for metals.
         // If sqTSinThetaFromFilmLayerToSubstrateLayer >= 1.0f then TIR occurs at film-substrate interface. This affects phase shift and amplitude at r12. For simplicity here -> we'll assume no TIR for substrate or that it's handled by complex IORs for metals.
 
@@ -1960,7 +1960,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
             materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
 //          materialScatteredResult.attenuation = Value(material.textureIndex, rayHitResult.uSurfaceCoordinate, rayHitResult.vSurfaceCoordinate, rayHitResult.at);
             materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
-//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };            
+//          materialScatteredResult.emission = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
 //          materialScatteredResult.isScattered = Dot(reflectionScatteredDirection, rayHitResult.normal) > 0.0f;
         }
@@ -2170,7 +2170,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         }
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
-        
+
 //      Calculate Fresnel reflectance probability using Schlick's approximation
 //      Calculate Fresnel reflectance probability using Schlick's approximation
         float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
@@ -2268,7 +2268,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         }
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
-        
+
 //      Calculate Fresnel reflectance probability using Schlick's approximation
 //      Calculate Fresnel reflectance probability using Schlick's approximation
         float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
@@ -2366,7 +2366,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         }
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
-        
+
 //      Calculate Fresnel reflectance probability using Schlick's approximation
 //      Calculate Fresnel reflectance probability using Schlick's approximation
         float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
@@ -2464,7 +2464,7 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
         }
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
 //      else case (isFrontFace is false) -> incident = inside environment / transmitted = outside environment
-        
+
 //      Calculate Fresnel reflectance probability using Schlick's approximation
 //      Calculate Fresnel reflectance probability using Schlick's approximation
         float reflectanceProbability = Reflectance(cosThetaIncident, ratioOfEtaiOverEtat);
@@ -2539,8 +2539,8 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
     break;
 //  break;
 
-    
-    
+
+
     case MaterialType::ThinFilmDielectric1: // e.g. soap bubble
 //  case MaterialType::ThinFilmDielectric1: // e.g. soap bubble
     {
@@ -3069,14 +3069,14 @@ constexpr inline static float GetRefractionIndex(MaterialDielectric materialDiel
               eta = material.layer0IOR / material.layer1IOR;
 //            eta = material.layer0IOR / material.layer1IOR;
         }
-        
+
         // Try to refract into the medium; if TIR, reflect (acts like a glossy dielectric at grazing angles)
         // Try to refract into the medium; if TIR, reflect (acts like a glossy dielectric at grazing angles)
         Vec3 transmitDirection;
 //      Vec3 transmitDirection;
         bool totalInternalReflection = false;
 //      bool totalInternalReflection = false;
-        
+
         float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
 //      float cosTheta = std::fminf(Dot(-rayIn.dir, rayHitResult.normal), 1.0f);
         Vec3  tangentialPartOfTheRefractedDirection = eta * (rayIn.dir + cosTheta * rayHitResult.normal);
@@ -3489,7 +3489,7 @@ static RayHitResult RayHit(const Geometry& geo
                 rayHitResult.vSurfaceCoordinate = theta /         std::numbers::pi_v<float> ;
 //              rayHitResult.vSurfaceCoordinate = theta /         std::numbers::pi_v<float> ;
             }
-    
+
             return rayHitResult;
 //          return rayHitResult;
         }
@@ -3674,7 +3674,7 @@ static RayHitResult RayHit(const Geometry& geo
 //                  rayHitResult.minT = t;
                     rayHitResult.at = currentPoint;
 //                  rayHitResult.at = currentPoint;
-                    
+
                     Vec3 outwardNormal = CalculateImplicitNormal(sdf, currentPoint);
 //                  Vec3 outwardNormal = CalculateImplicitNormal(sdf, currentPoint);
                     rayHitResult.isFrontFace = Dot(ray.dir, outwardNormal) < 0.0f;
@@ -4625,8 +4625,8 @@ enum class Axis : std::uint8_t
     }
     #endif
 //  #endif
-    inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
-//  inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType)
+    inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType, Color3& normal, Color3& albedo)
+//  inline static Color3 RayColor(const Ray& initialRay, const BVHTreeMain& bvhTreeMain, int maxDepth, BackgroundType backgroundType, Color3& normal, Color3& albedo)
 {
         Color3 accumulatedColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
 //      Color3 accumulatedColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
@@ -4637,6 +4637,10 @@ enum class Axis : std::uint8_t
 
     #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
 //  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+        RayHitResult firstRayHitResult{};
+//      RayHitResult firstRayHitResult{};
+    #else
+//  #else
         RayHitResult firstRayHitResult{};
 //      RayHitResult firstRayHitResult{};
     #endif
@@ -4650,6 +4654,10 @@ enum class Axis : std::uint8_t
 
     #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
 //  #if defined(FOG_SIMPLE) || defined(FOG_HEIGHT)
+            if (depth == 0) { firstRayHitResult = rayHitResult; }
+//          if (depth == 0) { firstRayHitResult = rayHitResult; }
+    #else
+//  #else
             if (depth == 0) { firstRayHitResult = rayHitResult; }
 //          if (depth == 0) { firstRayHitResult = rayHitResult; }
     #endif
@@ -4709,7 +4717,7 @@ enum class Axis : std::uint8_t
                         float imagePixelY = v * (imagesDatabase.imageBasedLighting.h - 1);
 
                         backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);
-//                      backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);          
+//                      backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);
                     }
                     break;
 //                  break;
@@ -4774,6 +4782,92 @@ enum class Axis : std::uint8_t
 //      return ApplyFogHeight(accumulatedColor, firstRayHitResult.minT, initialRay, _FOG_HEIGHT_COLOR_, _FOG_HEIGHT_DENSITY_, _FOG_HEIGHT_FALLOFF_);
     #else
 //  #else
+        if (firstRayHitResult.hitted)
+//      if (firstRayHitResult.hitted)
+        {
+            normal = firstRayHitResult.normal;
+//          normal = firstRayHitResult.normal;
+            const MaterialScatteredResult& scatterResult = Scatter(initialRay, firstRayHitResult);
+//          const MaterialScatteredResult& scatterResult = Scatter(initialRay, firstRayHitResult);
+            if (!scatterResult.isScattered)
+//          if (!scatterResult.isScattered)
+            {
+                albedo = scatterResult.emission;
+//              albedo = scatterResult.emission;
+            }
+            else
+//          else
+            {
+                albedo = scatterResult.attenuation;
+//              albedo = scatterResult.attenuation;
+            }
+        }
+        else
+//      else
+        {
+            normal = { 0.0f, 1.0f, 0.0f };
+//          normal = { 0.0f, 1.0f, 0.0f };
+            Color3  backgroundColor;
+//          Color3  backgroundColor;
+            switch (backgroundType)
+//          switch (backgroundType)
+            {
+                case BackgroundType::BLUE_LERP_WHITE:
+//              case BackgroundType::BLUE_LERP_WHITE:
+                {
+                    const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
+//                  const Vec3& normalizedRayDirection = Normalize(currentRay.dir);
+                    const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+//                  const float ratio = 0.5f * (normalizedRayDirection.y + 1.0f);
+                    backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
+//                  backgroundColor = BlendLinear(Color3{ .x = 1.00f, .y = 1.00f, .z = 1.00f }, Color3{ .x = 0.50f, .y = 0.70f, .z = 1.00f }, ratio);
+                }
+                break;
+//              break;
+                case BackgroundType::DARK_ROOM_SPACE:
+//              case BackgroundType::DARK_ROOM_SPACE:
+                {
+                    backgroundColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
+//                  backgroundColor = { .x = 0.00f, .y = 0.00f, .z = 0.00f };
+                }
+                break;
+//              break;
+                case BackgroundType::SKY_BOX:
+//              case BackgroundType::SKY_BOX:
+                {
+                    float theta = std::acos (-currentRay.dir.y); // latitude
+//                  float theta = std::acos (-currentRay.dir.y); // latitude
+                    float phi   = std::atan2(-currentRay.dir.z, currentRay.dir.x) + std::numbers::pi_v<float>; // longitude
+//                  float phi   = std::atan2(-currentRay.dir.z, currentRay.dir.x) + std::numbers::pi_v<float>; // longitude
+                    float u = phi   / (2.0f * std::numbers::pi_v<float>);
+//                  float u = phi   / (2.0f * std::numbers::pi_v<float>);
+                    float v = theta /         std::numbers::pi_v<float> ;
+//                  float v = theta /         std::numbers::pi_v<float> ;
+                    u =        std::clamp(u, 0.0f, 1.0f);
+//                  u =        std::clamp(u, 0.0f, 1.0f);
+                    v = 1.0f - std::clamp(v, 0.0f, 1.0f);
+//                  v = 1.0f - std::clamp(v, 0.0f, 1.0f);
+                    float imagePixelX = u * (imagesDatabase.imageBasedLighting.w - 1);
+                    float imagePixelY = v * (imagesDatabase.imageBasedLighting.h - 1);
+                    backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);
+//                  backgroundColor = SampleRGB2LinearInterpolation(imagesDatabase.imageBasedLighting.rgbs, imagesDatabase.imageBasedLighting.w, imagesDatabase.imageBasedLighting.h, imagePixelX, imagePixelY);
+                }
+                break;
+//              break;
+                default:
+//              default:
+                {
+                    backgroundColor = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+//                  backgroundColor = { .x = 1.00f, .y = 1.00f, .z = 1.00f };
+                }
+                break;
+//              break;
+            }
+            albedo = backgroundColor;
+//          albedo = backgroundColor;
+        }
+        normal = normal * 0.5f + Vec3{ 0.5f, 0.5f, 0.5f };
+//      normal = normal * 0.5f + Vec3{ 0.5f, 0.5f, 0.5f };
         return accumulatedColor;
 //      return accumulatedColor;
     #endif
@@ -5245,8 +5339,8 @@ int main()
 #ifdef SCENE_001
     thread_local static const constexpr BackgroundType backgroundType = BackgroundType::SKY_BOX;
 //  thread_local static const constexpr BackgroundType backgroundType = BackgroundType::SKY_BOX;
-    imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/symmetrical_garden_02_16k.exr)");
-//  imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/symmetrical_garden_02_16k.exr)");
+    imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
+//  imagesDatabase.imageBasedLighting.Load(R"(./assets/scene001/citrus_orchard_road_puresky_16k.exr)");
     imagesDatabase.images.reserve(1);
 //  imagesDatabase.images.reserve(1);
     imagesDatabase.images.emplace_back(R"(./assets/scene001/Nackter_Reiter_C_Nackter_Reiter_O.png)");
@@ -5326,7 +5420,7 @@ int main()
 //  texturesDatabase.textures.emplace_back(Texture{ .albedo = { 001.000f, 000.380f, 000.000f }, .scale = 1.0f, .imageIndex = -1, .noiseIndex = -1, .oTileTextureIndex = -1, .eTileTextureIndex = -1, .type = TextureType::SOLID_COLOR, });
 #endif
 
-    
+
 
 #ifdef SCENE_001
     materialsDatabase.materials.reserve(3);
@@ -5364,24 +5458,24 @@ int main()
 #ifdef SCENE_003
     materialsDatabase.materials.reserve(11);
 //  materialsDatabase.materials.reserve(11);
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 0, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 1, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 2, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 3, .materialType = MaterialType::LambertianDiffuseReflectance2, });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LightDiffuse                          , });
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 4, .materialType = MaterialType::LightDiffuse                          , });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS  ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::Dielectric                            , });
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::GLASS  ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::Dielectric                            , });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
-//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::FresnelBlendedDielectricGlossyDiffuse2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 6, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 7, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+    materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::LambertianDiffuseReflectance2, });
+//  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 0.05f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::AIR    ), .layer1IOR = GetRefractionIndex(MaterialDielectric::MARBLE ), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 8, .materialType = MaterialType::LambertianDiffuseReflectance2, });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::Isotropic2                            , });
 //  materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::Isotropic2                            , });
     materialsDatabase.materials.emplace_back(Material{ .layer1Roughness = 1.00f, .layer1Thickness = 1.0f, .layer0IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer1IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .layer2IOR = GetRefractionIndex(MaterialDielectric::NOTHING), .textureIndex = 5, .materialType = MaterialType::LambertianDiffuseReflectance2         , });
@@ -5398,8 +5492,8 @@ int main()
     const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 //  const std::chrono::steady_clock::time_point& startTime = std::chrono::high_resolution_clock::now();
 
-    int                              samplesPerPixel = 2500 ;
-//  int                              samplesPerPixel = 2500 ;
+    int                              samplesPerPixel = 100 ;
+//  int                              samplesPerPixel = 100 ;
     float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
 //  float pixelSamplesScale = 1.0f / samplesPerPixel        ; // 1.0f / (stratifiedSamplesPerPixel * stratifiedSamplesPerPixel) ;
     int stratifiedSamplesPerPixel = static_cast<int>(std::sqrtf(static_cast<float>(samplesPerPixel)));
@@ -5554,7 +5648,7 @@ int main()
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
                     bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 0, .geometryType = GeometryType::PRIMITIVE, });
 //                  bvhTreeMain.bvhTrees[1].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 0, .geometryType = GeometryType::PRIMITIVE, });
-                
+
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[1].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[1].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
@@ -5978,7 +6072,7 @@ int main()
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
                     bvhTreeMain.bvhTrees[2].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 0, .geometryType = GeometryType::PRIMITIVE, });
 //                  bvhTreeMain.bvhTrees[2].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 0, .geometryType = GeometryType::PRIMITIVE, });
-                
+
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[2].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[2].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[2].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
@@ -6093,7 +6187,7 @@ int main()
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
                     bvhTreeMain.bvhTrees[3].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 1, .geometryType = GeometryType::PRIMITIVE, });
 //                  bvhTreeMain.bvhTrees[3].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 1, .geometryType = GeometryType::PRIMITIVE, });
-                
+
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[3].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[3].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[3].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+180.000f));
@@ -6208,7 +6302,7 @@ int main()
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
                     bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
 //                  bvhTreeMain.bvhTrees[4].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 2, .geometryType = GeometryType::PRIMITIVE, });
-                
+
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[4].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[4].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+060.000f));
@@ -6323,7 +6417,7 @@ int main()
                     const aiVector3D& vertex2FrontFaceNormal = mesh->mNormals[face.mIndices[2]];
                     bvhTreeMain.bvhTrees[5].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 3, .geometryType = GeometryType::PRIMITIVE, });
 //                  bvhTreeMain.bvhTrees[5].geometries.emplace_back(Geometry{ .primitive = { .vertex0 = { .x = vertex0.x, .y = vertex0.y - offsetY, .z = vertex0.z }, .vertex1 = { .x = vertex1.x, .y = vertex1.y - offsetY, .z = vertex1.z }, .vertex2 = { .x = vertex2.x, .y = vertex2.y - offsetY, .z = vertex2.z }, .vertex0FrontFaceNormal = { .x = vertex0FrontFaceNormal.x, .y = vertex0FrontFaceNormal.y, .z = vertex0FrontFaceNormal.z }, .vertex1FrontFaceNormal = { .x = vertex1FrontFaceNormal.x, .y = vertex1FrontFaceNormal.y, .z = vertex1FrontFaceNormal.z }, .vertex2FrontFaceNormal = { .x = vertex2FrontFaceNormal.x, .y = vertex2FrontFaceNormal.y, .z = vertex2FrontFaceNormal.z }, .frontFaceVertex0U = vertex0UV.x, .frontFaceVertex0V = vertex0UV.y, .frontFaceVertex1U = vertex1UV.x, .frontFaceVertex1V = vertex1UV.y, .frontFaceVertex2U = vertex2UV.x, .frontFaceVertex2V = vertex2UV.y, .backFaceVertex0U = vertex0UV.x, .backFaceVertex0V = vertex0UV.y, .backFaceVertex1U = vertex1UV.x, .backFaceVertex1V = vertex1UV.y, .backFaceVertex2U = vertex2UV.x, .backFaceVertex2V = vertex2UV.y, .perVertexFrontFaceNormalAvailable = true, }, .movingDirection = { .x = +0.0f, .y = +0.0f, .z = +0.0f }, .materialIndex = 3, .geometryType = GeometryType::PRIMITIVE, });
-                
+
                     std::size_t currentIndex = bvhTreeMain.bvhTrees[5].geometries.size() - 1;
 //                  std::size_t currentIndex = bvhTreeMain.bvhTrees[5].geometries.size() - 1;
                     RotateAroundPivotAndAxis(bvhTreeMain.bvhTrees[5].geometries[currentIndex], { .x = +00.00f, .y = +00.00f, .z = +00.00f }, { .x = +00.00f, .y = +01.00f, .z = +00.00f }, lazy::DegToRad(+000.000f));
@@ -6354,7 +6448,7 @@ int main()
 
     for (BVHTree& bvhTree : bvhTreeMain.bvhTrees) for (Geometry& geo : bvhTree.geometries) { CalculateAABB3D(geo); if (geo.geometryType == GeometryType::PRIMITIVE && !geo.primitive.perVertexFrontFaceNormalAvailable) { geo.primitive.vertex0FrontFaceNormal = geo.primitive.vertex1FrontFaceNormal = geo.primitive.vertex2FrontFaceNormal = Normalize(Cross(geo.primitive.vertex1 - geo.primitive.vertex0, geo.primitive.vertex2 - geo.primitive.vertex0)); geo.primitive.perVertexFrontFaceNormalAvailable = true; } }
 //  for (BVHTree& bvhTree : bvhTreeMain.bvhTrees) for (Geometry& geo : bvhTree.geometries) { CalculateAABB3D(geo); if (geo.geometryType == GeometryType::PRIMITIVE && !geo.primitive.perVertexFrontFaceNormalAvailable) { geo.primitive.vertex0FrontFaceNormal = geo.primitive.vertex1FrontFaceNormal = geo.primitive.vertex2FrontFaceNormal = Normalize(Cross(geo.primitive.vertex1 - geo.primitive.vertex0, geo.primitive.vertex2 - geo.primitive.vertex0)); geo.primitive.perVertexFrontFaceNormalAvailable = true; } }
-    
+
 
 //  for (BVHTree& bvhTree : bvhTreeMain.bvhTrees) for (Geometry& geo : bvhTree.geometries)
 //  for (BVHTree& bvhTree : bvhTreeMain.bvhTrees) for (Geometry& geo : bvhTree.geometries)
@@ -6412,8 +6506,8 @@ int main()
 
     float aspectRatio = 16.0f / 9.0f;
 //  float aspectRatio = 16.0f / 9.0f;
-    int imgW = 1920 / 2;
-//  int imgW = 1920 / 2;
+    int imgW = 1920 / 1;
+//  int imgW = 1920 / 1;
     int imgH = int(imgW / aspectRatio);
 //  int imgH = int(imgW / aspectRatio);
     imgH = std::max(imgH, 1);
@@ -6527,6 +6621,11 @@ int main()
 //  constexpr int numberOfChannels = 3; // R G B
     std::vector<float> rgbs(imgW * imgH * numberOfChannels, 1.0f);
 //  std::vector<float> rgbs(imgW * imgH * numberOfChannels, 1.0f);
+    std::vector<float> normals(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> normals(imgW * imgH * numberOfChannels, 1.0f);
+    std::vector<float> albedos(imgW * imgH * numberOfChannels, 1.0f);
+//  std::vector<float> albedos(imgW * imgH * numberOfChannels, 1.0f);
+
 
 
     for (int pixelY = 0; pixelY < imgH; ++pixelY)
@@ -6537,8 +6636,8 @@ int main()
 #endif
     threadPool->Enqueue(
 //  threadPool->Enqueue(
-    [ pixelY, &imgW, &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &bvhTreeMain, &rgbs
-//  [ pixelY, &imgW, &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &bvhTreeMain, &rgbs
+    [ pixelY, &imgW, &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &bvhTreeMain, &rgbs, &albedos, &normals
+//  [ pixelY, &imgW, &stratifiedSamplesPerPixel, &inverseStratifiedSamplesPerPixel, &pixel00Coord, &fromPixelToPixelDeltaU, &fromPixelToPixelDeltaV, &cameraCenter, &defocusAngle, &defocusDiskRadiusU, &defocusDiskRadiusV, &pixelSamplesScale, &bvhTreeMain, &rgbs, &albedos, &normals
     ]
     {
 
@@ -6549,6 +6648,10 @@ int main()
 
         Color3 pixelColor{};
 //      Color3 pixelColor{};
+        Color3 albedo{};
+//      Color3 albedo{};
+        Color3 normal{};
+//      Color3 normal{};
         for (int sampleY = 0; sampleY < stratifiedSamplesPerPixel; ++sampleY)
         {
         for (int sampleX = 0; sampleX < stratifiedSamplesPerPixel; ++sampleX)
@@ -6567,23 +6670,41 @@ int main()
 //          Vec3 rayDirection = pixelSampleCenter - rayOrigin;
             Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
 //          Ray  ray{ .ori = rayOrigin, .dir = Normalize(rayDirection), .time = Random() };
-            pixelColor += RayColor(ray, bvhTreeMain, 1000, backgroundType);
-//          pixelColor += RayColor(ray, bvhTreeMain, 1000, backgroundType);
+            Color3 ialbedo{};
+//          Color3 ialbedo{};
+            Color3 inormal{};
+//          Color3 inormal{};
+            pixelColor += RayColor(ray, bvhTreeMain, 100, backgroundType, inormal, ialbedo);
+//          pixelColor += RayColor(ray, bvhTreeMain, 100, backgroundType, inormal, ialbedo);
+            albedo += ialbedo;
+//          albedo += ialbedo;
+            normal += inormal;
+//          normal += inormal;
         }
         }
         pixelColor *= pixelSamplesScale;
 //      pixelColor *= pixelSamplesScale;
+        albedo *= pixelSamplesScale;
+//      albedo *= pixelSamplesScale;
+        normal *= pixelSamplesScale;
+//      normal *= pixelSamplesScale;
         size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
 //      size_t index = (static_cast<size_t>(pixelY) * imgW + pixelX) * numberOfChannels;
         rgbs[index + 0] = pixelColor.x;
         rgbs[index + 1] = pixelColor.y;
         rgbs[index + 2] = pixelColor.z;
+        albedos[index + 0] = albedo.x;
+        albedos[index + 1] = albedo.y;
+        albedos[index + 2] = albedo.z;
+        normals[index + 0] = normal.x;
+        normals[index + 1] = normal.y;
+        normals[index + 2] = normal.z;
     }
     });
     }
 
 
-    
+
     #ifdef DISPLAY_WINDOW
 //  #ifdef DISPLAY_WINDOW
 
@@ -6724,14 +6845,29 @@ int main()
     std::size_t bufferSize = static_cast<std::size_t>(imgW) * imgH * 3 * sizeof(float);
 //  std::size_t bufferSize = static_cast<std::size_t>(imgW) * imgH * 3 * sizeof(float);
     oidn::BufferRef iBuffer = oidnDevice.newBuffer(bufferSize);
+//  oidn::BufferRef iBuffer = oidnDevice.newBuffer(bufferSize);
+    oidn::BufferRef albedoBuf = oidnDevice.newBuffer(bufferSize);
+//  oidn::BufferRef albedoBuf = oidnDevice.newBuffer(bufferSize);
+    oidn::BufferRef normalBuf = oidnDevice.newBuffer(bufferSize);
+//  oidn::BufferRef normalBuf = oidnDevice.newBuffer(bufferSize);
     oidn::BufferRef oBuffer = oidnDevice.newBuffer(bufferSize);
+//  oidn::BufferRef oBuffer = oidnDevice.newBuffer(bufferSize);
     iBuffer.write(0, bufferSize, rgbs.data());
 //  iBuffer.write(0, bufferSize, rgbs.data());
+    albedoBuf.write(0, bufferSize, albedos.data());
+//  albedoBuf.write(0, bufferSize, albedos.data());
+    normalBuf.write(0, bufferSize, normals.data());
+//  normalBuf.write(0, bufferSize, normals.data());
+
 
     oidn::FilterRef oidnFilter = oidnDevice.newFilter("RT");
 //  oidn::FilterRef oidnFilter = oidnDevice.newFilter("RT");
     oidnFilter.setImage("color" , iBuffer, oidn::Format::Float3, imgW, imgH);
 //  oidnFilter.setImage("color" , iBuffer, oidn::Format::Float3, imgW, imgH);
+    oidnFilter.setImage("albedo", albedoBuf, oidn::Format::Float3, imgW, imgH); // auxiliary
+//  oidnFilter.setImage("albedo", albedoBuf, oidn::Format::Float3, imgW, imgH); // auxiliary
+    oidnFilter.setImage("normal", normalBuf, oidn::Format::Float3, imgW, imgH); // auxiliary
+//  oidnFilter.setImage("normal", normalBuf, oidn::Format::Float3, imgW, imgH); // auxiliary
     oidnFilter.setImage("output", oBuffer, oidn::Format::Float3, imgW, imgH);
 //  oidnFilter.setImage("output", oBuffer, oidn::Format::Float3, imgW, imgH);
     oidnFilter.set("hdr", true);
@@ -6842,7 +6978,7 @@ int main()
 // e.g. 3x3 matrix <--- G(x := 1 -> 3, y := 1 -> 3)
 // with sigma = 1 then
 // with sigma = 1 then
-// 
+//
 // -------------------------
 // | 0.075 | 0.124 | 0.075 |
 // -------------------------
@@ -6850,7 +6986,7 @@ int main()
 // -------------------------
 // | 0.075 | 0.124 | 0.075 |
 // -------------------------
-// 
+//
 // -----------------------------------------
 // | 0.005 | 0.021 | 0.034 | 0.021 | 0.005 |
 // -----------------------------------------
@@ -6862,7 +6998,7 @@ int main()
 // -----------------------------------------
 // | 0.005 | 0.021 | 0.034 | 0.021 | 0.005 |
 // -----------------------------------------
-// 
+//
 // ---------------------------------------------------------
 // | 0.000 | 0.002 | 0.008 | 0.013 | 0.008 | 0.002 | 0.000 |
 // ---------------------------------------------------------
@@ -6878,10 +7014,10 @@ int main()
 // ---------------------------------------------------------
 // | 0.000 | 0.002 | 0.008 | 0.013 | 0.008 | 0.002 | 0.000 |
 // ---------------------------------------------------------
-// 
+//
 // with sigma = 2 then
 // with sigma = 2 then
-// 
+//
 // -------------------------
 // | 0.102 | 0.115 | 0.102 |
 // -------------------------
@@ -6889,7 +7025,7 @@ int main()
 // -------------------------
 // | 0.102 | 0.115 | 0.102 |
 // -------------------------
-// 
+//
 // -----------------------------------------
 // | 0.041 | 0.052 | 0.059 | 0.052 | 0.041 |
 // -----------------------------------------
@@ -6901,7 +7037,7 @@ int main()
 // -----------------------------------------
 // | 0.041 | 0.052 | 0.059 | 0.052 | 0.041 |
 // -----------------------------------------
-// 
+//
 // ---------------------------------------------------------
 // | 0.013 | 0.017 | 0.021 | 0.023 | 0.021 | 0.017 | 0.013 |
 // ---------------------------------------------------------
@@ -6917,10 +7053,10 @@ int main()
 // ---------------------------------------------------------
 // | 0.013 | 0.017 | 0.021 | 0.023 | 0.021 | 0.017 | 0.013 |
 // ---------------------------------------------------------
-// 
+//
 // with sigma = 3 then
 // with sigma = 3 then
-// 
+//
 // -------------------------
 // | 0.106 | 0.112 | 0.106 |
 // -------------------------
@@ -6928,7 +7064,7 @@ int main()
 // -------------------------
 // | 0.106 | 0.112 | 0.106 |
 // -------------------------
-// 
+//
 // -----------------------------------------
 // | 0.054 | 0.059 | 0.061 | 0.059 | 0.054 |
 // -----------------------------------------
@@ -6940,7 +7076,7 @@ int main()
 // -----------------------------------------
 // | 0.054 | 0.059 | 0.061 | 0.059 | 0.054 |
 // -----------------------------------------
-// 
+//
 // ---------------------------------------------------------
 // | 0.028 | 0.031 | 0.033 | 0.034 | 0.033 | 0.031 | 0.028 |
 // ---------------------------------------------------------
@@ -6956,7 +7092,7 @@ int main()
 // ---------------------------------------------------------
 // | 0.028 | 0.031 | 0.033 | 0.034 | 0.033 | 0.031 | 0.028 |
 // ---------------------------------------------------------
-// 
+//
 // ColorChannel[y x] = ColorChannel[y-1   x-1] * G(y-1 , x-1) + ColorChannel[y-1   x+0] * G(y-1 , x+0) + ColorChannel[y-1   x+1] * G(y-1 , x+1)
 //                   + ColorChannel[y+0   x-1] * G(y+0 , x-1) + ColorChannel[y+0   x+0] * G(y+0 , x+0) + ColorChannel[y+0   x+1] * G(y+0 , x+1)
 //                   + ColorChannel[y+1   x-1] * G(y+1 , x-1) + ColorChannel[y+1   x+0] * G(y+1 , x+0) + ColorChannel[y+1   x+1] * G(y+1 , x+1)
